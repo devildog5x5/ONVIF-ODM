@@ -31,13 +31,15 @@ Both editions share the same core business logic, ONVIF protocol services, and M
 
 Self-contained executables — **no .NET runtime installation required**. Just download, extract, and run.
 
-| Platform | Edition | Download |
-|----------|---------|----------|
-| **Windows x64** | WPF (native) | [OnvifDeviceManager-Wpf-win-x64-v1.1.0.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.1.0/OnvifDeviceManager-Wpf-win-x64-v1.1.0.zip) |
-| **Windows x64** | Avalonia | [OnvifDeviceManager-Avalonia-win-x64-v1.1.0.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.1.0/OnvifDeviceManager-Avalonia-win-x64-v1.1.0.zip) |
-| **Linux x64** | Avalonia | [OnvifDeviceManager-Avalonia-linux-x64-v1.1.0.tar.gz](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.1.0/OnvifDeviceManager-Avalonia-linux-x64-v1.1.0.tar.gz) |
-| **macOS Intel** | Avalonia | [OnvifDeviceManager-Avalonia-osx-x64-v1.1.0.tar.gz](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.1.0/OnvifDeviceManager-Avalonia-osx-x64-v1.1.0.tar.gz) |
-| **macOS Apple Silicon** | Avalonia | [OnvifDeviceManager-Avalonia-osx-arm64-v1.1.0.tar.gz](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.1.0/OnvifDeviceManager-Avalonia-osx-arm64-v1.1.0.tar.gz) |
+**Latest Release: v1.1.0** — Built: March 16, 2026 at 10:02 PM UTC
+
+| Platform | Edition | Download | Built |
+|----------|---------|----------|-------|
+| **Windows x64** | WPF (native) | [OnvifDeviceManager-Wpf-win-x64-v1.1.0.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.1.0/OnvifDeviceManager-Wpf-win-x64-v1.1.0.zip) | 2026-03-16 22:02 UTC |
+| **Windows x64** | Avalonia | [OnvifDeviceManager-Avalonia-win-x64-v1.1.0.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.1.0/OnvifDeviceManager-Avalonia-win-x64-v1.1.0.zip) | 2026-03-16 22:02 UTC |
+| **Linux x64** | Avalonia | [OnvifDeviceManager-Avalonia-linux-x64-v1.1.0.tar.gz](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.1.0/OnvifDeviceManager-Avalonia-linux-x64-v1.1.0.tar.gz) | 2026-03-16 22:02 UTC |
+| **macOS Intel** | Avalonia | [OnvifDeviceManager-Avalonia-osx-x64-v1.1.0.tar.gz](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.1.0/OnvifDeviceManager-Avalonia-osx-x64-v1.1.0.tar.gz) | 2026-03-16 22:02 UTC |
+| **macOS Apple Silicon** | Avalonia | [OnvifDeviceManager-Avalonia-osx-arm64-v1.1.0.tar.gz](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.1.0/OnvifDeviceManager-Avalonia-osx-arm64-v1.1.0.tar.gz) | 2026-03-16 22:02 UTC |
 
 > [See all releases](https://github.com/devildog5x5/ONVIF-ODM/releases)
 
