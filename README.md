@@ -1,6 +1,6 @@
 # ONVIF Device Manager
 
-A modern, feature-rich ONVIF Device Manager built with C# and WPF (.NET 8). Discover, connect to, and manage ONVIF-compliant IP cameras and devices on your network.
+A modern, feature-rich ONVIF Device Manager built with C# and Avalonia UI (.NET 8). Cross-platform application that runs on Windows, Linux, and macOS. Discover, connect to, and manage ONVIF-compliant IP cameras and devices on your network.
 
 ## Features
 
@@ -26,8 +26,8 @@ The application features a modern dark theme with:
 
 ## Requirements
 
-- Windows 10/11
 - .NET 8.0 SDK or Runtime
+- Windows 10/11, Linux, or macOS
 - Network access to ONVIF-compliant cameras
 
 ## Building
@@ -94,6 +94,7 @@ src/OnvifDeviceManager/
 
 ## Architecture
 
+- **Cross-Platform** - Built with Avalonia UI for Windows, Linux, and macOS
 - **MVVM Pattern** - Clean separation of concerns with ViewModelBase and RelayCommand
 - **SOAP/XML** - Direct ONVIF SOAP protocol implementation using HttpClient
 - **WS-Discovery** - UDP multicast device discovery per ONVIF specification
