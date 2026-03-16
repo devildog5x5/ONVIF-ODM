@@ -1,0 +1,66 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OnvifDeviceManager.ViewModels"
+             x:Class="OnvifDeviceManager.Views.UsersView"
+             x:DataType="vm:UsersViewModel">
+
+    <Grid Margin="24" RowDefinitions="Auto,*,Auto,Auto">
+        <Grid Grid.Row="0" Margin="0,0,0,20">
+            <StackPanel>
+                <TextBlock Text="User Management" Classes="header" />
+                <TextBlock Text="Manage device user accounts and access levels" Classes="body" Margin="0,4,0,0" />
+            </StackPanel>
+            <Button Classes="secondary" HorizontalAlignment="Right" VerticalAlignment="Top"
+                    Content="Refresh" Command="{Binding RefreshCommand}" />
+        </Grid>
+
+        <!-- Users List -->
+        <Border Grid.Row="1" Classes="card">
+            <Grid RowDefinitions="Auto,*">
+                <TextBlock Text="Device Users" Classes="subheader" Margin="0,0,0,12" />
+
+                <DataGrid Grid.Row="1" ItemsSource="{Binding Users}"
+                          SelectedItem="{Binding SelectedUser}"
+                          IsReadOnly="True" CanUserResizeColumns="True"
+                          GridLinesVisibility="Horizontal"
+                          Background="Transparent" Foreground="#B0BEC5"
+                          BorderThickness="0">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="USERNAME" Binding="{Binding Username}" Width="*" />
+                        <DataGridTextColumn Header="USER LEVEL" Binding="{Binding UserLevel}" Width="*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center"
+                            IsVisible="{Binding !Users.Count}">
+                    <PathIcon Data="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                              Foreground="#607D8B" Width="48" Height="48" HorizontalAlignment="Center" />
+                    <TextBlock Text="No users loaded" Classes="body" HorizontalAlignment="Center" Margin="0,12,0,0" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Create User -->
+        <Border Grid.Row="2" Classes="card" Margin="0,16,0,0">
+            <StackPanel>
+                <TextBlock Text="Create New User" Classes="subheader" Margin="0,0,0,16" />
+                <Grid ColumnDefinitions="*,8,*,8,*,8,Auto,8,Auto" RowDefinitions="Auto,Auto">
+                    <TextBlock Text="Username" Classes="caption" Margin="0,0,0,4" />
+                    <TextBlock Grid.Column="2" Text="Password" Classes="caption" Margin="0,0,0,4" />
+                    <TextBlock Grid.Column="4" Text="User Level" Classes="caption" Margin="0,0,0,4" />
+
+                    <TextBox Grid.Row="1" Classes="modern" Text="{Binding NewUsername}" />
+                    <TextBox Grid.Row="1" Grid.Column="2" Classes="modern" Text="{Binding NewPassword}" PasswordChar="*" />
+                    <ComboBox Grid.Row="1" Grid.Column="4" Classes="modern"
+                              ItemsSource="{Binding UserLevels}" SelectedItem="{Binding SelectedUserLevel}" />
+                    <Button Grid.Row="1" Grid.Column="6" Classes="primary" Content="Create" Command="{Binding CreateUserCommand}" />
+                    <Button Grid.Row="1" Grid.Column="8" Classes="danger" Content="Delete Selected" Command="{Binding DeleteUserCommand}" />
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="3" Margin="0,12,0,0" Padding="12,8" Background="#1E2A4A" CornerRadius="8">
+            <TextBlock Text="{Binding StatusText}" Classes="caption" />
+        </Border>
+    </Grid>
+</UserControl>

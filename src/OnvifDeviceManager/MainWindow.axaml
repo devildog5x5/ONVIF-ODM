@@ -1,0 +1,203 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:OnvifDeviceManager.ViewModels"
+        xmlns:views="using:OnvifDeviceManager.Views"
+        xmlns:conv="using:OnvifDeviceManager.Converters"
+        x:Class="OnvifDeviceManager.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="ONVIF Device Manager"
+        Width="1400" Height="900"
+        MinWidth="1100" MinHeight="700"
+        WindowStartupLocation="CenterScreen"
+        Background="#1A1A2E">
+
+    <Window.Resources>
+        <conv:NullToBoolConverter x:Key="NullToBool" />
+    </Window.Resources>
+
+    <Window.DataTemplates>
+        <DataTemplate DataType="{x:Type vm:DiscoveryViewModel}">
+            <views:DiscoveryView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:DeviceInfoViewModel}">
+            <views:DeviceInfoView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:LiveViewViewModel}">
+            <views:LiveViewView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:PtzViewModel}">
+            <views:PtzView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ProfilesViewModel}">
+            <views:ProfilesView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:NetworkViewModel}">
+            <views:NetworkView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:UsersViewModel}">
+            <views:UsersView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:EventsViewModel}">
+            <views:EventsView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+            <views:SettingsView />
+        </DataTemplate>
+    </Window.DataTemplates>
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Title Bar -->
+        <Border Grid.Row="0" Background="#16213E" 
+                BorderBrush="#2A3F5F" BorderThickness="0,0,0,1"
+                Padding="16,12">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                              Foreground="#00D4AA" Width="28" Height="28" Margin="0,0,12,0" />
+                    <StackPanel>
+                        <TextBlock Text="ONVIF Device Manager" Classes="subheader" />
+                        <TextBlock Text="Discover and manage ONVIF IP cameras" Classes="caption" />
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding SelectedDevice.DisplayName, FallbackValue='No Device Selected'}" 
+                               Classes="body" VerticalAlignment="Center" Margin="0,0,12,0" />
+                    <Ellipse Width="8" Height="8" Fill="#00D4AA" Margin="0,0,8,0"
+                             IsVisible="{Binding IsDeviceConnected}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="220,*">
+
+            <!-- Sidebar -->
+            <Border Grid.Column="0" Background="#16213E" 
+                    BorderBrush="#2A3F5F" BorderThickness="0,0,1,0">
+                <Grid RowDefinitions="*,Auto">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="8,8">
+                            <!-- Discovery Section -->
+                            <TextBlock Text="DISCOVERY" Classes="caption" FontWeight="Bold" Margin="16,12,0,8" />
+                            <Button Classes="secondary" Command="{Binding NavigateCommand}" CommandParameter="Discovery"
+                                    HorizontalAlignment="Stretch" Margin="4,1" Padding="14,10" CornerRadius="8">
+                                <StackPanel Orientation="Horizontal">
+                                    <PathIcon Data="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                                              Width="16" Height="16" Margin="0,0,10,0" />
+                                    <TextBlock Text="Discover Devices" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Device Section -->
+                            <TextBlock Text="DEVICE" Classes="caption" FontWeight="Bold" Margin="16,20,0,8" />
+                            <Button Classes="secondary" Command="{Binding NavigateCommand}" CommandParameter="DeviceInfo"
+                                    IsEnabled="{Binding IsDeviceConnected}"
+                                    HorizontalAlignment="Stretch" Margin="4,1" Padding="14,10" CornerRadius="8">
+                                <StackPanel Orientation="Horizontal">
+                                    <PathIcon Data="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"
+                                              Width="16" Height="16" Margin="0,0,10,0" />
+                                    <TextBlock Text="Device Info" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Classes="secondary" Command="{Binding NavigateCommand}" CommandParameter="LiveView"
+                                    IsEnabled="{Binding IsDeviceConnected}"
+                                    HorizontalAlignment="Stretch" Margin="4,1" Padding="14,10" CornerRadius="8">
+                                <StackPanel Orientation="Horizontal">
+                                    <PathIcon Data="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"
+                                              Width="16" Height="16" Margin="0,0,10,0" />
+                                    <TextBlock Text="Live View" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Classes="secondary" Command="{Binding NavigateCommand}" CommandParameter="PTZ"
+                                    IsEnabled="{Binding IsDeviceConnected}"
+                                    HorizontalAlignment="Stretch" Margin="4,1" Padding="14,10" CornerRadius="8">
+                                <StackPanel Orientation="Horizontal">
+                                    <PathIcon Data="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm-7 7H3v4c0 1.1.9 2 2 2h4v-2H5v-4zM5 5h4V3H5c-1.1 0-2 .9-2 2v4h2V5zm14-2h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm0 16h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4z"
+                                              Width="16" Height="16" Margin="0,0,10,0" />
+                                    <TextBlock Text="PTZ Control" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Classes="secondary" Command="{Binding NavigateCommand}" CommandParameter="Profiles"
+                                    IsEnabled="{Binding IsDeviceConnected}"
+                                    HorizontalAlignment="Stretch" Margin="4,1" Padding="14,10" CornerRadius="8">
+                                <StackPanel Orientation="Horizontal">
+                                    <PathIcon Data="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8 12.5v-9l6 4.5-6 4.5z"
+                                              Width="16" Height="16" Margin="0,0,10,0" />
+                                    <TextBlock Text="Media Profiles" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Management Section -->
+                            <TextBlock Text="MANAGEMENT" Classes="caption" FontWeight="Bold" Margin="16,20,0,8" />
+                            <Button Classes="secondary" Command="{Binding NavigateCommand}" CommandParameter="Network"
+                                    IsEnabled="{Binding IsDeviceConnected}"
+                                    HorizontalAlignment="Stretch" Margin="4,1" Padding="14,10" CornerRadius="8">
+                                <StackPanel Orientation="Horizontal">
+                                    <PathIcon Data="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"
+                                              Width="16" Height="16" Margin="0,0,10,0" />
+                                    <TextBlock Text="Network" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Classes="secondary" Command="{Binding NavigateCommand}" CommandParameter="Users"
+                                    IsEnabled="{Binding IsDeviceConnected}"
+                                    HorizontalAlignment="Stretch" Margin="4,1" Padding="14,10" CornerRadius="8">
+                                <StackPanel Orientation="Horizontal">
+                                    <PathIcon Data="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                                              Width="16" Height="16" Margin="0,0,10,0" />
+                                    <TextBlock Text="Users" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Classes="secondary" Command="{Binding NavigateCommand}" CommandParameter="Events"
+                                    IsEnabled="{Binding IsDeviceConnected}"
+                                    HorizontalAlignment="Stretch" Margin="4,1" Padding="14,10" CornerRadius="8">
+                                <StackPanel Orientation="Horizontal">
+                                    <PathIcon Data="M18 17H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V7h12v2zM3 22l1.5-1.5L6 22l1.5-1.5L9 22l1.5-1.5L12 22l1.5-1.5L15 22l1.5-1.5L18 22l1.5-1.5L21 22V2l-1.5 1.5L18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2 7.5 3.5 6 2 4.5 3.5 3 2v20z"
+                                              Width="16" Height="16" Margin="0,0,10,0" />
+                                    <TextBlock Text="Events" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Settings Section -->
+                            <TextBlock Text="APPLICATION" Classes="caption" FontWeight="Bold" Margin="16,20,0,8" />
+                            <Button Classes="secondary" Command="{Binding NavigateCommand}" CommandParameter="Settings"
+                                    HorizontalAlignment="Stretch" Margin="4,1" Padding="14,10" CornerRadius="8">
+                                <StackPanel Orientation="Horizontal">
+                                    <PathIcon Data="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"
+                                              Width="16" Height="16" Margin="0,0,10,0" />
+                                    <TextBlock Text="Settings" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Version -->
+                    <Border Grid.Row="1" Padding="16,8" 
+                            BorderBrush="#2A3F5F" BorderThickness="0,1,0,0">
+                        <TextBlock Text="v1.0.0" Classes="caption" HorizontalAlignment="Center" />
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Content -->
+            <ContentControl Grid.Column="1" Content="{Binding CurrentView}" />
+        </Grid>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="#16213E" 
+                BorderBrush="#2A3F5F" BorderThickness="0,1,0,0"
+                Padding="16,6">
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <TextBlock Text="{Binding StatusMessage}" Classes="caption" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1" Classes="caption" VerticalAlignment="Center" Margin="16,0"
+                           Text="{Binding Devices.Count, StringFormat='{}{0} device(s)'}" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

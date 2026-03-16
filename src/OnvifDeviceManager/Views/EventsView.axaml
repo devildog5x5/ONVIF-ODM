@@ -1,0 +1,59 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OnvifDeviceManager.ViewModels"
+             x:Class="OnvifDeviceManager.Views.EventsView"
+             x:DataType="vm:EventsViewModel">
+
+    <Grid Margin="24" RowDefinitions="Auto,Auto,*,Auto">
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Device Events" Classes="header" />
+            <TextBlock Text="Monitor real-time events from the connected device" Classes="body" Margin="0,4,0,0" />
+        </StackPanel>
+
+        <!-- Controls -->
+        <Border Grid.Row="1" Classes="card" Margin="0,0,0,16">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Classes="primary" Command="{Binding ToggleSubscriptionCommand}">
+                    <TextBlock Text="{Binding IsSubscribed, StringFormat='Toggle Subscription'}" />
+                </Button>
+                <Button Classes="secondary" Command="{Binding ClearEventsCommand}" Content="Clear" />
+                <TextBlock Classes="caption" VerticalAlignment="Center" Margin="8,0,0,0"
+                           Text="{Binding Events.Count, StringFormat='{}{0} event(s)'}" />
+            </StackPanel>
+        </Border>
+
+        <!-- Events Log -->
+        <Border Grid.Row="2" Classes="card">
+            <Grid RowDefinitions="Auto,*">
+                <TextBlock Text="Event Log" Classes="subheader" Margin="0,0,0,12" />
+
+                <DataGrid Grid.Row="1" ItemsSource="{Binding Events}"
+                          SelectedItem="{Binding SelectedEvent}"
+                          IsReadOnly="True" CanUserResizeColumns="True"
+                          GridLinesVisibility="Horizontal"
+                          Background="Transparent" Foreground="#B0BEC5"
+                          BorderThickness="0">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="TIMESTAMP" Binding="{Binding Timestamp, StringFormat='HH:mm:ss.fff'}" Width="120" />
+                        <DataGridTextColumn Header="SEVERITY" Binding="{Binding Severity}" Width="80" />
+                        <DataGridTextColumn Header="TOPIC" Binding="{Binding Topic}" Width="*" />
+                        <DataGridTextColumn Header="SOURCE" Binding="{Binding Source}" Width="150" />
+                        <DataGridTextColumn Header="DATA" Binding="{Binding Data}" Width="*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center"
+                            IsVisible="{Binding !Events.Count}">
+                    <PathIcon Data="M18 17H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V7h12v2zM3 22l1.5-1.5L6 22l1.5-1.5L9 22l1.5-1.5L12 22l1.5-1.5L15 22l1.5-1.5L18 22l1.5-1.5L21 22V2l-1.5 1.5L18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2 7.5 3.5 6 2 4.5 3.5 3 2v20z"
+                              Foreground="#607D8B" Width="48" Height="48" HorizontalAlignment="Center" />
+                    <TextBlock Text="No events recorded" Classes="body" HorizontalAlignment="Center" Margin="0,12,0,0" />
+                    <TextBlock Text="Subscribe to start receiving device events" Classes="caption" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="3" Margin="0,12,0,0" Padding="12,8" Background="#1E2A4A" CornerRadius="8">
+            <TextBlock Text="{Binding StatusText}" Classes="caption" />
+        </Border>
+    </Grid>
+</UserControl>

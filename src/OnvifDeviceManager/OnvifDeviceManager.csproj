@@ -2,8 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
-    <UseWPF>true</UseWPF>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>OnvifDeviceManager</RootNamespace>
     <AssemblyName>OnvifDeviceManager</AssemblyName>
     <Version>1.0.0</Version>
@@ -11,12 +10,16 @@
     <Description>ONVIF Device Manager - Discover and manage ONVIF-compliant IP cameras and devices</Description>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.ServiceModel.Http" Version="6.0.*" />
-    <PackageReference Include="System.ServiceModel.Primitives" Version="6.0.*" />
+    <PackageReference Include="Avalonia" Version="11.2.*" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.*" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.*" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.*" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.2.*" />
   </ItemGroup>
 
 </Project>

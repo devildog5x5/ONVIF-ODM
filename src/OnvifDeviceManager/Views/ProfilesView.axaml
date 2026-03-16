@@ -1,0 +1,85 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OnvifDeviceManager.ViewModels"
+             x:Class="OnvifDeviceManager.Views.ProfilesView"
+             x:DataType="vm:ProfilesViewModel">
+
+    <Grid Margin="24" RowDefinitions="Auto,*,Auto">
+        <Grid Grid.Row="0" Margin="0,0,0,20">
+            <StackPanel>
+                <TextBlock Text="Media Profiles" Classes="header" />
+                <TextBlock Text="View and manage media streaming profiles" Classes="body" Margin="0,4,0,0" />
+            </StackPanel>
+            <Button Classes="secondary" HorizontalAlignment="Right" VerticalAlignment="Top"
+                    Content="Refresh" Command="{Binding RefreshCommand}" />
+        </Grid>
+
+        <Grid Grid.Row="1" ColumnDefinitions="300,16,*">
+            <!-- Profile List -->
+            <Border Grid.Column="0" Classes="card">
+                <Grid RowDefinitions="Auto,*">
+                    <TextBlock Text="Profiles" Classes="subheader" Margin="0,0,0,12" />
+                    <ListBox Grid.Row="1" Classes="modern" ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="4">
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="White" />
+                                    <TextBlock Text="{Binding VideoEncoder.Summary, FallbackValue='No encoder info'}" Classes="caption" Margin="0,2,0,0" />
+                                    <Border CornerRadius="3" Padding="6,2" Background="#1500D4AA" Margin="0,4,0,0"
+                                            IsVisible="{Binding IsPtzEnabled}" HorizontalAlignment="Left">
+                                        <TextBlock Text="PTZ" FontSize="10" Foreground="#00D4AA" />
+                                    </Border>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+
+            <!-- Profile Details -->
+            <Border Grid.Column="2" Classes="card"
+                    IsVisible="{Binding SelectedProfile, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="Profile Details" Classes="subheader" Margin="0,0,0,20" />
+
+                        <TextBlock Text="GENERAL" Classes="caption" FontWeight="Bold" Margin="0,0,0,8" />
+                        <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto" Margin="0,0,0,20">
+                            <TextBlock Text="Name" Classes="caption" Margin="0,4" />
+                            <TextBlock Grid.Column="1" Text="{Binding SelectedProfile.Name}" Foreground="White" Margin="0,4" />
+                            <TextBlock Grid.Row="1" Text="Token" Classes="caption" Margin="0,4" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedProfile.Token}" Classes="mono" Margin="0,4" />
+                            <TextBlock Grid.Row="2" Text="PTZ Enabled" Classes="caption" Margin="0,4" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedProfile.IsPtzEnabled}" Foreground="White" Margin="0,4" />
+                        </Grid>
+
+                        <TextBlock Text="VIDEO ENCODER" Classes="caption" FontWeight="Bold" Margin="0,0,0,8" />
+                        <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" Margin="0,0,0,20"
+                              IsVisible="{Binding SelectedProfile.VideoEncoder, Converter={x:Static ObjectConverters.IsNotNull}}">
+                            <TextBlock Text="Encoding" Classes="caption" Margin="0,4" />
+                            <TextBlock Grid.Column="1" Text="{Binding SelectedProfile.VideoEncoder.Encoding}" Foreground="White" Margin="0,4" />
+                            <TextBlock Grid.Row="1" Text="Resolution" Classes="caption" Margin="0,4" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedProfile.VideoEncoder.Resolution}" Foreground="White" Margin="0,4" />
+                            <TextBlock Grid.Row="2" Text="Frame Rate" Classes="caption" Margin="0,4" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedProfile.VideoEncoder.FrameRate, StringFormat='{}{0} fps'}" Foreground="White" Margin="0,4" />
+                            <TextBlock Grid.Row="3" Text="Bitrate" Classes="caption" Margin="0,4" />
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedProfile.VideoEncoder.BitRate, StringFormat='{}{0} kbps'}" Foreground="White" Margin="0,4" />
+                            <TextBlock Grid.Row="4" Text="Quality" Classes="caption" Margin="0,4" />
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding SelectedProfile.VideoEncoder.Quality}" Foreground="White" Margin="0,4" />
+                        </Grid>
+
+                        <TextBlock Text="STREAM URIS" Classes="caption" FontWeight="Bold" Margin="0,0,0,8" />
+                        <TextBlock Text="RTSP Stream" Classes="caption" Margin="0,0,0,2" />
+                        <TextBlock Text="{Binding SelectedProfile.StreamUri, FallbackValue='N/A'}" Classes="mono" TextWrapping="Wrap" Margin="0,0,0,8" />
+                        <TextBlock Text="Snapshot" Classes="caption" Margin="0,0,0,2" />
+                        <TextBlock Text="{Binding SelectedProfile.SnapshotUri, FallbackValue='N/A'}" Classes="mono" TextWrapping="Wrap" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="2" Margin="0,12,0,0" Padding="12,8" Background="#1E2A4A" CornerRadius="8">
+            <TextBlock Text="{Binding StatusText}" Classes="caption" />
+        </Border>
+    </Grid>
+</UserControl>

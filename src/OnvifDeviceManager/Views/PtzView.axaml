@@ -1,0 +1,151 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OnvifDeviceManager.ViewModels"
+             x:Class="OnvifDeviceManager.Views.PtzView"
+             x:DataType="vm:PtzViewModel">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="24">
+            <TextBlock Text="PTZ Control" Classes="header" />
+            <TextBlock Text="Control pan, tilt, and zoom for PTZ-enabled cameras" Classes="body" Margin="0,4,0,24" />
+
+            <!-- Profile Selection -->
+            <Border Classes="card" Margin="0,0,0,16">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="PTZ Profile:" Classes="body" VerticalAlignment="Center" Margin="0,0,12,0" />
+                    <ComboBox Classes="modern" Width="250" ItemsSource="{Binding PtzProfiles}"
+                              SelectedItem="{Binding SelectedProfile}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+            </Border>
+
+            <Grid ColumnDefinitions="*,16,*">
+                <!-- Directional Pad -->
+                <Border Grid.Column="0" Classes="card">
+                    <StackPanel>
+                        <TextBlock Text="Direction Controls" Classes="subheader" Margin="0,0,0,16" />
+
+                        <!-- D-Pad Grid -->
+                        <Grid HorizontalAlignment="Center" Width="200" Height="200"
+                              RowDefinitions="*,*,*" ColumnDefinitions="*,*,*">
+                            <!-- Up -->
+                            <Button Grid.Row="0" Grid.Column="1" Classes="secondary" Command="{Binding MoveUpCommand}"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center" Width="52" Height="52" Padding="0">
+                                <PathIcon Data="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" Width="24" Height="24" />
+                            </Button>
+
+                            <!-- Left -->
+                            <Button Grid.Row="1" Grid.Column="0" Classes="secondary" Command="{Binding MoveLeftCommand}"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center" Width="52" Height="52" Padding="0">
+                                <PathIcon Data="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z" Width="24" Height="24" />
+                            </Button>
+
+                            <!-- Stop (Center) -->
+                            <Button Grid.Row="1" Grid.Column="1" Classes="primary" Command="{Binding StopCommand}"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center" Width="48" Height="48" Padding="0">
+                                <PathIcon Data="M6 6h12v12H6z" Width="20" Height="20" />
+                            </Button>
+
+                            <!-- Right -->
+                            <Button Grid.Row="1" Grid.Column="2" Classes="secondary" Command="{Binding MoveRightCommand}"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center" Width="52" Height="52" Padding="0">
+                                <PathIcon Data="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z" Width="24" Height="24" />
+                            </Button>
+
+                            <!-- Down -->
+                            <Button Grid.Row="2" Grid.Column="1" Classes="secondary" Command="{Binding MoveDownCommand}"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center" Width="52" Height="52" Padding="0">
+                                <PathIcon Data="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z" Width="24" Height="24" />
+                            </Button>
+                        </Grid>
+
+                        <!-- Zoom -->
+                        <TextBlock Text="Zoom" Classes="caption" Margin="0,20,0,8" HorizontalAlignment="Center" />
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12">
+                            <Button Classes="secondary" Command="{Binding ZoomOutCommand}" Width="48" Height="48" Padding="0">
+                                <PathIcon Data="M19 13H5v-2h14v2z" Width="20" Height="20" />
+                            </Button>
+                            <Button Classes="secondary" Command="{Binding ZoomInCommand}" Width="48" Height="48" Padding="0">
+                                <PathIcon Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" Width="20" Height="20" />
+                            </Button>
+                        </StackPanel>
+
+                        <!-- Home -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0" Spacing="8">
+                            <Button Classes="secondary" Content="Go Home" Command="{Binding HomeCommand}" Padding="16,8" />
+                            <Button Classes="secondary" Content="Set Home" Command="{Binding SetHomeCommand}" Padding="16,8" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Speed & Presets -->
+                <StackPanel Grid.Column="2" Spacing="16">
+                    <Border Classes="card">
+                        <StackPanel>
+                            <TextBlock Text="Speed Settings" Classes="subheader" Margin="0,0,0,16" />
+                            <TextBlock Text="Pan Speed" Classes="caption" Margin="0,0,0,4" />
+                            <Grid ColumnDefinitions="*,50" Margin="0,0,0,12">
+                                <Slider Minimum="0.1" Maximum="1.0" Value="{Binding PanSpeed}" TickFrequency="0.1" />
+                                <TextBlock Grid.Column="1" Text="{Binding PanSpeed, StringFormat='{}{0:F1}'}" Classes="body" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                            </Grid>
+
+                            <TextBlock Text="Tilt Speed" Classes="caption" Margin="0,0,0,4" />
+                            <Grid ColumnDefinitions="*,50" Margin="0,0,0,12">
+                                <Slider Minimum="0.1" Maximum="1.0" Value="{Binding TiltSpeed}" TickFrequency="0.1" />
+                                <TextBlock Grid.Column="1" Text="{Binding TiltSpeed, StringFormat='{}{0:F1}'}" Classes="body" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                            </Grid>
+
+                            <TextBlock Text="Zoom Speed" Classes="caption" Margin="0,0,0,4" />
+                            <Grid ColumnDefinitions="*,50">
+                                <Slider Minimum="0.1" Maximum="1.0" Value="{Binding ZoomSpeed}" TickFrequency="0.1" />
+                                <TextBlock Grid.Column="1" Text="{Binding ZoomSpeed, StringFormat='{}{0:F1}'}" Classes="body" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Classes="card">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,12">
+                                <TextBlock Text="Presets" Classes="subheader" />
+                                <Button Classes="icon" HorizontalAlignment="Right" Command="{Binding RefreshPresetsCommand}" ToolTip.Tip="Refresh">
+                                    <PathIcon Data="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
+                                              Width="16" Height="16" />
+                                </Button>
+                            </Grid>
+
+                            <ListBox Classes="modern" ItemsSource="{Binding Presets}" SelectedItem="{Binding SelectedPreset}" MaxHeight="150">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}" />
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0" Spacing="8">
+                                <Button Classes="primary" Content="Go To" Command="{Binding GotoPresetCommand}" Padding="12,6" />
+                                <Button Classes="danger" Content="Delete" Command="{Binding DeletePresetCommand}" Padding="12,6" />
+                            </StackPanel>
+
+                            <Separator Margin="0,12" />
+
+                            <TextBlock Text="Save New Preset" Classes="caption" Margin="0,0,0,4" />
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBox Classes="modern" Text="{Binding NewPresetName}" Margin="0,0,8,0" />
+                                <Button Grid.Column="1" Classes="primary" Content="Save" Command="{Binding SavePresetCommand}" Padding="12,6" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <Border Margin="0,16,0,0" Padding="12,8" Background="#1E2A4A" CornerRadius="8">
+                <TextBlock Text="{Binding StatusText}" Classes="caption" />
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

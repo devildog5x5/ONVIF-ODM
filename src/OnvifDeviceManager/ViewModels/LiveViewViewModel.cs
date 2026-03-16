@@ -1,7 +1,9 @@
 using System.Collections.ObjectModel;
 using System.Net.Http;
 using System.Windows.Input;
-using System.Windows.Media.Imaging;
+using Avalonia;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform.Storage;
 using OnvifDeviceManager.Models;
 using OnvifDeviceManager.Services;
 
@@ -12,7 +14,7 @@ public class LiveViewViewModel : ViewModelBase
     private readonly OnvifMediaService _mediaService;
     private OnvifDevice? _device;
     private MediaProfile? _selectedProfile;
-    private BitmapImage? _snapshotImage;
+    private Bitmap? _snapshotImage;
     private string _streamUri = string.Empty;
     private string _statusText = string.Empty;
     private bool _isLoading;
@@ -26,7 +28,7 @@ public class LiveViewViewModel : ViewModelBase
         RefreshSnapshotCommand = new AsyncRelayCommand(RefreshSnapshotAsync);
         StartAutoRefreshCommand = new RelayCommand(StartAutoRefresh);
         StopAutoRefreshCommand = new RelayCommand(StopAutoRefresh);
-        CopyStreamUriCommand = new RelayCommand(CopyStreamUri);
+        CopyStreamUriCommand = new AsyncRelayCommand(CopyStreamUriAsync);
     }
 
     public OnvifDevice? Device
@@ -50,7 +52,7 @@ public class LiveViewViewModel : ViewModelBase
         }
     }
 
-    public BitmapImage? SnapshotImage
+    public Bitmap? SnapshotImage
     {
         get => _snapshotImage;
         set => SetProperty(ref _snapshotImage, value);
@@ -138,13 +140,8 @@ public class LiveViewViewModel : ViewModelBase
             }
 
             var imageBytes = await client.GetByteArrayAsync(snapshotUri);
-
-            var bitmap = new BitmapImage();
-            bitmap.BeginInit();
-            bitmap.StreamSource = new System.IO.MemoryStream(imageBytes);
-            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-            bitmap.EndInit();
-            bitmap.Freeze();
+            var stream = new MemoryStream(imageBytes);
+            var bitmap = new Bitmap(stream);
 
             SnapshotImage = bitmap;
             StatusText = $"Snapshot captured at {DateTime.Now:HH:mm:ss}";
@@ -169,7 +166,7 @@ public class LiveViewViewModel : ViewModelBase
         {
             while (!_refreshCts.Token.IsCancellationRequested)
             {
-                await RefreshSnapshotAsync();
+                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => RefreshSnapshotAsync());
                 try
                 {
                     await Task.Delay(RefreshInterval, _refreshCts.Token);
@@ -189,11 +186,19 @@ public class LiveViewViewModel : ViewModelBase
         IsRefreshing = false;
     }
 
-    private void CopyStreamUri()
+    private async Task CopyStreamUriAsync()
     {
         if (!string.IsNullOrEmpty(StreamUri))
         {
-            System.Windows.Clipboard.SetText(StreamUri);
+            var topLevel = Application.Current?.ApplicationLifetime is
+                Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop
+                ? desktop.MainWindow : null;
+
+            if (topLevel?.Clipboard != null)
+            {
+                await topLevel.Clipboard.SetTextAsync(StreamUri);
+            }
+
             StatusText = "Stream URI copied to clipboard";
         }
     }

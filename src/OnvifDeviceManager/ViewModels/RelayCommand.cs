@@ -18,17 +18,13 @@ public class RelayCommand : ICommand
     {
     }
 
-    public event EventHandler? CanExecuteChanged
-    {
-        add => CommandManager.RequerySuggested += value;
-        remove => CommandManager.RequerySuggested -= value;
-    }
+    public event EventHandler? CanExecuteChanged;
 
     public bool CanExecute(object? parameter) => _canExecute?.Invoke(parameter) ?? true;
 
     public void Execute(object? parameter) => _execute(parameter);
 
-    public void RaiseCanExecuteChanged() => CommandManager.InvalidateRequerySuggested();
+    public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
 }
 
 public class AsyncRelayCommand : ICommand
@@ -48,11 +44,7 @@ public class AsyncRelayCommand : ICommand
     {
     }
 
-    public event EventHandler? CanExecuteChanged
-    {
-        add => CommandManager.RequerySuggested += value;
-        remove => CommandManager.RequerySuggested -= value;
-    }
+    public event EventHandler? CanExecuteChanged;
 
     public bool CanExecute(object? parameter) => !_isExecuting && (_canExecute?.Invoke(parameter) ?? true);
 
@@ -61,7 +53,7 @@ public class AsyncRelayCommand : ICommand
         if (_isExecuting) return;
 
         _isExecuting = true;
-        CommandManager.InvalidateRequerySuggested();
+        CanExecuteChanged?.Invoke(this, EventArgs.Empty);
 
         try
         {
@@ -70,7 +62,9 @@ public class AsyncRelayCommand : ICommand
         finally
         {
             _isExecuting = false;
-            CommandManager.InvalidateRequerySuggested();
+            CanExecuteChanged?.Invoke(this, EventArgs.Empty);
         }
     }
+
+    public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
 }

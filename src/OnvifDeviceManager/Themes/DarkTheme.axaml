@@ -1,0 +1,211 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style Selector="Window">
+        <Setter Property="Background" Value="#1A1A2E" />
+        <Setter Property="Foreground" Value="White" />
+    </Style>
+
+    <!-- Primary Button -->
+    <Style Selector="Button.primary">
+        <Setter Property="Background" Value="#00D4AA" />
+        <Setter Property="Foreground" Value="#1A1A2E" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Padding" Value="20,10" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#00E8BC" />
+    </Style>
+    <Style Selector="Button.primary:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="#00B892" />
+    </Style>
+
+    <!-- Secondary Button -->
+    <Style Selector="Button.secondary">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="#00D4AA" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Padding" Value="20,10" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="BorderThickness" Value="1.5" />
+        <Setter Property="BorderBrush" Value="#00D4AA" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.secondary:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#1500D4AA" />
+    </Style>
+
+    <!-- Danger Button -->
+    <Style Selector="Button.danger">
+        <Setter Property="Background" Value="#E94560" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Padding" Value="20,10" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.danger:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#FF5370" />
+    </Style>
+
+    <!-- Icon Button -->
+    <Style Selector="Button.icon">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="#B0BEC5" />
+        <Setter Property="Width" Value="36" />
+        <Setter Property="Height" Value="36" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.icon:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#253559" />
+    </Style>
+
+    <!-- Navigation Button (using ListBoxItem) -->
+    <Style Selector="ListBox.nav">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="4,0" />
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="#B0BEC5" />
+        <Setter Property="Padding" Value="16,10" />
+        <Setter Property="Margin" Value="4,1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#253559" />
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem:selected /template/ ContentPresenter">
+        <Setter Property="Background" Value="#1500D4AA" />
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem:selected">
+        <Setter Property="Foreground" Value="#00D4AA" />
+    </Style>
+
+    <!-- TextBox -->
+    <Style Selector="TextBox.modern">
+        <Setter Property="Background" Value="#0D1B2A" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="CaretBrush" Value="#00D4AA" />
+        <Setter Property="BorderBrush" Value="#2A3F5F" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="12,10" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+    <Style Selector="TextBox.modern:focus /template/ Border#PART_BorderElement">
+        <Setter Property="BorderBrush" Value="#00D4AA" />
+    </Style>
+
+    <!-- Card Border -->
+    <Style Selector="Border.card">
+        <Setter Property="Background" Value="#1E2A4A" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="20" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="#2A3F5F" />
+    </Style>
+
+    <!-- Headers -->
+    <Style Selector="TextBlock.header">
+        <Setter Property="FontSize" Value="24" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="White" />
+    </Style>
+
+    <Style Selector="TextBlock.subheader">
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="White" />
+    </Style>
+
+    <Style Selector="TextBlock.body">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="#B0BEC5" />
+    </Style>
+
+    <Style Selector="TextBlock.caption">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="Foreground" Value="#607D8B" />
+    </Style>
+
+    <Style Selector="TextBlock.accent">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="#00D4AA" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="TextBlock.mono">
+        <Setter Property="FontFamily" Value="Cascadia Code, Consolas, monospace" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="#00D4AA" />
+    </Style>
+
+    <!-- ListBox Items -->
+    <Style Selector="ListBox.modern">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="ListBox.modern ListBoxItem">
+        <Setter Property="Padding" Value="12,10" />
+        <Setter Property="Margin" Value="0,1" />
+        <Setter Property="CornerRadius" Value="8" />
+    </Style>
+    <Style Selector="ListBox.modern ListBoxItem:selected /template/ ContentPresenter">
+        <Setter Property="Background" Value="#1A3A5C" />
+    </Style>
+    <Style Selector="ListBox.modern ListBoxItem:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#253559" />
+    </Style>
+
+    <!-- DataGrid - styled in individual views -->
+
+    <!-- Separator -->
+    <Style Selector="Separator">
+        <Setter Property="Background" Value="#2A3F5F" />
+        <Setter Property="Height" Value="1" />
+        <Setter Property="Margin" Value="0,8" />
+    </Style>
+
+    <!-- ComboBox -->
+    <Style Selector="ComboBox.modern">
+        <Setter Property="Background" Value="#0D1B2A" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="BorderBrush" Value="#2A3F5F" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="12,8" />
+    </Style>
+
+    <!-- Slider -->
+    <Style Selector="Slider">
+        <Setter Property="Foreground" Value="#00D4AA" />
+    </Style>
+
+    <!-- CheckBox -->
+    <Style Selector="CheckBox">
+        <Setter Property="Foreground" Value="#B0BEC5" />
+    </Style>
+
+    <!-- ScrollViewer thin scrollbars -->
+    <Style Selector="ScrollBar">
+        <Setter Property="Width" Value="8" />
+    </Style>
+
+    <!-- ToolTip -->
+    <Style Selector="ToolTip">
+        <Setter Property="Background" Value="#1E2A4A" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="BorderBrush" Value="#2A3F5F" />
+    </Style>
+
+</Styles>

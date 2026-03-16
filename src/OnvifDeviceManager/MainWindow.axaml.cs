@@ -1,5 +1,4 @@
-using System.Windows;
-using OnvifDeviceManager.ViewModels;
+using Avalonia.Controls;
 
 namespace OnvifDeviceManager;
 
@@ -8,6 +7,5 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        DataContext = new MainViewModel();
     }
 }

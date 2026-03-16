@@ -1,0 +1,88 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OnvifDeviceManager.ViewModels"
+             x:Class="OnvifDeviceManager.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="24">
+            <TextBlock Text="Settings" Classes="header" />
+            <TextBlock Text="Configure application preferences" Classes="body" Margin="0,4,0,24" />
+
+            <!-- Discovery Settings -->
+            <Border Classes="card" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Discovery Settings" Classes="subheader" Margin="0,0,0,16" />
+
+                    <Grid ColumnDefinitions="200,*" RowDefinitions="Auto,Auto,Auto" Margin="0,0,0,0">
+                        <TextBlock Text="Discovery Timeout (sec)" Classes="body" VerticalAlignment="Center" />
+                        <TextBox Grid.Column="1" Classes="modern" Width="100" HorizontalAlignment="Left"
+                                 Text="{Binding DiscoveryTimeout}" />
+
+                        <TextBlock Grid.Row="1" Text="Connection Timeout (sec)" Classes="body" VerticalAlignment="Center" Margin="0,12,0,0" />
+                        <TextBox Grid.Row="1" Grid.Column="1" Classes="modern" Width="100" HorizontalAlignment="Left" Margin="0,12,0,0"
+                                 Text="{Binding ConnectionTimeout}" />
+
+                        <TextBlock Grid.Row="2" Text="Snapshot Refresh (ms)" Classes="body" VerticalAlignment="Center" Margin="0,12,0,0" />
+                        <TextBox Grid.Row="2" Grid.Column="1" Classes="modern" Width="100" HorizontalAlignment="Left" Margin="0,12,0,0"
+                                 Text="{Binding SnapshotRefreshRate}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Startup -->
+            <Border Classes="card" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Startup" Classes="subheader" Margin="0,0,0,16" />
+                    <CheckBox IsChecked="{Binding AutoDiscoverOnStartup}" Margin="0,0,0,8">
+                        <TextBlock Text="Auto-discover devices on startup" Foreground="#B0BEC5" />
+                    </CheckBox>
+                    <CheckBox IsChecked="{Binding RememberCredentials}">
+                        <TextBlock Text="Remember credentials" Foreground="#B0BEC5" />
+                    </CheckBox>
+                </StackPanel>
+            </Border>
+
+            <!-- Default Credentials -->
+            <Border Classes="card" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Default Credentials" Classes="subheader" Margin="0,0,0,8" />
+                    <TextBlock Text="These credentials will be used as defaults when connecting to devices" Classes="caption" Margin="0,0,0,12" />
+
+                    <Grid ColumnDefinitions="*,16,*" RowDefinitions="Auto,Auto">
+                        <TextBlock Text="Username" Classes="caption" Margin="0,0,0,4" />
+                        <TextBlock Grid.Column="2" Text="Password" Classes="caption" Margin="0,0,0,4" />
+                        <TextBox Grid.Row="1" Classes="modern" Text="{Binding DefaultUsername}" />
+                        <TextBox Grid.Row="1" Grid.Column="2" Classes="modern" Text="{Binding DefaultPassword}" PasswordChar="*" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- About -->
+            <Border Classes="card" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="About" Classes="subheader" Margin="0,0,0,12" />
+                    <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                        <TextBlock Text="Application" Classes="caption" Margin="0,4" />
+                        <TextBlock Grid.Column="1" Text="ONVIF Device Manager" Foreground="White" Margin="0,4" />
+                        <TextBlock Grid.Row="1" Text="Version" Classes="caption" Margin="0,4" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="1.0.0" Foreground="White" Margin="0,4" />
+                        <TextBlock Grid.Row="2" Text="Framework" Classes="caption" Margin="0,4" />
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text=".NET 8.0 / Avalonia UI" Foreground="White" Margin="0,4" />
+                        <TextBlock Grid.Row="3" Text="Author" Classes="caption" Margin="0,4" />
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="Robert Foster" Foreground="White" Margin="0,4" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Classes="primary" Content="Save Settings" Command="{Binding SaveCommand}" />
+                <Button Classes="secondary" Content="Reset to Defaults" Command="{Binding ResetCommand}" />
+            </StackPanel>
+
+            <Border Margin="0,16,0,0" Padding="12,8" Background="#1E2A4A" CornerRadius="8">
+                <TextBlock Text="{Binding StatusText}" Classes="caption" />
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

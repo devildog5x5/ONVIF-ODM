@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
-using System.Windows;
 using System.Windows.Input;
+using Avalonia.Threading;
 using OnvifDeviceManager.Models;
 using OnvifDeviceManager.Services;
 
@@ -110,7 +110,7 @@ public class DiscoveryViewModel : ViewModelBase
 
             foreach (var device in devices)
             {
-                Application.Current?.Dispatcher.Invoke(() => Devices.Add(device));
+                await Dispatcher.UIThread.InvokeAsync(() => Devices.Add(device));
             }
 
             StatusText = $"Discovery complete. Found {devices.Count} device(s)";
