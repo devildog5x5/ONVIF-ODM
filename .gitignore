@@ -48,6 +48,9 @@ bld/
 .idea/
 *.sln.iml
 
+## Published output
+publish/
+
 ## OS Files
 .DS_Store
 Thumbs.db

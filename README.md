@@ -27,18 +27,60 @@ Both editions share the same core business logic, ONVIF protocol services, and M
 - **WPF Edition**: Windows 10/11
 - **Avalonia Edition**: Windows, Linux (X11), or macOS
 
-## Building & Running
+## Quick Start (Pre-built Executables)
+
+Download the appropriate archive from the [Releases](../../releases) page:
+
+| Platform | Edition | File |
+|----------|---------|------|
+| Windows x64 | WPF (native) | `OnvifDeviceManager-Wpf-win-x64-v1.0.0.zip` |
+| Windows x64 | Avalonia | `OnvifDeviceManager-Avalonia-win-x64-v1.0.0.zip` |
+| Linux x64 | Avalonia | `OnvifDeviceManager-Avalonia-linux-x64-v1.0.0.tar.gz` |
+| macOS x64 (Intel) | Avalonia | `OnvifDeviceManager-Avalonia-osx-x64-v1.0.0.tar.gz` |
+| macOS ARM64 (Apple Silicon) | Avalonia | `OnvifDeviceManager-Avalonia-osx-arm64-v1.0.0.tar.gz` |
+
+All executables are **self-contained** single-file binaries -- no .NET runtime installation required.
+
+### Windows Installer
+
+Inno Setup installer scripts are provided in `build/installers/`. To create an installer:
+
+1. Install [Inno Setup 6](https://jrsoftware.org/isinfo.php)
+2. Build the executables (see below)
+3. Open and compile `build/installers/OnvifDeviceManager-Wpf-Setup.iss` or `OnvifDeviceManager-Avalonia-Setup.iss`
+
+### Linux Installation
 
 ```bash
-# Restore and build the entire solution (all 3 projects)
+tar -xzf OnvifDeviceManager-Avalonia-linux-x64-v1.0.0.tar.gz
+cd OnvifDeviceManager-Avalonia-linux-x64
+sudo ./linux-install.sh      # Installs to /opt/onvif-device-manager
+onvif-device-manager         # Run from anywhere
+sudo ./linux-uninstall.sh    # To uninstall
+```
+
+### macOS App Bundle
+
+```bash
+# After publishing, create a .app bundle:
+./build/packaging/create-macos-app.sh x64     # Intel Mac
+./build/packaging/create-macos-app.sh arm64   # Apple Silicon
+```
+
+## Building from Source
+
+```bash
+# Build the entire solution
 dotnet restore
 dotnet build
 
-# Run the WPF edition (Windows only)
-dotnet run --project src/OnvifDeviceManager.Wpf
+# Run directly (development)
+dotnet run --project src/OnvifDeviceManager.Wpf    # WPF (Windows only)
+dotnet run --project src/OnvifDeviceManager         # Avalonia (any platform)
 
-# Run the Avalonia edition (any platform)
-dotnet run --project src/OnvifDeviceManager
+# Build all release executables + archives
+./build/build-all.sh          # Linux/macOS
+.\build\build-all.ps1         # Windows PowerShell
 ```
 
 ## Project Structure

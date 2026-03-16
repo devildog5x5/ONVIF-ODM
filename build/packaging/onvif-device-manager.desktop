@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=ONVIF Device Manager
+Comment=Discover and manage ONVIF IP cameras
+Exec=/opt/onvif-device-manager/OnvifDeviceManager
+Terminal=false
+Type=Application
+Categories=Utility;Network;Video;
+Keywords=ONVIF;Camera;IP;PTZ;Surveillance;
+StartupWMClass=OnvifDeviceManager
