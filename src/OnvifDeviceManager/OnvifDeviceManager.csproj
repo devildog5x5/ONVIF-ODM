@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>OnvifDeviceManager</RootNamespace>
+    <AssemblyName>OnvifDeviceManager</AssemblyName>
+    <Version>1.0.0</Version>
+    <Authors>Robert Foster</Authors>
+    <Description>ONVIF Device Manager - Discover and manage ONVIF-compliant IP cameras and devices</Description>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.ServiceModel.Http" Version="6.0.*" />
+    <PackageReference Include="System.ServiceModel.Primitives" Version="6.0.*" />
+  </ItemGroup>
+
+</Project>

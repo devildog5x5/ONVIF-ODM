@@ -1,0 +1,152 @@
+<UserControl x:Class="OnvifDeviceManager.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="Transparent">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="24">
+            <!-- Header -->
+            <TextBlock Text="Settings" Style="{StaticResource HeaderText}" />
+            <TextBlock Text="Configure application preferences" 
+                       Style="{StaticResource BodyText}" Margin="0,4,0,24" />
+
+            <!-- Discovery Settings -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Discovery Settings" Style="{StaticResource SubHeaderText}" Margin="0,0,0,16" />
+
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Discovery Timeout (sec)" Style="{StaticResource BodyText}" 
+                                   VerticalAlignment="Center" />
+                        <TextBox Grid.Column="1" Style="{StaticResource ModernTextBox}" Width="100" HorizontalAlignment="Left"
+                                 Text="{Binding DiscoveryTimeout, UpdateSourceTrigger=PropertyChanged}" />
+                    </Grid>
+
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Connection Timeout (sec)" Style="{StaticResource BodyText}" 
+                                   VerticalAlignment="Center" />
+                        <TextBox Grid.Column="1" Style="{StaticResource ModernTextBox}" Width="100" HorizontalAlignment="Left"
+                                 Text="{Binding ConnectionTimeout, UpdateSourceTrigger=PropertyChanged}" />
+                    </Grid>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Snapshot Refresh (ms)" Style="{StaticResource BodyText}" 
+                                   VerticalAlignment="Center" />
+                        <TextBox Grid.Column="1" Style="{StaticResource ModernTextBox}" Width="100" HorizontalAlignment="Left"
+                                 Text="{Binding SnapshotRefreshRate, UpdateSourceTrigger=PropertyChanged}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Startup Settings -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Startup" Style="{StaticResource SubHeaderText}" Margin="0,0,0,16" />
+
+                    <CheckBox Style="{StaticResource ModernCheckBox}" 
+                              IsChecked="{Binding AutoDiscoverOnStartup}" Margin="0,0,0,8">
+                        <TextBlock Text="Auto-discover devices on startup" Foreground="{StaticResource SecondaryTextBrush}" />
+                    </CheckBox>
+
+                    <CheckBox Style="{StaticResource ModernCheckBox}" 
+                              IsChecked="{Binding RememberCredentials}">
+                        <TextBlock Text="Remember credentials" Foreground="{StaticResource SecondaryTextBrush}" />
+                    </CheckBox>
+                </StackPanel>
+            </Border>
+
+            <!-- Default Credentials -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Default Credentials" Style="{StaticResource SubHeaderText}" Margin="0,0,0,16" />
+                    <TextBlock Text="These credentials will be used as defaults when connecting to devices" 
+                               Style="{StaticResource CaptionText}" Margin="0,0,0,12" />
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="Username" Style="{StaticResource CaptionText}" Margin="0,0,0,4" />
+                        <TextBlock Grid.Column="2" Text="Password" Style="{StaticResource CaptionText}" Margin="0,0,0,4" />
+
+                        <TextBox Grid.Row="1" Style="{StaticResource ModernTextBox}" 
+                                 Text="{Binding DefaultUsername, UpdateSourceTrigger=PropertyChanged}" />
+                        <PasswordBox Grid.Row="1" Grid.Column="2" Style="{StaticResource ModernPasswordBox}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- About -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="About" Style="{StaticResource SubHeaderText}" Margin="0,0,0,12" />
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="140" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="Application" Style="{StaticResource CaptionText}" Margin="0,4" />
+                        <TextBlock Grid.Column="1" Text="ONVIF Device Manager" Margin="0,4" 
+                                   Foreground="{StaticResource PrimaryTextBrush}" />
+
+                        <TextBlock Grid.Row="1" Text="Version" Style="{StaticResource CaptionText}" Margin="0,4" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="1.0.0" Margin="0,4" 
+                                   Foreground="{StaticResource PrimaryTextBrush}" />
+
+                        <TextBlock Grid.Row="2" Text="Framework" Style="{StaticResource CaptionText}" Margin="0,4" />
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text=".NET 8.0 / WPF" Margin="0,4" 
+                                   Foreground="{StaticResource PrimaryTextBrush}" />
+
+                        <TextBlock Grid.Row="3" Text="Author" Style="{StaticResource CaptionText}" Margin="0,4" />
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="Robert Foster" Margin="0,4" 
+                                   Foreground="{StaticResource PrimaryTextBrush}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Actions -->
+            <StackPanel Orientation="Horizontal">
+                <Button Style="{StaticResource PrimaryButton}" Content="Save Settings" 
+                        Command="{Binding SaveCommand}" Margin="0,0,8,0" />
+                <Button Style="{StaticResource SecondaryButton}" Content="Reset to Defaults" 
+                        Command="{Binding ResetCommand}" />
+            </StackPanel>
+
+            <!-- Status -->
+            <Border Margin="0,16,0,0" Padding="12,8" 
+                    Background="{StaticResource CardBrush}" CornerRadius="{StaticResource MediumCornerRadius}">
+                <TextBlock Text="{Binding StatusText}" Style="{StaticResource CaptionText}" />
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
