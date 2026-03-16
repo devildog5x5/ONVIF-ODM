@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
-using Avalonia.Threading;
 using OnvifDeviceManager.Models;
 using OnvifDeviceManager.Services;
 
@@ -11,6 +10,7 @@ public class DiscoveryViewModel : ViewModelBase
     private readonly OnvifDiscoveryService _discoveryService;
     private readonly OnvifDeviceService _deviceService;
     private readonly OnvifMediaService _mediaService;
+    private readonly IUiDispatcher _dispatcher;
     private CancellationTokenSource? _discoveryCts;
 
     private bool _isDiscovering;
@@ -22,11 +22,12 @@ public class DiscoveryViewModel : ViewModelBase
     private string _statusText = "Click Discover to scan the network for ONVIF devices";
     private bool _isConnecting;
 
-    public DiscoveryViewModel(OnvifDiscoveryService discoveryService, OnvifDeviceService deviceService, OnvifMediaService mediaService)
+    public DiscoveryViewModel(OnvifDiscoveryService discoveryService, OnvifDeviceService deviceService, OnvifMediaService mediaService, IUiDispatcher dispatcher)
     {
         _discoveryService = discoveryService;
         _deviceService = deviceService;
         _mediaService = mediaService;
+        _dispatcher = dispatcher;
 
         DiscoverCommand = new AsyncRelayCommand(DiscoverDevicesAsync, () => !IsDiscovering);
         StopDiscoveryCommand = new RelayCommand(StopDiscovery, () => IsDiscovering);
@@ -110,7 +111,7 @@ public class DiscoveryViewModel : ViewModelBase
 
             foreach (var device in devices)
             {
-                await Dispatcher.UIThread.InvokeAsync(() => Devices.Add(device));
+                await _dispatcher.InvokeAsync(() => Devices.Add(device));
             }
 
             StatusText = $"Discovery complete. Found {devices.Count} device(s)";
@@ -171,20 +172,8 @@ public class DiscoveryViewModel : ViewModelBase
                 SelectedDevice.Profiles.Clear();
                 foreach (var profile in profiles)
                 {
-                    try
-                    {
-                        profile.StreamUri = await _mediaService.GetStreamUriAsync(
-                            capabilities.MediaServiceAddress, profile.Token, Username, Password);
-                    }
-                    catch { }
-
-                    try
-                    {
-                        profile.SnapshotUri = await _mediaService.GetSnapshotUriAsync(
-                            capabilities.MediaServiceAddress, profile.Token, Username, Password);
-                    }
-                    catch { }
-
+                    try { profile.StreamUri = await _mediaService.GetStreamUriAsync(capabilities.MediaServiceAddress, profile.Token, Username, Password); } catch { }
+                    try { profile.SnapshotUri = await _mediaService.GetSnapshotUriAsync(capabilities.MediaServiceAddress, profile.Token, Username, Password); } catch { }
                     SelectedDevice.Profiles.Add(profile);
                 }
             }
@@ -193,7 +182,6 @@ public class DiscoveryViewModel : ViewModelBase
             SelectedDevice.Status = DeviceStatus.Online;
             StatusText = $"Connected to {SelectedDevice.DisplayName}";
             StatusChanged?.Invoke($"Connected to {SelectedDevice.DisplayName}");
-
             DeviceSelected?.Invoke(SelectedDevice);
         }
         catch (SoapFaultException ex)
@@ -220,13 +208,9 @@ public class DiscoveryViewModel : ViewModelBase
 
         var address = ManualAddress.Trim();
         if (!address.StartsWith("http"))
-        {
             address = $"http://{address}/onvif/device_service";
-        }
         else if (!address.Contains("/onvif/"))
-        {
             address = address.TrimEnd('/') + "/onvif/device_service";
-        }
 
         var device = new OnvifDevice
         {
@@ -240,9 +224,7 @@ public class DiscoveryViewModel : ViewModelBase
         try
         {
             StatusText = $"Probing {address}...";
-            StatusChanged?.Invoke($"Probing {address}...");
-
-            var dateTime = await _deviceService.GetSystemDateTimeAsync(address);
+            await _deviceService.GetSystemDateTimeAsync(address);
             device.IsOnline = true;
             device.Status = DeviceStatus.Online;
             StatusText = $"Device found at {address}";

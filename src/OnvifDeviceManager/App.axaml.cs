@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using OnvifDeviceManager.Platform;
 using OnvifDeviceManager.ViewModels;
 
 namespace OnvifDeviceManager;
@@ -16,9 +17,12 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            var dispatcher = new AvaloniaUiDispatcher();
+            var clipboard = new AvaloniaClipboardService();
+
             desktop.MainWindow = new MainWindow
             {
-                DataContext = new MainViewModel()
+                DataContext = new MainViewModel(dispatcher, clipboard)
             };
         }
 

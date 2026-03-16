@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Windows;
 using System.Windows.Input;
 using OnvifDeviceManager.Models;
 using OnvifDeviceManager.Services;
@@ -20,11 +19,13 @@ public class MainViewModel : ViewModelBase
     private string _selectedNavItem = "Discovery";
     private bool _isDeviceConnected;
 
-    public MainViewModel()
+    public MainViewModel() : this(new DefaultUiDispatcher(), new DefaultClipboardService()) { }
+
+    public MainViewModel(IUiDispatcher dispatcher, IClipboardService clipboard)
     {
-        DiscoveryViewModel = new DiscoveryViewModel(_discoveryService, _deviceService, _mediaService);
+        DiscoveryViewModel = new DiscoveryViewModel(_discoveryService, _deviceService, _mediaService, dispatcher);
         DeviceInfoViewModel = new DeviceInfoViewModel(_deviceService);
-        LiveViewViewModel = new LiveViewViewModel(_mediaService);
+        LiveViewViewModel = new LiveViewViewModel(_mediaService, dispatcher, clipboard);
         PtzViewModel = new PtzViewModel(_ptzService);
         ProfilesViewModel = new ProfilesViewModel(_mediaService);
         NetworkViewModel = new NetworkViewModel(_deviceService);
@@ -147,8 +148,16 @@ public class MainViewModel : ViewModelBase
     private async Task RefreshAsync()
     {
         if (CurrentView == DiscoveryViewModel)
-        {
             await DiscoveryViewModel.DiscoverDevicesAsync();
-        }
     }
+}
+
+internal class DefaultUiDispatcher : IUiDispatcher
+{
+    public Task InvokeAsync(Action action) { action(); return Task.CompletedTask; }
+}
+
+internal class DefaultClipboardService : IClipboardService
+{
+    public Task SetTextAsync(string text) => Task.CompletedTask;
 }

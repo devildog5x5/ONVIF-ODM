@@ -1,9 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Net.Http;
 using System.Windows.Input;
-using Avalonia;
-using Avalonia.Media.Imaging;
-using Avalonia.Platform.Storage;
 using OnvifDeviceManager.Models;
 using OnvifDeviceManager.Services;
 
@@ -12,9 +9,11 @@ namespace OnvifDeviceManager.ViewModels;
 public class LiveViewViewModel : ViewModelBase
 {
     private readonly OnvifMediaService _mediaService;
+    private readonly IUiDispatcher _dispatcher;
+    private readonly IClipboardService _clipboard;
     private OnvifDevice? _device;
     private MediaProfile? _selectedProfile;
-    private Bitmap? _snapshotImage;
+    private byte[]? _snapshotBytes;
     private string _streamUri = string.Empty;
     private string _statusText = string.Empty;
     private bool _isLoading;
@@ -22,9 +21,11 @@ public class LiveViewViewModel : ViewModelBase
     private int _refreshInterval = 1000;
     private CancellationTokenSource? _refreshCts;
 
-    public LiveViewViewModel(OnvifMediaService mediaService)
+    public LiveViewViewModel(OnvifMediaService mediaService, IUiDispatcher dispatcher, IClipboardService clipboard)
     {
         _mediaService = mediaService;
+        _dispatcher = dispatcher;
+        _clipboard = clipboard;
         RefreshSnapshotCommand = new AsyncRelayCommand(RefreshSnapshotAsync);
         StartAutoRefreshCommand = new RelayCommand(StartAutoRefresh);
         StopAutoRefreshCommand = new RelayCommand(StopAutoRefresh);
@@ -52,10 +53,10 @@ public class LiveViewViewModel : ViewModelBase
         }
     }
 
-    public Bitmap? SnapshotImage
+    public byte[]? SnapshotBytes
     {
-        get => _snapshotImage;
-        set => SetProperty(ref _snapshotImage, value);
+        get => _snapshotBytes;
+        set => SetProperty(ref _snapshotBytes, value);
     }
 
     public string StreamUri
@@ -100,17 +101,13 @@ public class LiveViewViewModel : ViewModelBase
 
         Profiles.Clear();
         foreach (var profile in device.Profiles)
-        {
             Profiles.Add(profile);
-        }
 
         if (Profiles.Count > 0)
-        {
             SelectedProfile = Profiles[0];
-        }
     }
 
-    private async Task RefreshSnapshotAsync()
+    public async Task RefreshSnapshotAsync()
     {
         if (Device == null || SelectedProfile == null) return;
 
@@ -125,25 +122,16 @@ public class LiveViewViewModel : ViewModelBase
 
         try
         {
-            using var handler = new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback = (_, _, _, _) => true
-            };
+            using var handler = new HttpClientHandler { ServerCertificateCustomValidationCallback = (_, _, _, _) => true };
             using var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
             if (!string.IsNullOrEmpty(Device.Username))
             {
-                var credentials = Convert.ToBase64String(
-                    System.Text.Encoding.ASCII.GetBytes($"{Device.Username}:{Device.Password}"));
-                client.DefaultRequestHeaders.Authorization =
-                    new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentials);
+                var credentials = Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"{Device.Username}:{Device.Password}"));
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentials);
             }
 
-            var imageBytes = await client.GetByteArrayAsync(snapshotUri);
-            var stream = new MemoryStream(imageBytes);
-            var bitmap = new Bitmap(stream);
-
-            SnapshotImage = bitmap;
+            SnapshotBytes = await client.GetByteArrayAsync(snapshotUri);
             StatusText = $"Snapshot captured at {DateTime.Now:HH:mm:ss}";
         }
         catch (Exception ex)
@@ -166,15 +154,9 @@ public class LiveViewViewModel : ViewModelBase
         {
             while (!_refreshCts.Token.IsCancellationRequested)
             {
-                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => RefreshSnapshotAsync());
-                try
-                {
-                    await Task.Delay(RefreshInterval, _refreshCts.Token);
-                }
-                catch (OperationCanceledException)
-                {
-                    break;
-                }
+                await _dispatcher.InvokeAsync(async () => await RefreshSnapshotAsync());
+                try { await Task.Delay(RefreshInterval, _refreshCts.Token); }
+                catch (OperationCanceledException) { break; }
             }
         });
     }
@@ -190,15 +172,7 @@ public class LiveViewViewModel : ViewModelBase
     {
         if (!string.IsNullOrEmpty(StreamUri))
         {
-            var topLevel = Application.Current?.ApplicationLifetime is
-                Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop
-                ? desktop.MainWindow : null;
-
-            if (topLevel?.Clipboard != null)
-            {
-                await topLevel.Clipboard.SetTextAsync(StreamUri);
-            }
-
+            await _clipboard.SetTextAsync(StreamUri);
             StatusText = "Stream URI copied to clipboard";
         }
     }

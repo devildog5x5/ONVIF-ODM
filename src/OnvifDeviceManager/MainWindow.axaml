@@ -11,10 +11,6 @@
         WindowStartupLocation="CenterScreen"
         Background="#1A1A2E">
 
-    <Window.Resources>
-        <conv:NullToBoolConverter x:Key="NullToBool" />
-    </Window.Resources>
-
     <Window.DataTemplates>
         <DataTemplate DataType="{x:Type vm:DiscoveryViewModel}">
             <views:DiscoveryView />

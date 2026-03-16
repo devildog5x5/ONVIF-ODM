@@ -1,6 +1,11 @@
 # ONVIF Device Manager
 
-A modern, feature-rich ONVIF Device Manager built with C# and Avalonia UI (.NET 8). Cross-platform application that runs on Windows, Linux, and macOS. Discover, connect to, and manage ONVIF-compliant IP cameras and devices on your network.
+A modern, feature-rich ONVIF Device Manager built with C# and .NET 8. Ships with **two UI editions**:
+
+- **WPF Edition** - Native Windows desktop application with Segoe MDL2 icons
+- **Avalonia Edition** - Cross-platform application (Windows, Linux, macOS)
+
+Both editions share the same core business logic, ONVIF protocol services, and MVVM ViewModels.
 
 ## Features
 
@@ -16,86 +21,81 @@ A modern, feature-rich ONVIF Device Manager built with C# and Avalonia UI (.NET 
 - **Event Monitoring** - Subscribe to and monitor real-time device events
 - **ONVIF Security** - WS-Security UsernameToken authentication with digest passwords
 
-## Screenshots
-
-The application features a modern dark theme with:
-- Sidebar navigation with categorized sections
-- Card-based layout with rounded corners
-- Accent color highlighting for interactive elements
-- Status bar with connection information
-
 ## Requirements
 
 - .NET 8.0 SDK or Runtime
-- Windows 10/11, Linux, or macOS
-- Network access to ONVIF-compliant cameras
+- **WPF Edition**: Windows 10/11
+- **Avalonia Edition**: Windows, Linux (X11), or macOS
 
-## Building
+## Building & Running
 
 ```bash
-# Clone the repository
-git clone https://github.com/devildog5x5/ONVIF-ODM.git
-cd ONVIF-ODM
-
-# Restore packages and build
+# Restore and build the entire solution (all 3 projects)
 dotnet restore
 dotnet build
 
-# Run the application
+# Run the WPF edition (Windows only)
+dotnet run --project src/OnvifDeviceManager.Wpf
+
+# Run the Avalonia edition (any platform)
 dotnet run --project src/OnvifDeviceManager
 ```
 
 ## Project Structure
 
 ```
-src/OnvifDeviceManager/
-├── Models/                  # Data models
-│   ├── OnvifDevice.cs       # Core device model
-│   ├── MediaProfile.cs      # Video/audio profiles & encoder configs
-│   ├── PtzPreset.cs         # PTZ preset positions
-│   ├── DeviceCapabilities.cs # Device capability flags
-│   └── NetworkConfiguration.cs # Network, user, event models
-├── Services/                # ONVIF protocol services
-│   ├── SoapClient.cs        # SOAP/WS-Security client
-│   ├── OnvifDiscoveryService.cs  # WS-Discovery implementation
-│   ├── OnvifDeviceService.cs     # Device management service
-│   ├── OnvifMediaService.cs      # Media profiles & streaming
-│   └── OnvifPtzService.cs        # PTZ control service
-├── ViewModels/              # MVVM ViewModels
-│   ├── ViewModelBase.cs     # Base class with INotifyPropertyChanged
-│   ├── RelayCommand.cs      # ICommand implementations
-│   ├── MainViewModel.cs     # Main navigation & coordination
-│   ├── DiscoveryViewModel.cs # Device discovery & connection
-│   ├── DeviceInfoViewModel.cs # Device information display
-│   ├── LiveViewViewModel.cs  # Live snapshot viewer
-│   ├── PtzViewModel.cs       # PTZ controls & presets
-│   ├── ProfilesViewModel.cs  # Media profile management
-│   ├── NetworkViewModel.cs   # Network configuration
-│   ├── UsersViewModel.cs     # User management
-│   ├── EventsViewModel.cs    # Event monitoring
-│   └── SettingsViewModel.cs  # Application settings
-├── Views/                   # XAML User Controls
-│   ├── DiscoveryView.xaml    # Discovery page
-│   ├── DeviceInfoView.xaml   # Device info page
-│   ├── LiveViewView.xaml     # Live view page
-│   ├── PtzView.xaml          # PTZ control page
-│   ├── ProfilesView.xaml     # Media profiles page
-│   ├── NetworkView.xaml      # Network config page
-│   ├── UsersView.xaml        # User management page
-│   ├── EventsView.xaml       # Events page
-│   └── SettingsView.xaml     # Settings page
-├── Converters/              # WPF value converters
-├── Themes/                  # UI theme resources
-│   └── DarkTheme.xaml       # Dark theme colors & styles
-├── MainWindow.xaml          # Main window with sidebar navigation
-├── App.xaml                 # Application entry point
-└── OnvifDeviceManager.csproj # Project file
+OnvifDeviceManager.sln
+├── src/OnvifDeviceManager.Core/         # Shared class library
+│   ├── Models/                          # Data models
+│   │   ├── OnvifDevice.cs               # Core device model
+│   │   ├── MediaProfile.cs              # Video/audio profiles
+│   │   ├── PtzPreset.cs                 # PTZ preset positions
+│   │   ├── DeviceCapabilities.cs        # Service capabilities
+│   │   └── NetworkConfiguration.cs      # Network, user, event models
+│   ├── Services/                        # ONVIF protocol services
+│   │   ├── SoapClient.cs               # SOAP/WS-Security client
+│   │   ├── OnvifDiscoveryService.cs    # WS-Discovery
+│   │   ├── OnvifDeviceService.cs       # Device management
+│   │   ├── OnvifMediaService.cs        # Media profiles & streaming
+│   │   └── OnvifPtzService.cs          # PTZ control
+│   └── ViewModels/                      # MVVM ViewModels (platform-agnostic)
+│       ├── ViewModelBase.cs
+│       ├── RelayCommand.cs
+│       ├── IUiDispatcher.cs            # Platform abstraction interfaces
+│       ├── MainViewModel.cs
+│       ├── DiscoveryViewModel.cs
+│       ├── DeviceInfoViewModel.cs
+│       ├── LiveViewViewModel.cs
+│       ├── PtzViewModel.cs
+│       ├── ProfilesViewModel.cs
+│       ├── NetworkViewModel.cs
+│       ├── UsersViewModel.cs
+│       ├── EventsViewModel.cs
+│       └── SettingsViewModel.cs
+│
+├── src/OnvifDeviceManager/              # Avalonia UI (cross-platform)
+│   ├── Views/                           # .axaml Avalonia views
+│   ├── Themes/DarkTheme.axaml
+│   ├── Converters/
+│   ├── Platform/AvaloniaServices.cs
+│   ├── MainWindow.axaml
+│   └── App.axaml
+│
+└── src/OnvifDeviceManager.Wpf/          # WPF UI (Windows native)
+    ├── Views/                           # .xaml WPF views
+    ├── Themes/DarkTheme.xaml
+    ├── Converters/
+    ├── Platform/WpfServices.cs
+    ├── MainWindow.xaml
+    └── App.xaml
 ```
 
 ## Architecture
 
-- **Cross-Platform** - Built with Avalonia UI for Windows, Linux, and macOS
-- **MVVM Pattern** - Clean separation of concerns with ViewModelBase and RelayCommand
+- **Multi-Project Solution** - Shared Core library with platform-specific UI projects
+- **Cross-Platform** - Avalonia UI 11.2 for Windows/Linux/macOS, WPF for Windows-native
+- **MVVM Pattern** - Clean separation with ViewModelBase, RelayCommand, AsyncRelayCommand
+- **Platform Abstraction** - `IUiDispatcher` and `IClipboardService` interfaces
 - **SOAP/XML** - Direct ONVIF SOAP protocol implementation using HttpClient
 - **WS-Discovery** - UDP multicast device discovery per ONVIF specification
 - **WS-Security** - Username token authentication with SHA-1 password digest
