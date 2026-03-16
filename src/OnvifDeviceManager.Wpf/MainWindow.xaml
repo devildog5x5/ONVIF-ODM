@@ -23,6 +23,7 @@
         <DataTemplate DataType="{x:Type vm:UsersViewModel}"><views:UsersView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:EventsViewModel}"><views:EventsView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:SettingsViewModel}"><views:SettingsView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:CredentialManagerViewModel}"><views:CredentialManagerView /></DataTemplate>
     </Window.Resources>
 
     <Grid>
@@ -80,6 +81,7 @@
                         <Button Style="{StaticResource SecondaryBtn}" Content="&#xE7E7;  Events" Command="{Binding NavigateCommand}" CommandParameter="Events" IsEnabled="{Binding IsDeviceConnected}" HorizontalAlignment="Stretch" Margin="4,1" Padding="14,10" FontFamily="Segoe MDL2 Assets, Segoe UI" />
 
                         <TextBlock Text="APPLICATION" FontSize="11" Foreground="{StaticResource MutedText}" FontWeight="Bold" Margin="16,20,0,6" />
+                        <Button Style="{StaticResource SecondaryBtn}" Content="&#xE72E;  Credentials" Command="{Binding NavigateCommand}" CommandParameter="Credentials" HorizontalAlignment="Stretch" Margin="4,1" Padding="14,10" FontFamily="Segoe MDL2 Assets, Segoe UI" />
                         <Button Style="{StaticResource SecondaryBtn}" Content="&#xE713;  Settings" Command="{Binding NavigateCommand}" CommandParameter="Settings" HorizontalAlignment="Stretch" Margin="4,1" Padding="14,10" FontFamily="Segoe MDL2 Assets, Segoe UI" />
                     </StackPanel>
                 </ScrollViewer>

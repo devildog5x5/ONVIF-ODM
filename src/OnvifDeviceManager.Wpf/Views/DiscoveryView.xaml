@@ -80,12 +80,26 @@
                 <!-- Credentials -->
                 <Border Style="{StaticResource Card}">
                     <StackPanel>
-                        <TextBlock Text="Credentials" FontWeight="SemiBold" Margin="0,0,0,12" />
+                        <Grid Margin="0,0,0,8">
+                            <TextBlock Text="Credentials" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding CredentialSource}" FontSize="11" Foreground="{StaticResource Accent}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        </Grid>
                         <TextBlock Text="Username" Foreground="{StaticResource SecondaryText}" FontSize="11" Margin="0,0,0,4" />
-                        <TextBox Style="{StaticResource ModernTB}" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" />
+                        <TextBox Style="{StaticResource ModernTB}" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
                         <TextBlock Text="Password" Foreground="{StaticResource SecondaryText}" FontSize="11" Margin="0,0,0,4" />
-                        <TextBox Style="{StaticResource ModernTB}" Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16" />
-                        <Button Style="{StaticResource PrimaryBtn}" Content="Connect" Command="{Binding ConnectCommand}" HorizontalAlignment="Stretch" />
+                        <TextBox Style="{StaticResource ModernTB}" Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
+                        <CheckBox IsChecked="{Binding SaveCredentials}" Margin="0,0,0,12">
+                            <TextBlock Text="Save credentials for this device" Foreground="{StaticResource SecondaryText}" FontSize="12" />
+                        </CheckBox>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Button Style="{StaticResource PrimaryBtn}" Content="Connect" Command="{Binding ConnectCommand}" HorizontalAlignment="Stretch" />
+                            <Button Grid.Column="2" Style="{StaticResource SecondaryBtn}" Content="Connect All" Command="{Binding ConnectAllCommand}" HorizontalAlignment="Stretch" />
+                        </Grid>
                     </StackPanel>
                 </Border>
             </StackPanel>

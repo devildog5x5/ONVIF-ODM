@@ -11,6 +11,7 @@ public class MainViewModel : ViewModelBase
     private readonly OnvifDeviceService _deviceService = new();
     private readonly OnvifMediaService _mediaService = new();
     private readonly OnvifPtzService _ptzService = new();
+    private readonly CredentialStore _credentialStore = new();
 
     private ViewModelBase? _currentView;
     private OnvifDevice? _selectedDevice;
@@ -23,7 +24,7 @@ public class MainViewModel : ViewModelBase
 
     public MainViewModel(IUiDispatcher dispatcher, IClipboardService clipboard)
     {
-        DiscoveryViewModel = new DiscoveryViewModel(_discoveryService, _deviceService, _mediaService, dispatcher);
+        DiscoveryViewModel = new DiscoveryViewModel(_discoveryService, _deviceService, _mediaService, _credentialStore, dispatcher);
         DeviceInfoViewModel = new DeviceInfoViewModel(_deviceService);
         LiveViewViewModel = new LiveViewViewModel(_mediaService, dispatcher, clipboard);
         PtzViewModel = new PtzViewModel(_ptzService);
@@ -32,11 +33,13 @@ public class MainViewModel : ViewModelBase
         UsersViewModel = new UsersViewModel(_deviceService);
         EventsViewModel = new EventsViewModel();
         SettingsViewModel = new SettingsViewModel();
+        CredentialManagerViewModel = new CredentialManagerViewModel(_credentialStore);
 
         CurrentView = DiscoveryViewModel;
 
         NavigateCommand = new RelayCommand(Navigate);
         RefreshCommand = new AsyncRelayCommand(RefreshAsync);
+        SwitchDeviceCommand = new RelayCommand(SwitchDevice);
 
         DiscoveryViewModel.DeviceSelected += OnDeviceSelected;
         DiscoveryViewModel.StatusChanged += OnStatusChanged;
@@ -51,8 +54,11 @@ public class MainViewModel : ViewModelBase
     public UsersViewModel UsersViewModel { get; }
     public EventsViewModel EventsViewModel { get; }
     public SettingsViewModel SettingsViewModel { get; }
+    public CredentialManagerViewModel CredentialManagerViewModel { get; }
 
     public ObservableCollection<OnvifDevice> Devices => DiscoveryViewModel.Devices;
+
+    public ObservableCollection<OnvifDevice> ConnectedDevices { get; } = new();
 
     public ViewModelBase? CurrentView
     {
@@ -99,6 +105,7 @@ public class MainViewModel : ViewModelBase
 
     public ICommand NavigateCommand { get; }
     public ICommand RefreshCommand { get; }
+    public ICommand SwitchDeviceCommand { get; }
 
     private void Navigate(object? parameter)
     {
@@ -116,15 +123,28 @@ public class MainViewModel : ViewModelBase
             "Users" => UsersViewModel,
             "Events" => EventsViewModel,
             "Settings" => SettingsViewModel,
+            "Credentials" => CredentialManagerViewModel,
             _ => DiscoveryViewModel
         };
     }
 
     private void OnDeviceSelected(OnvifDevice device)
     {
+        if (!ConnectedDevices.Any(d => d.Address == device.Address))
+            ConnectedDevices.Add(device);
+
         SelectedDevice = device;
-        StatusMessage = $"Connected to {device.DisplayName}";
+        StatusMessage = $"Connected to {device.DisplayName} ({device.Username}@{device.Address})";
         Navigate("DeviceInfo");
+    }
+
+    private void SwitchDevice(object? parameter)
+    {
+        if (parameter is OnvifDevice device && device.IsAuthenticated)
+        {
+            SelectedDevice = device;
+            StatusMessage = $"Switched to {device.DisplayName} ({device.Username}@{device.Address})";
+        }
     }
 
     private void OnStatusChanged(string message)
