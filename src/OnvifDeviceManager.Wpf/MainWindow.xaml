@@ -1,0 +1,99 @@
+<Window x:Class="OnvifDeviceManager.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:OnvifDeviceManager.ViewModels;assembly=OnvifDeviceManager.Core"
+        xmlns:views="clr-namespace:OnvifDeviceManager.Wpf.Views"
+        xmlns:conv="clr-namespace:OnvifDeviceManager.Wpf.Converters"
+        Title="ONVIF Device Manager"
+        Width="1400" Height="900"
+        MinWidth="1100" MinHeight="700"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource PrimaryBg}"
+        Foreground="White"
+        FontFamily="{StaticResource MainFont}">
+
+    <Window.Resources>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis" />
+        <DataTemplate DataType="{x:Type vm:DiscoveryViewModel}"><views:DiscoveryView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:DeviceInfoViewModel}"><views:DeviceInfoView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:LiveViewViewModel}"><views:LiveViewView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:PtzViewModel}"><views:PtzView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ProfilesViewModel}"><views:ProfilesView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:NetworkViewModel}"><views:NetworkView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:UsersViewModel}"><views:UsersView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:EventsViewModel}"><views:EventsView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SettingsViewModel}"><views:SettingsView /></DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Title Bar -->
+        <Border Background="{StaticResource SecondaryBg}" BorderBrush="{StaticResource BorderClr}" BorderThickness="0,0,0,1" Padding="16,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal">
+                    <Ellipse Width="28" Height="28" Fill="{StaticResource Accent}" Margin="0,0,12,0" />
+                    <StackPanel>
+                        <TextBlock Text="ONVIF Device Manager" FontSize="16" FontWeight="SemiBold" />
+                        <TextBlock Text="Discover and manage ONVIF IP cameras" FontSize="11" Foreground="{StaticResource MutedText}" />
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding SelectedDevice.DisplayName, FallbackValue='No Device Selected'}" Foreground="{StaticResource SecondaryText}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                    <Ellipse Width="8" Height="8" Fill="{StaticResource Accent}" Visibility="{Binding IsDeviceConnected, Converter={StaticResource BoolToVis}}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Body -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="220" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Sidebar -->
+            <Border Background="{StaticResource SecondaryBg}" BorderBrush="{StaticResource BorderClr}" BorderThickness="0,0,1,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="8,8">
+                        <TextBlock Text="DISCOVERY" FontSize="11" Foreground="{StaticResource MutedText}" FontWeight="Bold" Margin="16,12,0,6" />
+                        <Button Style="{StaticResource SecondaryBtn}" Content="&#xE71C;  Discover Devices" Command="{Binding NavigateCommand}" CommandParameter="Discovery" HorizontalAlignment="Stretch" Margin="4,1" Padding="14,10" FontFamily="Segoe MDL2 Assets, Segoe UI" />
+
+                        <TextBlock Text="DEVICE" FontSize="11" Foreground="{StaticResource MutedText}" FontWeight="Bold" Margin="16,20,0,6" />
+                        <Button Style="{StaticResource SecondaryBtn}" Content="&#xE946;  Device Info" Command="{Binding NavigateCommand}" CommandParameter="DeviceInfo" IsEnabled="{Binding IsDeviceConnected}" HorizontalAlignment="Stretch" Margin="4,1" Padding="14,10" FontFamily="Segoe MDL2 Assets, Segoe UI" />
+                        <Button Style="{StaticResource SecondaryBtn}" Content="&#xE714;  Live View" Command="{Binding NavigateCommand}" CommandParameter="LiveView" IsEnabled="{Binding IsDeviceConnected}" HorizontalAlignment="Stretch" Margin="4,1" Padding="14,10" FontFamily="Segoe MDL2 Assets, Segoe UI" />
+                        <Button Style="{StaticResource SecondaryBtn}" Content="&#xE7B8;  PTZ Control" Command="{Binding NavigateCommand}" CommandParameter="PTZ" IsEnabled="{Binding IsDeviceConnected}" HorizontalAlignment="Stretch" Margin="4,1" Padding="14,10" FontFamily="Segoe MDL2 Assets, Segoe UI" />
+                        <Button Style="{StaticResource SecondaryBtn}" Content="&#xE8FD;  Media Profiles" Command="{Binding NavigateCommand}" CommandParameter="Profiles" IsEnabled="{Binding IsDeviceConnected}" HorizontalAlignment="Stretch" Margin="4,1" Padding="14,10" FontFamily="Segoe MDL2 Assets, Segoe UI" />
+
+                        <TextBlock Text="MANAGEMENT" FontSize="11" Foreground="{StaticResource MutedText}" FontWeight="Bold" Margin="16,20,0,6" />
+                        <Button Style="{StaticResource SecondaryBtn}" Content="&#xE968;  Network" Command="{Binding NavigateCommand}" CommandParameter="Network" IsEnabled="{Binding IsDeviceConnected}" HorizontalAlignment="Stretch" Margin="4,1" Padding="14,10" FontFamily="Segoe MDL2 Assets, Segoe UI" />
+                        <Button Style="{StaticResource SecondaryBtn}" Content="&#xE77B;  Users" Command="{Binding NavigateCommand}" CommandParameter="Users" IsEnabled="{Binding IsDeviceConnected}" HorizontalAlignment="Stretch" Margin="4,1" Padding="14,10" FontFamily="Segoe MDL2 Assets, Segoe UI" />
+                        <Button Style="{StaticResource SecondaryBtn}" Content="&#xE7E7;  Events" Command="{Binding NavigateCommand}" CommandParameter="Events" IsEnabled="{Binding IsDeviceConnected}" HorizontalAlignment="Stretch" Margin="4,1" Padding="14,10" FontFamily="Segoe MDL2 Assets, Segoe UI" />
+
+                        <TextBlock Text="APPLICATION" FontSize="11" Foreground="{StaticResource MutedText}" FontWeight="Bold" Margin="16,20,0,6" />
+                        <Button Style="{StaticResource SecondaryBtn}" Content="&#xE713;  Settings" Command="{Binding NavigateCommand}" CommandParameter="Settings" HorizontalAlignment="Stretch" Margin="4,1" Padding="14,10" FontFamily="Segoe MDL2 Assets, Segoe UI" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <ContentControl Grid.Column="1" Content="{Binding CurrentView}" />
+        </Grid>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="{StaticResource SecondaryBg}" BorderBrush="{StaticResource BorderClr}" BorderThickness="0,1,0,0" Padding="16,6">
+            <Grid>
+                <TextBlock Text="{Binding StatusMessage}" FontSize="11" Foreground="{StaticResource MutedText}" VerticalAlignment="Center" />
+                <TextBlock HorizontalAlignment="Right" FontSize="11" Foreground="{StaticResource MutedText}" VerticalAlignment="Center" Text="{Binding Devices.Count, StringFormat='{}{0} device(s)'}" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

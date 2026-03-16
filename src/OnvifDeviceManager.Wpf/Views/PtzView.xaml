@@ -1,0 +1,109 @@
+<UserControl x:Class="OnvifDeviceManager.Wpf.Views.PtzView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:OnvifDeviceManager.ViewModels;assembly=OnvifDeviceManager.Core"
+             DataContext="{Binding}"
+             Background="{StaticResource PrimaryBg}"
+             Foreground="{StaticResource PrimaryText}"
+             FontFamily="{StaticResource MainFont}">
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock Grid.Row="0" Text="PTZ Control" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,20" />
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="320" />
+            </Grid.ColumnDefinitions>
+
+            <!-- PTZ Pad and Controls -->
+            <Border Grid.Column="0" Style="{StaticResource Card}" Margin="0,0,12,0">
+                <StackPanel>
+                    <ComboBox ItemsSource="{Binding PtzProfiles}" SelectedItem="{Binding SelectedProfile}"
+                              DisplayMemberPath="Name" MinWidth="220" Margin="0,0,0,20"
+                              Background="{StaticResource InputBg}" Foreground="White" BorderBrush="{StaticResource BorderClr}" />
+
+                    <!-- Directional Pad -->
+                    <Grid Width="180" Height="180" HorizontalAlignment="Center" Margin="0,0,0,20">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Row="0" Grid.Column="1" Style="{StaticResource SecondaryBtn}" Content="▲" FontSize="16"
+                                Command="{Binding MoveUpCommand}" Margin="2" />
+                        <Button Grid.Row="1" Grid.Column="0" Style="{StaticResource SecondaryBtn}" Content="◀" FontSize="16"
+                                Command="{Binding MoveLeftCommand}" Margin="2" />
+                        <Button Grid.Row="1" Grid.Column="1" Style="{StaticResource DangerBtn}" Content="■" FontSize="14"
+                                Command="{Binding StopCommand}" Margin="2" />
+                        <Button Grid.Row="1" Grid.Column="2" Style="{StaticResource SecondaryBtn}" Content="▶" FontSize="16"
+                                Command="{Binding MoveRightCommand}" Margin="2" />
+                        <Button Grid.Row="2" Grid.Column="1" Style="{StaticResource SecondaryBtn}" Content="▼" FontSize="16"
+                                Command="{Binding MoveDownCommand}" Margin="2" />
+                    </Grid>
+
+                    <!-- Zoom and Home -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,20">
+                        <Button Style="{StaticResource SecondaryBtn}" Content="Zoom In" Command="{Binding ZoomInCommand}" Margin="0,0,8,0" />
+                        <Button Style="{StaticResource SecondaryBtn}" Content="Zoom Out" Command="{Binding ZoomOutCommand}" Margin="0,0,16,0" />
+                        <Button Style="{StaticResource PrimaryBtn}" Content="Go Home" Command="{Binding HomeCommand}" Margin="0,0,8,0" />
+                        <Button Style="{StaticResource SecondaryBtn}" Content="Set Home" Command="{Binding SetHomeCommand}" />
+                    </StackPanel>
+
+                    <!-- Speed Sliders -->
+                    <StackPanel>
+                        <TextBlock Text="Pan Speed" Foreground="{StaticResource SecondaryText}" FontSize="11" Margin="0,0,0,4" />
+                        <Slider Value="{Binding PanSpeed}" Minimum="0" Maximum="1" TickFrequency="0.1" Margin="0,0,0,12" />
+                        <TextBlock Text="Tilt Speed" Foreground="{StaticResource SecondaryText}" FontSize="11" Margin="0,0,0,4" />
+                        <Slider Value="{Binding TiltSpeed}" Minimum="0" Maximum="1" TickFrequency="0.1" Margin="0,0,0,12" />
+                        <TextBlock Text="Zoom Speed" Foreground="{StaticResource SecondaryText}" FontSize="11" Margin="0,0,0,4" />
+                        <Slider Value="{Binding ZoomSpeed}" Minimum="0" Maximum="1" TickFrequency="0.1" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Presets -->
+            <Border Grid.Column="1" Style="{StaticResource Card}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Presets" FontWeight="SemiBold" Margin="0,0,0,12" />
+                    <ListBox Grid.Row="1" ItemsSource="{Binding Presets}" SelectedItem="{Binding SelectedPreset}"
+                             DisplayMemberPath="Name" Style="{StaticResource ModernLB}" ItemContainerStyle="{StaticResource ModernLBI}"
+                             Margin="0,0,0,12" />
+                    <StackPanel Grid.Row="2">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <TextBox Style="{StaticResource ModernTB}" Text="{Binding NewPresetName, UpdateSourceTrigger=PropertyChanged}"
+                                     Width="140" Margin="0,0,8,0" />
+                            <Button Style="{StaticResource PrimaryBtn}" Content="Save" Command="{Binding SavePresetCommand}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource SecondaryBtn}" Content="Go To" Command="{Binding GotoPresetCommand}" Margin="0,0,8,0" />
+                            <Button Style="{StaticResource DangerBtn}" Content="Delete" Command="{Binding DeletePresetCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="{StaticResource SecondaryBg}" CornerRadius="8" Padding="16,10" Margin="0,16,0,0">
+            <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource MutedText}" FontSize="12" VerticalAlignment="Center" />
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,69 @@
+<UserControl x:Class="OnvifDeviceManager.Wpf.Views.EventsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:OnvifDeviceManager.ViewModels;assembly=OnvifDeviceManager.Core"
+             DataContext="{Binding}"
+             Background="{StaticResource PrimaryBg}"
+             Foreground="{StaticResource PrimaryText}"
+             FontFamily="{StaticResource MainFont}">
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Style="{StaticResource Card}" Margin="0,0,0,16">
+            <StackPanel Orientation="Horizontal">
+                <Button Style="{StaticResource PrimaryBtn}" Content="{Binding IsSubscribed, Converter={StaticResource BoolToSubscribe}, ConverterParameter=Unsubscribe|Subscribe}"
+                        Command="{Binding ToggleSubscriptionCommand}" Margin="0,0,12,0" />
+                <Button Style="{StaticResource SecondaryBtn}" Content="Clear" Command="{Binding ClearEventsCommand}" />
+            </StackPanel>
+        </Border>
+
+        <!-- Events DataGrid -->
+        <Border Grid.Row="1" Style="{StaticResource Card}">
+            <DataGrid ItemsSource="{Binding Events}" SelectedItem="{Binding SelectedEvent}"
+                      AutoGenerateColumns="False" IsReadOnly="True"
+                      Background="Transparent" BorderThickness="0"
+                      RowBackground="{StaticResource InputBg}" AlternatingRowBackground="#0F1520"
+                      GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{StaticResource BorderClr}"
+                      HeadersVisibility="Column" CanUserAddRows="False" CanUserDeleteRows="False">
+                <DataGrid.ColumnHeaderStyle>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="Background" Value="{StaticResource SecondaryBg}" />
+                        <Setter Property="Foreground" Value="{StaticResource SecondaryText}" />
+                        <Setter Property="Padding" Value="12,10" />
+                        <Setter Property="BorderBrush" Value="{StaticResource BorderClr}" />
+                        <Setter Property="BorderThickness" Value="0,0,0,1" />
+                    </Style>
+                </DataGrid.ColumnHeaderStyle>
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Setter Property="Foreground" Value="{StaticResource PrimaryText}" />
+                    </Style>
+                </DataGrid.RowStyle>
+                <DataGrid.CellStyle>
+                    <Style TargetType="DataGridCell">
+                        <Setter Property="Padding" Value="12,8" />
+                        <Setter Property="BorderThickness" Value="0" />
+                    </Style>
+                </DataGrid.CellStyle>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Timestamp" Binding="{Binding Timestamp, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}" Width="160" />
+                    <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="80" />
+                    <DataGridTextColumn Header="Topic" Binding="{Binding Topic}" Width="*" />
+                    <DataGridTextColumn Header="Source" Binding="{Binding Source}" Width="120" />
+                    <DataGridTextColumn Header="Data" Binding="{Binding Data}" Width="*" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="{StaticResource SecondaryBg}" CornerRadius="8" Padding="16,10" Margin="0,16,0,0">
+            <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource MutedText}" FontSize="12" VerticalAlignment="Center" />
+        </Border>
+    </Grid>
+</UserControl>

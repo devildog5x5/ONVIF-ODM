@@ -1,0 +1,67 @@
+<UserControl x:Class="OnvifDeviceManager.Wpf.Views.NetworkView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:OnvifDeviceManager.ViewModels;assembly=OnvifDeviceManager.Core"
+             DataContext="{Binding}"
+             Background="{StaticResource PrimaryBg}"
+             Foreground="{StaticResource PrimaryText}"
+             FontFamily="{StaticResource MainFont}">
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+            <TextBlock Text="Network Configuration" FontSize="24" FontWeight="SemiBold" />
+            <Button Style="{StaticResource SecondaryBtn}" Content="Refresh" Command="{Binding RefreshCommand}" Margin="24,0,0,0" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <!-- Network Config Card -->
+        <Border Grid.Row="1" Style="{StaticResource Card}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="IP Address:" Foreground="{StaticResource MutedText}" Margin="0,0,0,8" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding NetworkConfig.IpAddress}" FontFamily="{StaticResource MonoFont}" Margin="0,0,0,8" />
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Subnet Mask:" Foreground="{StaticResource MutedText}" Margin="0,0,0,8" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding NetworkConfig.SubnetMask}" FontFamily="{StaticResource MonoFont}" Margin="0,0,0,8" />
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Gateway:" Foreground="{StaticResource MutedText}" Margin="0,0,0,8" />
+                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding NetworkConfig.Gateway}" FontFamily="{StaticResource MonoFont}" Margin="0,0,0,8" />
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="DHCP:" Foreground="{StaticResource MutedText}" Margin="0,0,0,8" />
+                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding NetworkConfig.IsDhcp}" Margin="0,0,0,8" />
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="MAC Address:" Foreground="{StaticResource MutedText}" Margin="0,0,0,8" />
+                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding NetworkConfig.MacAddress}" FontFamily="{StaticResource MonoFont}" Margin="0,0,0,8" />
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="Primary DNS:" Foreground="{StaticResource MutedText}" Margin="0,0,0,8" />
+                <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding NetworkConfig.PrimaryDns}" FontFamily="{StaticResource MonoFont}" Margin="0,0,0,8" />
+                <TextBlock Grid.Row="6" Grid.Column="0" Text="Secondary DNS:" Foreground="{StaticResource MutedText}" Margin="0,0,0,8" />
+                <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding NetworkConfig.SecondaryDns}" FontFamily="{StaticResource MonoFont}" Margin="0,0,0,8" />
+                <TextBlock Grid.Row="7" Grid.Column="0" Text="HTTP Port:" Foreground="{StaticResource MutedText}" Margin="0,0,0,8" />
+                <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding NetworkConfig.HttpPort}" FontFamily="{StaticResource MonoFont}" Margin="0,0,0,8" />
+                <TextBlock Grid.Row="8" Grid.Column="0" Text="RTSP Port:" Foreground="{StaticResource MutedText}" Margin="0,0,0,8" />
+                <TextBlock Grid.Row="8" Grid.Column="1" Text="{Binding NetworkConfig.RtspPort}" FontFamily="{StaticResource MonoFont}" />
+            </Grid>
+        </Border>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="{StaticResource SecondaryBg}" CornerRadius="8" Padding="16,10" Margin="0,16,0,0">
+            <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource MutedText}" FontSize="12" VerticalAlignment="Center" />
+        </Border>
+    </Grid>
+</UserControl>

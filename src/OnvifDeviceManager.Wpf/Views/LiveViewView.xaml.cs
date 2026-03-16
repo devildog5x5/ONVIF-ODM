@@ -1,0 +1,11 @@
+using System.Windows.Controls;
+
+namespace OnvifDeviceManager.Wpf.Views;
+
+public partial class LiveViewView : UserControl
+{
+    public LiveViewView()
+    {
+        InitializeComponent();
+    }
+}

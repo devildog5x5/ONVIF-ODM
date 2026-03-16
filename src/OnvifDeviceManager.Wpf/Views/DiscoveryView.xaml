@@ -1,0 +1,99 @@
+<UserControl x:Class="OnvifDeviceManager.Wpf.Views.DiscoveryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:OnvifDeviceManager.ViewModels;assembly=OnvifDeviceManager.Core"
+             xmlns:conv="clr-namespace:OnvifDeviceManager.Wpf.Converters"
+             DataContext="{Binding}"
+             Background="{StaticResource PrimaryBg}"
+             Foreground="{StaticResource PrimaryText}"
+             FontFamily="{StaticResource MainFont}">
+
+    <UserControl.Resources>
+        <conv:StatusToColorConverter x:Key="StatusToColor" />
+    </UserControl.Resources>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock Grid.Row="0" Text="Device Discovery" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,20" />
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="320" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Device List -->
+            <Border Grid.Column="0" Style="{StaticResource Card}" Margin="0,0,12,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
+                        <Button Style="{StaticResource PrimaryBtn}" Content="Discover" Command="{Binding DiscoverCommand}" Margin="0,0,8,0" />
+                        <Button Style="{StaticResource DangerBtn}" Content="Stop" Command="{Binding StopDiscoveryCommand}" Margin="0,0,16,0" />
+                        <TextBlock Text="Timeout (sec):" VerticalAlignment="Center" Foreground="{StaticResource SecondaryText}" Margin="0,0,8,0" />
+                        <TextBox Style="{StaticResource ModernTB}" Text="{Binding DiscoveryTimeout, UpdateSourceTrigger=PropertyChanged}" Width="60" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <ListBox Grid.Row="1" ItemsSource="{Binding Devices}" SelectedItem="{Binding SelectedDevice}"
+                             Style="{StaticResource ModernLB}" ItemContainerStyle="{StaticResource ModernLBI}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Ellipse Width="10" Height="10" Margin="0,0,12,0" VerticalAlignment="Center"
+                                             Fill="{Binding Status, Converter={StaticResource StatusToColor}}" />
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding Manufacturer}" Foreground="{StaticResource SecondaryText}" FontSize="12" />
+                                        <TextBlock Text="{Binding Model}" Foreground="{StaticResource MutedText}" FontSize="11" />
+                                        <TextBlock Text="{Binding Address}" Foreground="{StaticResource MutedText}" FontSize="11" FontFamily="{StaticResource MonoFont}" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+
+            <!-- Right Panel -->
+            <StackPanel Grid.Column="1">
+                <!-- Manual Add -->
+                <Border Style="{StaticResource Card}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Add Manually" FontWeight="SemiBold" Margin="0,0,0,12" />
+                        <TextBox Style="{StaticResource ModernTB}" Text="{Binding ManualAddress, UpdateSourceTrigger=PropertyChanged}"
+                                 Margin="0,0,0,8" />
+                        <Button Style="{StaticResource SecondaryBtn}" Content="Add" Command="{Binding AddManualCommand}" HorizontalAlignment="Stretch" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Credentials -->
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="Credentials" FontWeight="SemiBold" Margin="0,0,0,12" />
+                        <TextBlock Text="Username" Foreground="{StaticResource SecondaryText}" FontSize="11" Margin="0,0,0,4" />
+                        <TextBox Style="{StaticResource ModernTB}" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,12" />
+                        <TextBlock Text="Password" Foreground="{StaticResource SecondaryText}" FontSize="11" Margin="0,0,0,4" />
+                        <TextBox Style="{StaticResource ModernTB}" Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,16" />
+                        <Button Style="{StaticResource PrimaryBtn}" Content="Connect" Command="{Binding ConnectCommand}" HorizontalAlignment="Stretch" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="{StaticResource SecondaryBg}" CornerRadius="8" Padding="16,10" Margin="0,16,0,0">
+            <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource MutedText}" FontSize="12" VerticalAlignment="Center" />
+        </Border>
+    </Grid>
+</UserControl>
