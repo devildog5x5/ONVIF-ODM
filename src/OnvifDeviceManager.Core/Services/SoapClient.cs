@@ -1,4 +1,6 @@
+using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Xml.Linq;
@@ -8,7 +10,8 @@ namespace OnvifDeviceManager.Services;
 public class SoapClient : IDisposable
 {
     private readonly HttpClient _httpClient;
-    private static readonly XNamespace SoapNs = "http://www.w3.org/2003/05/soap-envelope";
+    private static readonly XNamespace Soap12Ns = "http://www.w3.org/2003/05/soap-envelope";
+    private static readonly XNamespace Soap11Ns = "http://schemas.xmlsoap.org/soap/envelope/";
     private static readonly XNamespace WsseNs = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd";
     private static readonly XNamespace WsuNs = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd";
 
@@ -16,34 +19,117 @@ public class SoapClient : IDisposable
     {
         var handler = new HttpClientHandler
         {
-            ServerCertificateCustomValidationCallback = (_, _, _, _) => true
+            ServerCertificateCustomValidationCallback = (_, _, _, _) => true,
+            Credentials = null
         };
         _httpClient = new HttpClient(handler)
         {
-            Timeout = TimeSpan.FromSeconds(10)
+            Timeout = TimeSpan.FromSeconds(15)
         };
     }
 
     public async Task<XElement> SendRequestAsync(string url, XElement body, string? username = null, string? password = null)
     {
-        var envelope = CreateSoapEnvelope(body, username, password);
-        var content = new StringContent(envelope.ToString(), Encoding.UTF8, "application/soap+xml");
+        HttpResponseMessage response;
+        string responseContent;
 
-        var response = await _httpClient.PostAsync(url, content);
-        var responseContent = await response.Content.ReadAsStringAsync();
+        try
+        {
+            var envelope = CreateSoapEnvelope(body, username, password);
+            var content = new StringContent(envelope.ToString(), Encoding.UTF8, "application/soap+xml");
 
-        var responseDoc = XDocument.Parse(responseContent);
-        var responseBody = responseDoc.Descendants(SoapNs + "Body").FirstOrDefault();
+            response = await _httpClient.PostAsync(url, content);
+            responseContent = await response.Content.ReadAsStringAsync();
+
+            // Some cameras (Axis) return 401 and require re-sending with digest auth
+            // or may return SOAP 1.1 with text/xml content type
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                // Try again with HTTP Basic auth header as fallback
+                if (!string.IsNullOrEmpty(username))
+                {
+                    var basicContent = new StringContent(envelope.ToString(), Encoding.UTF8, "application/soap+xml");
+                    var creds = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:{password}"));
+                    basicContent.Headers.Add("Authorization", $"Basic {creds}");
+
+                    response = await _httpClient.PostAsync(url, basicContent);
+                    responseContent = await response.Content.ReadAsStringAsync();
+
+                    if (response.StatusCode == HttpStatusCode.Unauthorized)
+                        throw new SoapFaultException($"Authentication failed (HTTP 401). Verify username and password.");
+                }
+                else
+                {
+                    throw new SoapFaultException("Authentication required (HTTP 401)");
+                }
+            }
+
+            if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.InternalServerError)
+            {
+                throw new SoapFaultException($"HTTP {(int)response.StatusCode} {response.StatusCode}: {responseContent.Substring(0, Math.Min(200, responseContent.Length))}");
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            throw new SoapFaultException($"Connection timed out reaching {url}");
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new SoapFaultException($"Network error connecting to {url}: {ex.Message}");
+        }
+        catch (SoapFaultException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            CrashLogger.Log("SoapClient.SendRequestAsync - HTTP phase", ex);
+            throw new SoapFaultException($"Connection error: {ex.Message}");
+        }
+
+        // Parse response XML
+        XDocument responseDoc;
+        try
+        {
+            if (string.IsNullOrWhiteSpace(responseContent))
+                throw new SoapFaultException("Empty response from device");
+
+            responseContent = responseContent.Trim();
+            if (!responseContent.StartsWith("<"))
+                throw new SoapFaultException($"Device returned non-XML response: {responseContent.Substring(0, Math.Min(200, responseContent.Length))}");
+
+            responseDoc = XDocument.Parse(responseContent);
+        }
+        catch (SoapFaultException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            CrashLogger.Log("SoapClient.SendRequestAsync - XML parse", ex);
+            throw new SoapFaultException($"Failed to parse device response as XML: {ex.Message}");
+        }
+
+        // Find the Body element — try SOAP 1.2 first, then SOAP 1.1
+        var responseBody = responseDoc.Descendants(Soap12Ns + "Body").FirstOrDefault()
+                        ?? responseDoc.Descendants(Soap11Ns + "Body").FirstOrDefault();
 
         if (responseBody == null)
-            throw new InvalidOperationException("Invalid SOAP response: no Body element found");
+        {
+            CrashLogger.Log($"No SOAP Body found in response from {url}. Full response: {responseContent.Substring(0, Math.Min(500, responseContent.Length))}");
+            throw new SoapFaultException("Invalid response from device: no SOAP Body element found");
+        }
 
-        var fault = responseBody.Element(SoapNs + "Fault");
+        // Check for SOAP faults (both 1.1 and 1.2)
+        var fault = responseBody.Element(Soap12Ns + "Fault")
+                 ?? responseBody.Element(Soap11Ns + "Fault");
         if (fault != null)
         {
-            var reason = fault.Descendants(SoapNs + "Text").FirstOrDefault()?.Value
-                ?? fault.Element(SoapNs + "Reason")?.Value
-                ?? "Unknown SOAP fault";
+            var reason = fault.Descendants(Soap12Ns + "Text").FirstOrDefault()?.Value
+                ?? fault.Descendants(Soap11Ns + "faultstring").FirstOrDefault()?.Value
+                ?? fault.Element(Soap12Ns + "Reason")?.Value
+                ?? fault.Element(Soap11Ns + "faultstring")?.Value
+                ?? "Unknown device error";
             throw new SoapFaultException(reason);
         }
 
@@ -52,7 +138,7 @@ public class SoapClient : IDisposable
 
     private XDocument CreateSoapEnvelope(XElement body, string? username, string? password)
     {
-        var header = new XElement(SoapNs + "Header");
+        var header = new XElement(Soap12Ns + "Header");
 
         if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
         {
@@ -61,10 +147,10 @@ public class SoapClient : IDisposable
 
         return new XDocument(
             new XDeclaration("1.0", "utf-8", null),
-            new XElement(SoapNs + "Envelope",
-                new XAttribute(XNamespace.Xmlns + "s", SoapNs),
+            new XElement(Soap12Ns + "Envelope",
+                new XAttribute(XNamespace.Xmlns + "s", Soap12Ns),
                 header,
-                new XElement(SoapNs + "Body", body)
+                new XElement(Soap12Ns + "Body", body)
             )
         );
     }
@@ -79,7 +165,6 @@ public class SoapClient : IDisposable
 
         var created = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
         var nonceBase64 = Convert.ToBase64String(nonce);
-
         var digest = ComputePasswordDigest(nonce, created, password);
 
         return new XElement(WsseNs + "Security",

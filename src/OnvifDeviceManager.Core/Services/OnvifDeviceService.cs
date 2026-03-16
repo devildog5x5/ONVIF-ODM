@@ -10,138 +10,203 @@ public class OnvifDeviceService : IDisposable
     private static readonly XNamespace TdsNs = "http://www.onvif.org/ver10/device/wsdl";
     private static readonly XNamespace TtNs = "http://www.onvif.org/ver10/schema";
 
+    private static XElement? FindElement(XElement parent, string localName)
+    {
+        return parent.Descendants().FirstOrDefault(e => e.Name.LocalName == localName);
+    }
+
+    private static IEnumerable<XElement> FindElements(XElement parent, string localName)
+    {
+        return parent.Descendants().Where(e => e.Name.LocalName == localName);
+    }
+
+    private static string GetValue(XElement? parent, string localName, string fallback = "")
+    {
+        if (parent == null) return fallback;
+        return parent.Descendants().FirstOrDefault(e => e.Name.LocalName == localName)?.Value ?? fallback;
+    }
+
     public async Task<DeviceCapabilities> GetCapabilitiesAsync(string serviceUrl, string? username = null, string? password = null)
     {
-        var body = new XElement(TdsNs + "GetCapabilities",
-            new XElement(TdsNs + "Category", "All"));
+        try
+        {
+            var body = new XElement(TdsNs + "GetCapabilities",
+                new XElement(TdsNs + "Category", "All"));
 
-        var response = await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
-        return ParseCapabilities(response);
+            var response = await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
+            return ParseCapabilities(response);
+        }
+        catch (SoapFaultException) { throw; }
+        catch (Exception ex)
+        {
+            CrashLogger.Log("GetCapabilitiesAsync", ex);
+            throw new SoapFaultException($"Failed to get capabilities: {ex.Message}");
+        }
     }
 
     public async Task<OnvifDevice> GetDeviceInformationAsync(string serviceUrl, string? username = null, string? password = null)
     {
-        var body = new XElement(TdsNs + "GetDeviceInformation");
-        var response = await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
-
-        var info = response.Descendants(TdsNs + "GetDeviceInformationResponse").FirstOrDefault();
-        if (info == null)
-            throw new InvalidOperationException("Failed to get device information");
-
-        return new OnvifDevice
+        try
         {
-            Manufacturer = info.Element(TdsNs + "Manufacturer")?.Value ?? string.Empty,
-            Model = info.Element(TdsNs + "Model")?.Value ?? string.Empty,
-            FirmwareVersion = info.Element(TdsNs + "FirmwareVersion")?.Value ?? string.Empty,
-            SerialNumber = info.Element(TdsNs + "SerialNumber")?.Value ?? string.Empty,
-            HardwareId = info.Element(TdsNs + "HardwareId")?.Value ?? string.Empty
-        };
+            var body = new XElement(TdsNs + "GetDeviceInformation");
+            var response = await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
+
+            var info = FindElement(response, "GetDeviceInformationResponse");
+            if (info == null)
+            {
+                CrashLogger.Log($"GetDeviceInformationResponse not found in response. Elements: {string.Join(", ", response.Descendants().Select(e => e.Name.LocalName).Distinct())}");
+                return new OnvifDevice();
+            }
+
+            return new OnvifDevice
+            {
+                Manufacturer = GetValue(info, "Manufacturer"),
+                Model = GetValue(info, "Model"),
+                FirmwareVersion = GetValue(info, "FirmwareVersion"),
+                SerialNumber = GetValue(info, "SerialNumber"),
+                HardwareId = GetValue(info, "HardwareId")
+            };
+        }
+        catch (SoapFaultException) { throw; }
+        catch (Exception ex)
+        {
+            CrashLogger.Log("GetDeviceInformationAsync", ex);
+            throw new SoapFaultException($"Failed to get device information: {ex.Message}");
+        }
     }
 
     public async Task<string> GetHostnameAsync(string serviceUrl, string? username = null, string? password = null)
     {
-        var body = new XElement(TdsNs + "GetHostname");
-        var response = await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
+        try
+        {
+            var body = new XElement(TdsNs + "GetHostname");
+            var response = await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
 
-        var hostname = response.Descendants(TdsNs + "GetHostnameResponse")
-            .FirstOrDefault()
-            ?.Descendants(TtNs + "Name")
-            .FirstOrDefault()?.Value;
-
-        return hostname ?? string.Empty;
+            var hostnameResponse = FindElement(response, "GetHostnameResponse");
+            return hostnameResponse != null ? GetValue(hostnameResponse, "Name") : string.Empty;
+        }
+        catch (SoapFaultException) { throw; }
+        catch (Exception ex)
+        {
+            CrashLogger.Log("GetHostnameAsync", ex);
+            return string.Empty;
+        }
     }
 
     public async Task<NetworkConfiguration> GetNetworkInterfacesAsync(string serviceUrl, string? username = null, string? password = null)
     {
-        var body = new XElement(TdsNs + "GetNetworkInterfaces");
-        var response = await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
-
-        var config = new NetworkConfiguration();
-        var networkInterface = response.Descendants(TdsNs + "NetworkInterfaces").FirstOrDefault();
-
-        if (networkInterface != null)
+        try
         {
-            config.MacAddress = networkInterface.Descendants(TtNs + "HwAddress").FirstOrDefault()?.Value ?? string.Empty;
+            var body = new XElement(TdsNs + "GetNetworkInterfaces");
+            var response = await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
 
-            var ipv4Config = networkInterface.Descendants(TtNs + "IPv4").FirstOrDefault();
-            if (ipv4Config != null)
+            var config = new NetworkConfiguration();
+            var networkInterface = FindElement(response, "NetworkInterfaces");
+
+            if (networkInterface != null)
             {
-                config.IsDhcp = bool.TryParse(ipv4Config.Element(TtNs + "DHCP")?.Value, out var dhcp) && dhcp;
-                var manual = ipv4Config.Descendants(TtNs + "Manual").FirstOrDefault();
-                if (manual != null)
+                config.MacAddress = GetValue(networkInterface, "HwAddress");
+
+                var ipv4Config = FindElement(networkInterface, "IPv4");
+                if (ipv4Config != null)
                 {
-                    config.IpAddress = manual.Element(TtNs + "Address")?.Value ?? string.Empty;
-                    var prefixLength = int.TryParse(manual.Element(TtNs + "PrefixLength")?.Value, out var pl) ? pl : 24;
-                    config.SubnetMask = PrefixLengthToSubnetMask(prefixLength);
+                    config.IsDhcp = bool.TryParse(
+                        ipv4Config.Descendants().FirstOrDefault(e => e.Name.LocalName == "DHCP")?.Value,
+                        out var dhcp) && dhcp;
+
+                    var fromDhcp = FindElement(ipv4Config, "FromDHCP");
+                    var manual = FindElement(ipv4Config, "Manual");
+                    var addrSource = fromDhcp ?? manual;
+
+                    if (addrSource != null)
+                    {
+                        config.IpAddress = GetValue(addrSource, "Address");
+                        var prefixLength = int.TryParse(
+                            addrSource.Descendants().FirstOrDefault(e => e.Name.LocalName == "PrefixLength")?.Value,
+                            out var pl) ? pl : 24;
+                        config.SubnetMask = PrefixLengthToSubnetMask(prefixLength);
+                    }
                 }
             }
-        }
 
-        return config;
+            return config;
+        }
+        catch (SoapFaultException) { throw; }
+        catch (Exception ex)
+        {
+            CrashLogger.Log("GetNetworkInterfacesAsync", ex);
+            return new NetworkConfiguration();
+        }
     }
 
     public async Task<SystemDateTimeInfo> GetSystemDateTimeAsync(string serviceUrl, string? username = null, string? password = null)
     {
-        var body = new XElement(TdsNs + "GetSystemDateAndTime");
-        var response = await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
-
-        var dateTime = response.Descendants(TdsNs + "GetSystemDateAndTimeResponse").FirstOrDefault();
-        var info = new SystemDateTimeInfo();
-
-        if (dateTime != null)
+        try
         {
-            var sysDateTime = dateTime.Descendants(TtNs + "SystemDateAndTime").FirstOrDefault();
-            if (sysDateTime != null)
+            var body = new XElement(TdsNs + "GetSystemDateAndTime");
+            var response = await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
+
+            var info = new SystemDateTimeInfo();
+            var sysDateTime = FindElement(response, "SystemDateAndTime");
+            if (sysDateTime == null) return info;
+
+            info.IsNtp = GetValue(sysDateTime, "DateTimeType") == "NTP";
+            info.TimeZone = GetValue(sysDateTime, "TZ");
+
+            var utcDate = FindElement(sysDateTime, "UTCDateTime");
+            if (utcDate != null)
             {
-                var dateTimeType = sysDateTime.Element(TtNs + "DateTimeType")?.Value;
-                info.IsNtp = dateTimeType == "NTP";
-                info.TimeZone = sysDateTime.Descendants(TtNs + "TZ").FirstOrDefault()?.Value ?? string.Empty;
+                int.TryParse(GetValue(utcDate, "Year", "0"), out var year);
+                int.TryParse(GetValue(utcDate, "Month", "0"), out var month);
+                int.TryParse(GetValue(utcDate, "Day", "0"), out var day);
+                int.TryParse(GetValue(utcDate, "Hour", "0"), out var hour);
+                int.TryParse(GetValue(utcDate, "Minute", "0"), out var minute);
+                int.TryParse(GetValue(utcDate, "Second", "0"), out var second);
 
-                var utcDate = sysDateTime.Element(TtNs + "UTCDateTime");
-                if (utcDate != null)
-                {
-                    var date = utcDate.Element(TtNs + "Date");
-                    var time = utcDate.Element(TtNs + "Time");
-                    if (date != null && time != null)
-                    {
-                        int.TryParse(date.Element(TtNs + "Year")?.Value, out var year);
-                        int.TryParse(date.Element(TtNs + "Month")?.Value, out var month);
-                        int.TryParse(date.Element(TtNs + "Day")?.Value, out var day);
-                        int.TryParse(time.Element(TtNs + "Hour")?.Value, out var hour);
-                        int.TryParse(time.Element(TtNs + "Minute")?.Value, out var minute);
-                        int.TryParse(time.Element(TtNs + "Second")?.Value, out var second);
-                        info.DeviceTime = new DateTime(year, month, day, hour, minute, second, DateTimeKind.Utc);
-                    }
-                }
+                if (year > 0 && month > 0 && day > 0)
+                    info.DeviceTime = new DateTime(year, month, day, hour, minute, second, DateTimeKind.Utc);
             }
-        }
 
-        return info;
+            return info;
+        }
+        catch (SoapFaultException) { throw; }
+        catch (Exception ex)
+        {
+            CrashLogger.Log("GetSystemDateTimeAsync", ex);
+            return new SystemDateTimeInfo();
+        }
     }
 
     public async Task<List<DeviceUser>> GetUsersAsync(string serviceUrl, string? username = null, string? password = null)
     {
-        var body = new XElement(TdsNs + "GetUsers");
-        var response = await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
-
-        var users = new List<DeviceUser>();
-        foreach (var user in response.Descendants(TdsNs + "User"))
+        try
         {
-            users.Add(new DeviceUser
-            {
-                Username = user.Element(TtNs + "Username")?.Value ?? string.Empty,
-                UserLevel = user.Element(TtNs + "UserLevel")?.Value ?? string.Empty
-            });
-        }
+            var body = new XElement(TdsNs + "GetUsers");
+            var response = await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
 
-        return users;
+            var users = new List<DeviceUser>();
+            foreach (var user in FindElements(response, "User"))
+            {
+                users.Add(new DeviceUser
+                {
+                    Username = GetValue(user, "Username"),
+                    UserLevel = GetValue(user, "UserLevel")
+                });
+            }
+            return users;
+        }
+        catch (SoapFaultException) { throw; }
+        catch (Exception ex)
+        {
+            CrashLogger.Log("GetUsersAsync", ex);
+            return new List<DeviceUser>();
+        }
     }
 
     public async Task SetHostnameAsync(string serviceUrl, string hostname, string? username = null, string? password = null)
     {
         var body = new XElement(TdsNs + "SetHostname",
             new XElement(TdsNs + "Name", hostname));
-
         await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
     }
 
@@ -155,7 +220,6 @@ public class OnvifDeviceService : IDisposable
     {
         var body = new XElement(TdsNs + "SetSystemFactoryDefault",
             new XElement(TdsNs + "FactoryDefault", factoryDefault));
-
         await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
     }
 
@@ -166,7 +230,6 @@ public class OnvifDeviceService : IDisposable
                 new XElement(TtNs + "Username", newUsername),
                 new XElement(TtNs + "Password", newPassword),
                 new XElement(TtNs + "UserLevel", userLevel)));
-
         await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
     }
 
@@ -174,54 +237,63 @@ public class OnvifDeviceService : IDisposable
     {
         var body = new XElement(TdsNs + "DeleteUsers",
             new XElement(TdsNs + "Username", userToDelete));
-
         await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
     }
 
     private DeviceCapabilities ParseCapabilities(XElement response)
     {
         var caps = new DeviceCapabilities();
-        var capabilities = response.Descendants(TtNs + "Capabilities").FirstOrDefault();
-        if (capabilities == null) return caps;
 
-        var media = capabilities.Element(TtNs + "Media");
-        if (media != null)
+        try
         {
-            caps.HasMedia = true;
-            caps.MediaServiceAddress = media.Attribute("XAddr")?.Value
-                ?? media.Element(TtNs + "XAddr")?.Value;
+            var capabilities = FindElement(response, "Capabilities");
+            if (capabilities == null) return caps;
+
+            var media = FindElement(capabilities, "Media");
+            if (media != null)
+            {
+                caps.HasMedia = true;
+                caps.MediaServiceAddress = media.Descendants()
+                    .FirstOrDefault(e => e.Name.LocalName == "XAddr")?.Value
+                    ?? media.Attribute("XAddr")?.Value;
+            }
+
+            var ptz = FindElement(capabilities, "PTZ");
+            if (ptz != null)
+            {
+                caps.HasPtz = true;
+                caps.PtzServiceAddress = ptz.Descendants()
+                    .FirstOrDefault(e => e.Name.LocalName == "XAddr")?.Value
+                    ?? ptz.Attribute("XAddr")?.Value;
+            }
+
+            var imaging = FindElement(capabilities, "Imaging");
+            if (imaging != null)
+            {
+                caps.HasImaging = true;
+                caps.ImagingServiceAddress = imaging.Descendants()
+                    .FirstOrDefault(e => e.Name.LocalName == "XAddr")?.Value;
+            }
+
+            var events = FindElement(capabilities, "Events");
+            if (events != null)
+            {
+                caps.HasEvents = true;
+                caps.EventsServiceAddress = events.Descendants()
+                    .FirstOrDefault(e => e.Name.LocalName == "XAddr")?.Value;
+            }
+
+            var analytics = FindElement(capabilities, "Analytics");
+            if (analytics != null)
+            {
+                caps.HasAnalytics = true;
+                caps.AnalyticsServiceAddress = analytics.Descendants()
+                    .FirstOrDefault(e => e.Name.LocalName == "XAddr")?.Value;
+            }
         }
-
-        var ptz = capabilities.Element(TtNs + "PTZ");
-        if (ptz != null)
+        catch (Exception ex)
         {
-            caps.HasPtz = true;
-            caps.PtzServiceAddress = ptz.Attribute("XAddr")?.Value
-                ?? ptz.Element(TtNs + "XAddr")?.Value;
-        }
-
-        var imaging = capabilities.Element(TtNs + "Imaging");
-        if (imaging != null)
-        {
-            caps.HasImaging = true;
-            caps.ImagingServiceAddress = imaging.Attribute("XAddr")?.Value
-                ?? imaging.Element(TtNs + "XAddr")?.Value;
-        }
-
-        var events = capabilities.Element(TtNs + "Events");
-        if (events != null)
-        {
-            caps.HasEvents = true;
-            caps.EventsServiceAddress = events.Attribute("XAddr")?.Value
-                ?? events.Element(TtNs + "XAddr")?.Value;
-        }
-
-        var analytics = capabilities.Element(TtNs + "Analytics");
-        if (analytics != null)
-        {
-            caps.HasAnalytics = true;
-            caps.AnalyticsServiceAddress = analytics.Attribute("XAddr")?.Value
-                ?? analytics.Element(TtNs + "XAddr")?.Value;
+            CrashLogger.Log("ParseCapabilities", ex);
         }
 
         return caps;
@@ -229,6 +301,7 @@ public class OnvifDeviceService : IDisposable
 
     private static string PrefixLengthToSubnetMask(int prefixLength)
     {
+        prefixLength = Math.Clamp(prefixLength, 0, 32);
         var mask = prefixLength == 0 ? 0 : uint.MaxValue << (32 - prefixLength);
         var bytes = BitConverter.GetBytes(mask);
         if (BitConverter.IsLittleEndian) Array.Reverse(bytes);

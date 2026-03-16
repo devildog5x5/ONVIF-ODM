@@ -1,4 +1,6 @@
 using System.Windows;
+using System.Windows.Threading;
+using OnvifDeviceManager.Services;
 
 namespace OnvifDeviceManager.Wpf;
 
@@ -8,14 +10,32 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
-        DispatcherUnhandledException += (s, args) =>
+        AppDomain.CurrentDomain.UnhandledException += (s, args) =>
         {
+            var ex = args.ExceptionObject as Exception;
+            CrashLogger.Log("AppDomain.UnhandledException", ex ?? new Exception("Unknown fatal error"));
             MessageBox.Show(
-                $"An unexpected error occurred:\n\n{args.Exception.Message}",
-                "ONVIF Device Manager - Error",
+                $"A fatal error occurred:\n\n{ex?.Message}\n\nA log has been saved to:\n{CrashLogger.LogFilePath}",
+                "ONVIF Device Manager - Fatal Error",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
+        };
+
+        DispatcherUnhandledException += (s, args) =>
+        {
+            CrashLogger.Log("Dispatcher.UnhandledException", args.Exception);
+            MessageBox.Show(
+                $"An error occurred:\n\n{args.Exception.Message}\n\nThe application will continue.\nLog: {CrashLogger.LogFilePath}",
+                "ONVIF Device Manager - Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
             args.Handled = true;
+        };
+
+        TaskScheduler.UnobservedTaskException += (s, args) =>
+        {
+            CrashLogger.Log("TaskScheduler.UnobservedTaskException", args.Exception);
+            args.SetObserved();
         };
     }
 }

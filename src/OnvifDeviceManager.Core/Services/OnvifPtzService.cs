@@ -11,28 +11,48 @@ public class OnvifPtzService : IDisposable
     private static readonly XNamespace PtzNs = "http://www.onvif.org/ver20/ptz/wsdl";
     private static readonly XNamespace TtNs = "http://www.onvif.org/ver10/schema";
 
+    private static XElement? Find(XElement parent, string localName)
+        => parent.Descendants().FirstOrDefault(e => e.Name.LocalName == localName);
+
     public async Task ContinuousMoveAsync(string serviceUrl, string profileToken, float panSpeed, float tiltSpeed, float zoomSpeed, string? username = null, string? password = null)
     {
-        var body = new XElement(PtzNs + "ContinuousMove",
-            new XElement(PtzNs + "ProfileToken", profileToken),
-            new XElement(PtzNs + "Velocity",
-                new XElement(TtNs + "PanTilt",
-                    new XAttribute("x", panSpeed.ToString("F2", CultureInfo.InvariantCulture)),
-                    new XAttribute("y", tiltSpeed.ToString("F2", CultureInfo.InvariantCulture))),
-                new XElement(TtNs + "Zoom",
-                    new XAttribute("x", zoomSpeed.ToString("F2", CultureInfo.InvariantCulture)))));
+        try
+        {
+            var body = new XElement(PtzNs + "ContinuousMove",
+                new XElement(PtzNs + "ProfileToken", profileToken),
+                new XElement(PtzNs + "Velocity",
+                    new XElement(TtNs + "PanTilt",
+                        new XAttribute("x", panSpeed.ToString("F2", CultureInfo.InvariantCulture)),
+                        new XAttribute("y", tiltSpeed.ToString("F2", CultureInfo.InvariantCulture))),
+                    new XElement(TtNs + "Zoom",
+                        new XAttribute("x", zoomSpeed.ToString("F2", CultureInfo.InvariantCulture)))));
 
-        await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
+            await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
+        }
+        catch (SoapFaultException) { throw; }
+        catch (Exception ex)
+        {
+            CrashLogger.Log("ContinuousMoveAsync", ex);
+            throw new SoapFaultException($"PTZ move failed: {ex.Message}");
+        }
     }
 
     public async Task StopAsync(string serviceUrl, string profileToken, bool panTilt = true, bool zoom = true, string? username = null, string? password = null)
     {
-        var body = new XElement(PtzNs + "Stop",
-            new XElement(PtzNs + "ProfileToken", profileToken),
-            new XElement(PtzNs + "PanTilt", panTilt.ToString().ToLower()),
-            new XElement(PtzNs + "Zoom", zoom.ToString().ToLower()));
+        try
+        {
+            var body = new XElement(PtzNs + "Stop",
+                new XElement(PtzNs + "ProfileToken", profileToken),
+                new XElement(PtzNs + "PanTilt", panTilt.ToString().ToLower()),
+                new XElement(PtzNs + "Zoom", zoom.ToString().ToLower()));
 
-        await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
+            await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
+        }
+        catch (SoapFaultException) { throw; }
+        catch (Exception ex)
+        {
+            CrashLogger.Log("StopAsync", ex);
+        }
     }
 
     public async Task AbsoluteMoveAsync(string serviceUrl, string profileToken, float pan, float tilt, float zoom, string? username = null, string? password = null)
@@ -65,19 +85,19 @@ public class OnvifPtzService : IDisposable
 
     public async Task<PtzStatus> GetStatusAsync(string serviceUrl, string profileToken, string? username = null, string? password = null)
     {
-        var body = new XElement(PtzNs + "GetStatus",
-            new XElement(PtzNs + "ProfileToken", profileToken));
-
-        var response = await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
         var status = new PtzStatus();
 
-        var ptzStatus = response.Descendants(PtzNs + "PTZStatus").FirstOrDefault();
-        if (ptzStatus != null)
+        try
         {
-            var position = ptzStatus.Element(TtNs + "Position");
+            var body = new XElement(PtzNs + "GetStatus",
+                new XElement(PtzNs + "ProfileToken", profileToken));
+
+            var response = await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
+
+            var position = Find(response, "Position");
             if (position != null)
             {
-                var panTilt = position.Element(TtNs + "PanTilt");
+                var panTilt = Find(position, "PanTilt");
                 if (panTilt != null)
                 {
                     float.TryParse(panTilt.Attribute("x")?.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var pan);
@@ -86,7 +106,7 @@ public class OnvifPtzService : IDisposable
                     status.Tilt = tilt;
                 }
 
-                var zoom = position.Element(TtNs + "Zoom");
+                var zoom = Find(position, "Zoom");
                 if (zoom != null)
                 {
                     float.TryParse(zoom.Attribute("x")?.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var z);
@@ -94,11 +114,14 @@ public class OnvifPtzService : IDisposable
                 }
             }
 
-            var moveStatus = ptzStatus.Element(TtNs + "MoveStatus");
+            var moveStatus = Find(response, "MoveStatus");
             if (moveStatus != null)
-            {
-                status.MoveStatus = moveStatus.Element(TtNs + "PanTilt")?.Value ?? "IDLE";
-            }
+                status.MoveStatus = Find(moveStatus, "PanTilt")?.Value ?? "IDLE";
+        }
+        catch (SoapFaultException) { throw; }
+        catch (Exception ex)
+        {
+            CrashLogger.Log("GetStatusAsync", ex);
         }
 
         return status;
@@ -106,41 +129,53 @@ public class OnvifPtzService : IDisposable
 
     public async Task<List<PtzPreset>> GetPresetsAsync(string serviceUrl, string profileToken, string? username = null, string? password = null)
     {
-        var body = new XElement(PtzNs + "GetPresets",
-            new XElement(PtzNs + "ProfileToken", profileToken));
-
-        var response = await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
         var presets = new List<PtzPreset>();
 
-        foreach (var presetElement in response.Descendants(PtzNs + "Preset"))
+        try
         {
-            var preset = new PtzPreset
-            {
-                Token = presetElement.Attribute("token")?.Value ?? string.Empty,
-                Name = presetElement.Element(TtNs + "Name")?.Value ?? string.Empty
-            };
+            var body = new XElement(PtzNs + "GetPresets",
+                new XElement(PtzNs + "ProfileToken", profileToken));
 
-            var position = presetElement.Element(TtNs + "PTZPosition");
-            if (position != null)
+            var response = await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
+
+            foreach (var el in response.Descendants().Where(e => e.Name.LocalName == "Preset"))
             {
-                var panTilt = position.Element(TtNs + "PanTilt");
-                if (panTilt != null)
+                try
                 {
-                    float.TryParse(panTilt.Attribute("x")?.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var pan);
-                    float.TryParse(panTilt.Attribute("y")?.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var tilt);
-                    preset.PanPosition = pan;
-                    preset.TiltPosition = tilt;
+                    var preset = new PtzPreset
+                    {
+                        Token = el.Attribute("token")?.Value ?? string.Empty,
+                        Name = el.Descendants().FirstOrDefault(e => e.Name.LocalName == "Name")?.Value ?? string.Empty
+                    };
+
+                    var panTilt = Find(el, "PanTilt");
+                    if (panTilt != null)
+                    {
+                        float.TryParse(panTilt.Attribute("x")?.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var pan);
+                        float.TryParse(panTilt.Attribute("y")?.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var tilt);
+                        preset.PanPosition = pan;
+                        preset.TiltPosition = tilt;
+                    }
+
+                    var zoom = Find(el, "Zoom");
+                    if (zoom != null)
+                    {
+                        float.TryParse(zoom.Attribute("x")?.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var z);
+                        preset.ZoomPosition = z;
+                    }
+
+                    presets.Add(preset);
                 }
-
-                var zoom = position.Element(TtNs + "Zoom");
-                if (zoom != null)
+                catch (Exception ex)
                 {
-                    float.TryParse(zoom.Attribute("x")?.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var z);
-                    preset.ZoomPosition = z;
+                    CrashLogger.Log("GetPresetsAsync - parsing preset", ex);
                 }
             }
-
-            presets.Add(preset);
+        }
+        catch (SoapFaultException) { throw; }
+        catch (Exception ex)
+        {
+            CrashLogger.Log("GetPresetsAsync", ex);
         }
 
         return presets;
@@ -151,7 +186,6 @@ public class OnvifPtzService : IDisposable
         var body = new XElement(PtzNs + "GotoPreset",
             new XElement(PtzNs + "ProfileToken", profileToken),
             new XElement(PtzNs + "PresetToken", presetToken));
-
         await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
     }
 
@@ -162,12 +196,10 @@ public class OnvifPtzService : IDisposable
             new XElement(PtzNs + "PresetName", presetName));
 
         if (!string.IsNullOrEmpty(presetToken))
-        {
             body.Add(new XElement(PtzNs + "PresetToken", presetToken));
-        }
 
         var response = await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
-        return response.Descendants(PtzNs + "PresetToken").FirstOrDefault()?.Value ?? string.Empty;
+        return response.Descendants().FirstOrDefault(e => e.Name.LocalName == "PresetToken")?.Value ?? string.Empty;
     }
 
     public async Task RemovePresetAsync(string serviceUrl, string profileToken, string presetToken, string? username = null, string? password = null)
@@ -175,7 +207,6 @@ public class OnvifPtzService : IDisposable
         var body = new XElement(PtzNs + "RemovePreset",
             new XElement(PtzNs + "ProfileToken", profileToken),
             new XElement(PtzNs + "PresetToken", presetToken));
-
         await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
     }
 
@@ -183,7 +214,6 @@ public class OnvifPtzService : IDisposable
     {
         var body = new XElement(PtzNs + "GotoHomePosition",
             new XElement(PtzNs + "ProfileToken", profileToken));
-
         await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
     }
 
@@ -191,7 +221,6 @@ public class OnvifPtzService : IDisposable
     {
         var body = new XElement(PtzNs + "SetHomePosition",
             new XElement(PtzNs + "ProfileToken", profileToken));
-
         await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
     }
 
