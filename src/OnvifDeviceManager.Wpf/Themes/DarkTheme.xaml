@@ -172,20 +172,25 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{StaticResource SecondaryText}" />
         <Setter Property="Padding" Value="12,10" />
-        <Setter Property="Margin" Value="0,1" />
+        <Setter Property="Margin" Value="0,2" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ListBoxItem">
-                    <Border x:Name="bd" Background="#01000000" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                    <Border x:Name="bd" Background="#08FFFFFF" CornerRadius="8" 
+                            Padding="{TemplateBinding Padding}"
+                            BorderThickness="1" BorderBrush="Transparent">
                         <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource HoverBg}" />
+                            <Setter TargetName="bd" Property="Background" Value="#15FFFFFF" />
+                            <Setter TargetName="bd" Property="BorderBrush" Value="#40FFFFFF" />
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="#FF1A3A5C" />
+                            <Setter TargetName="bd" Property="Background" Value="#2500D4AA" />
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
                             <Setter Property="Foreground" Value="{StaticResource Accent}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
