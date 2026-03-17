@@ -43,6 +43,15 @@ public class MainViewModel : ViewModelBase
 
         DiscoveryViewModel.DeviceSelected += OnDeviceSelected;
         DiscoveryViewModel.StatusChanged += OnStatusChanged;
+
+        _ = AutoDiscoverAsync();
+    }
+
+    private async Task AutoDiscoverAsync()
+    {
+        await Task.Delay(500);
+        StatusMessage = "Auto-discovering devices...";
+        await DiscoveryViewModel.DiscoverDevicesAsync();
     }
 
     public DiscoveryViewModel DiscoveryViewModel { get; }
@@ -126,6 +135,9 @@ public class MainViewModel : ViewModelBase
             "Credentials" => CredentialManagerViewModel,
             _ => DiscoveryViewModel
         };
+
+        if (viewName == "Discovery")
+            _ = DiscoveryViewModel.DiscoverDevicesAsync();
     }
 
     private void OnDeviceSelected(OnvifDevice device)
