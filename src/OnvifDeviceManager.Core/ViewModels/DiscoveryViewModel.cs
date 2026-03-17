@@ -34,13 +34,13 @@ public class DiscoveryViewModel : ViewModelBase
         _credentialStore = credentialStore;
         _dispatcher = dispatcher;
 
-        DiscoverCommand = new AsyncRelayCommand(DiscoverDevicesAsync, () => !IsDiscovering);
-        StopDiscoveryCommand = new RelayCommand(StopDiscovery, () => IsDiscovering);
-        ConnectCommand = new AsyncRelayCommand(ConnectToDeviceAsync, () => SelectedDevice != null && !IsConnecting);
-        ConnectAllCommand = new AsyncRelayCommand(ConnectAllDevicesAsync, () => Devices.Count > 0 && !IsConnecting);
-        AddManualCommand = new AsyncRelayCommand(AddManualDeviceAsync, () => !string.IsNullOrWhiteSpace(ManualAddress));
-        RemoveDeviceCommand = new RelayCommand(RemoveDevice, () => SelectedDevice != null);
-        DisconnectCommand = new RelayCommand(DisconnectDevice, () => SelectedDevice?.IsAuthenticated == true);
+        DiscoverCommand = new AsyncRelayCommand(DiscoverDevicesAsync);
+        StopDiscoveryCommand = new RelayCommand(StopDiscovery);
+        ConnectCommand = new AsyncRelayCommand(ConnectToDeviceAsync);
+        ConnectAllCommand = new AsyncRelayCommand(ConnectAllDevicesAsync);
+        AddManualCommand = new AsyncRelayCommand(AddManualDeviceAsync);
+        RemoveDeviceCommand = new RelayCommand(RemoveDevice);
+        DisconnectCommand = new RelayCommand(DisconnectDevice);
     }
 
     public event Action<OnvifDevice>? DeviceSelected;
@@ -151,6 +151,8 @@ public class DiscoveryViewModel : ViewModelBase
 
     public async Task DiscoverDevicesAsync()
     {
+        if (IsDiscovering) return;
+
         IsDiscovering = true;
         StatusText = "Scanning network for ONVIF devices...";
         StatusChanged?.Invoke("Discovering devices...");
@@ -186,12 +188,11 @@ public class DiscoveryViewModel : ViewModelBase
         catch (OperationCanceledException)
         {
             StatusText = "Discovery cancelled";
-            StatusChanged?.Invoke("Discovery cancelled");
         }
         catch (Exception ex)
         {
             StatusText = $"Discovery error: {ex.Message}";
-            StatusChanged?.Invoke($"Error: {ex.Message}");
+            CrashLogger.Log("DiscoverDevicesAsync", ex);
         }
         finally
         {
@@ -206,12 +207,42 @@ public class DiscoveryViewModel : ViewModelBase
 
     private async Task ConnectToDeviceAsync()
     {
-        if (SelectedDevice == null) return;
-        await ConnectSingleDeviceAsync(SelectedDevice, Username, Password);
+        if (SelectedDevice == null)
+        {
+            StatusText = "Select a device first";
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(Username))
+        {
+            StatusText = "Enter a username";
+            return;
+        }
+
+        IsConnecting = true;
+        try
+        {
+            await ConnectSingleDeviceAsync(SelectedDevice, Username, Password);
+            DeviceSelected?.Invoke(SelectedDevice);
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Connection failed: {ex.Message}";
+            CrashLogger.Log("ConnectToDeviceAsync", ex);
+        }
+        finally
+        {
+            IsConnecting = false;
+        }
     }
 
     private async Task ConnectAllDevicesAsync()
     {
+        if (Devices.Count == 0)
+        {
+            StatusText = "No devices to connect. Run discovery first.";
+            return;
+        }
+
         IsConnecting = true;
         var total = Devices.Count;
         var connected = 0;
@@ -234,7 +265,7 @@ public class DiscoveryViewModel : ViewModelBase
 
             try
             {
-                await ConnectSingleDeviceAsync(device, user, pass, suppressNavigation: true);
+                await ConnectSingleDeviceAsync(device, user, pass);
                 connected++;
             }
             catch
@@ -246,86 +277,98 @@ public class DiscoveryViewModel : ViewModelBase
         }
 
         IsConnecting = false;
-        StatusText = $"Batch connect complete: {connected} connected, {failed} failed out of {total}";
+        StatusText = $"Batch connect: {connected} connected, {failed} failed out of {total}";
         StatusChanged?.Invoke(StatusText);
     }
 
-    private async Task ConnectSingleDeviceAsync(OnvifDevice device, string username, string password, bool suppressNavigation = false)
+    private async Task ConnectSingleDeviceAsync(OnvifDevice device, string username, string password)
     {
-        IsConnecting = true;
-        StatusText = $"Connecting to {device.DisplayName}...";
-        StatusChanged?.Invoke($"Connecting to {device.DisplayName}...");
+        device.Username = username;
+        device.Password = password;
+        device.Status = DeviceStatus.Authenticating;
 
+        var errors = new List<string>();
+
+        // Phase 1: Get device info (non-fatal if it fails)
         try
         {
-            device.Username = username;
-            device.Password = password;
-
             var deviceInfo = await _deviceService.GetDeviceInformationAsync(
                 device.ServiceAddress, username, password);
-
             device.Manufacturer = deviceInfo.Manufacturer;
             device.Model = deviceInfo.Model;
             device.FirmwareVersion = deviceInfo.FirmwareVersion;
             device.SerialNumber = deviceInfo.SerialNumber;
             device.HardwareId = deviceInfo.HardwareId;
-
-            var capabilities = await _deviceService.GetCapabilitiesAsync(
-                device.ServiceAddress, username, password);
-            device.Capabilities = capabilities;
-
-            if (capabilities.HasMedia && !string.IsNullOrEmpty(capabilities.MediaServiceAddress))
-            {
-                var profiles = await _mediaService.GetProfilesAsync(
-                    capabilities.MediaServiceAddress, username, password);
-
-                device.Profiles.Clear();
-                foreach (var profile in profiles)
-                {
-                    try { profile.StreamUri = await _mediaService.GetStreamUriAsync(capabilities.MediaServiceAddress, profile.Token, username, password); } catch { }
-                    try { profile.SnapshotUri = await _mediaService.GetSnapshotUriAsync(capabilities.MediaServiceAddress, profile.Token, username, password); } catch { }
-                    device.Profiles.Add(profile);
-                }
-            }
-
-            device.IsAuthenticated = true;
-            device.Status = DeviceStatus.Online;
-
-            if (SaveCredentials)
-            {
-                _credentialStore.SaveCredential(device.Address, username, password, device.DisplayName);
-            }
-
-            StatusText = $"Connected to {device.DisplayName}";
-            StatusChanged?.Invoke($"Connected to {device.DisplayName}");
-
-            if (!suppressNavigation)
-                DeviceSelected?.Invoke(device);
-        }
-        catch (SoapFaultException ex)
-        {
-            StatusText = $"Authentication failed for {device.DisplayName}: {ex.Message}";
-            StatusChanged?.Invoke(StatusText);
-            device.Status = DeviceStatus.Error;
-            if (!suppressNavigation) throw;
         }
         catch (Exception ex)
         {
-            StatusText = $"Connection failed for {device.DisplayName}: {ex.Message}";
-            StatusChanged?.Invoke(StatusText);
-            device.Status = DeviceStatus.Error;
-            if (!suppressNavigation) throw;
+            errors.Add($"Device info: {ex.Message}");
+            CrashLogger.Log("ConnectSingleDevice - GetDeviceInformation", ex);
         }
-        finally
+
+        // Phase 2: Get capabilities (important but non-fatal)
+        try
         {
-            if (!suppressNavigation)
-                IsConnecting = false;
+            var capabilities = await _deviceService.GetCapabilitiesAsync(
+                device.ServiceAddress, username, password);
+            device.Capabilities = capabilities;
         }
+        catch (Exception ex)
+        {
+            errors.Add($"Capabilities: {ex.Message}");
+            CrashLogger.Log("ConnectSingleDevice - GetCapabilities", ex);
+        }
+
+        // Phase 3: Get media profiles (non-fatal)
+        try
+        {
+            var mediaUrl = device.Capabilities.MediaServiceAddress;
+            if (device.Capabilities.HasMedia && !string.IsNullOrEmpty(mediaUrl))
+            {
+                var profiles = await _mediaService.GetProfilesAsync(mediaUrl, username, password);
+                device.Profiles.Clear();
+                foreach (var profile in profiles)
+                {
+                    try { profile.StreamUri = await _mediaService.GetStreamUriAsync(mediaUrl, profile.Token, username, password); } catch { }
+                    try { profile.SnapshotUri = await _mediaService.GetSnapshotUriAsync(mediaUrl, profile.Token, username, password); } catch { }
+                    device.Profiles.Add(profile);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errors.Add($"Profiles: {ex.Message}");
+            CrashLogger.Log("ConnectSingleDevice - GetProfiles", ex);
+        }
+
+        // Mark as connected regardless of partial failures
+        device.IsAuthenticated = true;
+        device.Status = DeviceStatus.Online;
+        device.LastSeen = DateTime.Now;
+
+        if (SaveCredentials)
+            _credentialStore.SaveCredential(device.Address, username, password, device.DisplayName);
+
+        if (errors.Count > 0)
+        {
+            StatusText = $"Connected to {device.DisplayName} (with {errors.Count} warning(s): {errors[0]})";
+            CrashLogger.Log($"Partial connection to {device.Address}: {string.Join("; ", errors)}");
+        }
+        else
+        {
+            StatusText = $"Connected to {device.DisplayName}";
+        }
+
+        StatusChanged?.Invoke(StatusText);
     }
 
     private async Task AddManualDeviceAsync()
     {
-        if (string.IsNullOrWhiteSpace(ManualAddress)) return;
+        if (string.IsNullOrWhiteSpace(ManualAddress))
+        {
+            StatusText = "Enter an IP address or URL";
+            return;
+        }
 
         var address = ManualAddress.Trim();
         if (!address.StartsWith("http"))
@@ -333,14 +376,23 @@ public class DiscoveryViewModel : ViewModelBase
         else if (!address.Contains("/onvif/"))
             address = address.TrimEnd('/') + "/onvif/device_service";
 
-        var device = new OnvifDevice
+        OnvifDevice device;
+        try
         {
-            Address = new Uri(address).Host,
-            ServiceAddress = address,
-            Name = new Uri(address).Host,
-            Status = DeviceStatus.Unknown,
-            LastSeen = DateTime.Now
-        };
+            device = new OnvifDevice
+            {
+                Address = new Uri(address).Host,
+                ServiceAddress = address,
+                Name = new Uri(address).Host,
+                Status = DeviceStatus.Unknown,
+                LastSeen = DateTime.Now
+            };
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Invalid address: {ex.Message}";
+            return;
+        }
 
         var saved = _credentialStore.ResolveCredentials(device.Address);
         if (saved.HasValue)
@@ -360,7 +412,7 @@ public class DiscoveryViewModel : ViewModelBase
         catch
         {
             device.Status = DeviceStatus.Unknown;
-            StatusText = $"Added {address} (unverified)";
+            StatusText = $"Added {address} (could not verify — try connecting with credentials)";
         }
 
         Devices.Add(device);
@@ -377,7 +429,7 @@ public class DiscoveryViewModel : ViewModelBase
 
     private void DisconnectDevice()
     {
-        if (SelectedDevice == null) return;
+        if (SelectedDevice == null || !SelectedDevice.IsAuthenticated) return;
         SelectedDevice.IsAuthenticated = false;
         SelectedDevice.Status = DeviceStatus.Online;
         SelectedDevice.Profiles.Clear();

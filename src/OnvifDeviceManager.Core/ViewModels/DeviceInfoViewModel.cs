@@ -69,32 +69,42 @@ public class DeviceInfoViewModel : ViewModelBase
 
         IsLoading = true;
         StatusText = "Loading device information...";
+        var warnings = new List<string>();
 
         try
         {
             Hostname = await _deviceService.GetHostnameAsync(
                 Device.ServiceAddress, Device.Username, Device.Password);
-
-            DateTimeInfo = await _deviceService.GetSystemDateTimeAsync(
-                Device.ServiceAddress, Device.Username, Device.Password);
-
-            try
-            {
-                Device.NetworkConfig = await _deviceService.GetNetworkInterfacesAsync(
-                    Device.ServiceAddress, Device.Username, Device.Password);
-            }
-            catch { }
-
-            StatusText = "Device information loaded";
         }
         catch (Exception ex)
         {
-            StatusText = $"Error: {ex.Message}";
+            warnings.Add($"Hostname: {ex.Message}");
         }
-        finally
+
+        try
         {
-            IsLoading = false;
+            DateTimeInfo = await _deviceService.GetSystemDateTimeAsync(
+                Device.ServiceAddress, Device.Username, Device.Password);
         }
+        catch (Exception ex)
+        {
+            warnings.Add($"DateTime: {ex.Message}");
+        }
+
+        try
+        {
+            Device.NetworkConfig = await _deviceService.GetNetworkInterfacesAsync(
+                Device.ServiceAddress, Device.Username, Device.Password);
+        }
+        catch (Exception ex)
+        {
+            warnings.Add($"Network: {ex.Message}");
+        }
+
+        IsLoading = false;
+        StatusText = warnings.Count == 0
+            ? "Device information loaded"
+            : $"Loaded with {warnings.Count} warning(s): {warnings[0]}";
     }
 
     private async Task RebootAsync()
