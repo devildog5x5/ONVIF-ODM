@@ -1,10 +1,13 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:OnvifDeviceManager.ViewModels"
+             xmlns:views="using:OnvifDeviceManager.Views"
              x:Class="OnvifDeviceManager.Views.NetworkView"
              x:DataType="vm:NetworkViewModel">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <Panel>
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      IsVisible="{Binding Device, Converter={x:Static ObjectConverters.IsNotNull}}">
         <StackPanel Margin="24">
             <Grid Margin="0,0,0,20">
                 <StackPanel>
@@ -52,4 +55,6 @@
             </Border>
         </StackPanel>
     </ScrollViewer>
+        <views:NoDevicePrompt IsVisible="{Binding Device, Converter={x:Static ObjectConverters.IsNull}}" />
+    </Panel>
 </UserControl>

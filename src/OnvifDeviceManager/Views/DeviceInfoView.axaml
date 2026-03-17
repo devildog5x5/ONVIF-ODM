@@ -1,10 +1,13 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:OnvifDeviceManager.ViewModels"
+             xmlns:views="using:OnvifDeviceManager.Views"
              x:Class="OnvifDeviceManager.Views.DeviceInfoView"
              x:DataType="vm:DeviceInfoViewModel">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <Panel>
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      IsVisible="{Binding Device, Converter={x:Static ObjectConverters.IsNotNull}}">
         <StackPanel Margin="24">
             <TextBlock Text="Device Information" Classes="header" />
             <TextBlock Text="View detailed information about the connected device" Classes="body" Margin="0,4,0,24" />
@@ -129,4 +132,6 @@
             </Border>
         </StackPanel>
     </ScrollViewer>
+        <views:NoDevicePrompt IsVisible="{Binding Device, Converter={x:Static ObjectConverters.IsNull}}" />
+    </Panel>
 </UserControl>

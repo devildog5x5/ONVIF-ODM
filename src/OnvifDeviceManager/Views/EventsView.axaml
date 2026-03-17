@@ -1,10 +1,13 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:OnvifDeviceManager.ViewModels"
+             xmlns:views="using:OnvifDeviceManager.Views"
              x:Class="OnvifDeviceManager.Views.EventsView"
              x:DataType="vm:EventsViewModel">
 
-    <Grid Margin="24" RowDefinitions="Auto,Auto,*,Auto">
+    <Panel>
+        <Grid Margin="24" RowDefinitions="Auto,Auto,*,Auto"
+              IsVisible="{Binding Device, Converter={x:Static ObjectConverters.IsNotNull}}">
         <StackPanel Grid.Row="0" Margin="0,0,0,20">
             <TextBlock Text="Device Events" Classes="header" />
             <TextBlock Text="Monitor real-time events from the connected device" Classes="body" Margin="0,4,0,0" />
@@ -56,4 +59,6 @@
             <TextBlock Text="{Binding StatusText}" Classes="caption" />
         </Border>
     </Grid>
+        <views:NoDevicePrompt IsVisible="{Binding Device, Converter={x:Static ObjectConverters.IsNull}}" />
+    </Panel>
 </UserControl>

@@ -1,0 +1,20 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="OnvifDeviceManager.Views.NoDevicePrompt">
+    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12">
+        <PathIcon Data="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"
+                  Foreground="#607D8B" Width="64" Height="64" HorizontalAlignment="Center" />
+        <TextBlock Text="No Device Connected" Classes="subheader" HorizontalAlignment="Center" />
+        <TextBlock TextWrapping="Wrap" HorizontalAlignment="Center" MaxWidth="400" TextAlignment="Center" Classes="body">
+            To use this page, first connect to an ONVIF camera:
+        </TextBlock>
+        <StackPanel Spacing="4" Margin="0,8,0,0">
+            <TextBlock Text="1. Click 'Discover Devices' in the sidebar to scan your network" Classes="body" />
+            <TextBlock Text="2. Select a discovered camera from the list" Classes="body" />
+            <TextBlock Text="3. Enter the camera's username and password" Classes="body" />
+            <TextBlock Text="4. Click 'Connect'" Classes="body" />
+        </StackPanel>
+        <TextBlock Text="Or add a camera manually by IP address on the Discovery page." 
+                   Classes="caption" HorizontalAlignment="Center" Margin="0,8,0,0" />
+    </StackPanel>
+</UserControl>

@@ -7,7 +7,8 @@
              Foreground="{StaticResource PrimaryText}"
              FontFamily="{StaticResource MainFont}">
 
-    <Grid Margin="24">
+    <Grid>
+        <Grid Margin="24" Visibility="{Binding Device, Converter={StaticResource NullToVis}}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -65,5 +66,16 @@
         <Border Grid.Row="2" Background="{StaticResource SecondaryBg}" CornerRadius="8" Padding="16,10" Margin="0,16,0,0">
             <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource MutedText}" FontSize="12" VerticalAlignment="Center" />
         </Border>
+        </Grid>
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Visibility="{Binding Device, Converter={StaticResource NullToVis}, ConverterParameter=Invert}">
+            <TextBlock Text="&#xE714;" FontFamily="Segoe MDL2 Assets" FontSize="64" Foreground="#607D8B" HorizontalAlignment="Center" />
+            <TextBlock Text="No Device Connected" FontSize="20" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center" Margin="0,16,0,8" />
+            <TextBlock Text="To use this page:" FontSize="13" Foreground="#B0BEC5" HorizontalAlignment="Center" Margin="0,0,0,8" />
+            <TextBlock Text="1. Click Discover Devices to scan your network" FontSize="13" Foreground="#B0BEC5" Margin="0,2" />
+            <TextBlock Text="2. Select a camera from the list" FontSize="13" Foreground="#B0BEC5" Margin="0,2" />
+            <TextBlock Text="3. Enter username and password" FontSize="13" Foreground="#B0BEC5" Margin="0,2" />
+            <TextBlock Text="4. Click Connect" FontSize="13" Foreground="#B0BEC5" Margin="0,2" />
+        </StackPanel>
     </Grid>
 </UserControl>
