@@ -27,11 +27,11 @@ public class CredentialManagerViewModel : ViewModelBase
         _credentialStore = credentialStore;
 
         SaveDeviceCredentialCommand = new RelayCommand(SaveDeviceCredential);
-        DeleteDeviceCredentialCommand = new RelayCommand(DeleteDeviceCredential, () => SelectedCredential != null);
+        DeleteDeviceCredentialCommand = new RelayCommand(DeleteDeviceCredential);
         CreateGroupCommand = new RelayCommand(CreateGroup);
-        DeleteGroupCommand = new RelayCommand(DeleteGroup, () => SelectedGroup != null);
-        UpdateGroupCommand = new RelayCommand(UpdateGroup, () => SelectedGroup != null);
-        AddDeviceToGroupCommand = new RelayCommand(AddDeviceToGroup, () => SelectedGroup != null && !string.IsNullOrWhiteSpace(AddToGroupAddress));
+        DeleteGroupCommand = new RelayCommand(DeleteGroup);
+        UpdateGroupCommand = new RelayCommand(UpdateGroup);
+        AddDeviceToGroupCommand = new RelayCommand(AddDeviceToGroup);
         RemoveDeviceFromGroupCommand = new RelayCommand(RemoveDeviceFromGroup);
         RefreshCommand = new RelayCommand(Refresh);
 
@@ -63,14 +63,12 @@ public class CredentialManagerViewModel : ViewModelBase
         {
             if (SetProperty(ref _selectedGroup, value))
             {
-                SelectedGroupDevices.Clear();
+                RefreshGroupDevices();
                 if (value != null)
                 {
                     NewGroupName = value.Name;
                     NewGroupUsername = value.Username;
                     NewGroupPassword = value.Password;
-                    foreach (var addr in value.DeviceAddresses)
-                        SelectedGroupDevices.Add(addr);
                 }
             }
         }
@@ -135,6 +133,8 @@ public class CredentialManagerViewModel : ViewModelBase
 
     private void Refresh()
     {
+        var selectedGroupId = _selectedGroup?.Id;
+
         Credentials.Clear();
         foreach (var c in _credentialStore.GetAllCredentials())
             Credentials.Add(c);
@@ -143,18 +143,33 @@ public class CredentialManagerViewModel : ViewModelBase
         foreach (var g in _credentialStore.GetAllGroups())
             Groups.Add(g);
 
+        if (selectedGroupId != null)
+            SelectedGroup = Groups.FirstOrDefault(g => g.Id == selectedGroupId);
+
         StatusText = $"{Credentials.Count} saved credential(s), {Groups.Count} group(s)";
+    }
+
+    private void RefreshGroupDevices()
+    {
+        SelectedGroupDevices.Clear();
+        if (_selectedGroup != null)
+        {
+            var fresh = _credentialStore.GetAllGroups().FirstOrDefault(g => g.Id == _selectedGroup.Id);
+            if (fresh != null)
+                foreach (var a in fresh.DeviceAddresses)
+                    SelectedGroupDevices.Add(a);
+        }
     }
 
     private void SaveDeviceCredential()
     {
         if (string.IsNullOrWhiteSpace(NewDeviceAddress) || string.IsNullOrWhiteSpace(NewDeviceUsername))
         {
-            StatusText = "Device address and username are required";
+            StatusText = "Enter a device address and username first";
             return;
         }
 
-        _credentialStore.SaveCredential(NewDeviceAddress, NewDeviceUsername, NewDevicePassword);
+        _credentialStore.SaveCredential(NewDeviceAddress.Trim(), NewDeviceUsername.Trim(), NewDevicePassword);
         StatusText = $"Credentials saved for {NewDeviceAddress}";
         NewDeviceAddress = string.Empty;
         NewDeviceUsername = string.Empty;
@@ -164,9 +179,14 @@ public class CredentialManagerViewModel : ViewModelBase
 
     private void DeleteDeviceCredential()
     {
-        if (SelectedCredential == null) return;
-        _credentialStore.RemoveCredential(SelectedCredential.DeviceAddress);
-        StatusText = $"Credentials removed for {SelectedCredential.DeviceAddress}";
+        if (SelectedCredential == null)
+        {
+            StatusText = "Select a credential to delete first";
+            return;
+        }
+        var addr = SelectedCredential.DeviceAddress;
+        _credentialStore.RemoveCredential(addr);
+        StatusText = $"Credentials removed for {addr}";
         SelectedCredential = null;
         Refresh();
     }
@@ -175,21 +195,28 @@ public class CredentialManagerViewModel : ViewModelBase
     {
         if (string.IsNullOrWhiteSpace(NewGroupName) || string.IsNullOrWhiteSpace(NewGroupUsername))
         {
-            StatusText = "Group name and username are required";
+            StatusText = "Enter a group name and username first";
             return;
         }
 
-        _credentialStore.CreateGroup(NewGroupName, NewGroupUsername, NewGroupPassword);
-        StatusText = $"Group '{NewGroupName}' created";
+        _credentialStore.CreateGroup(NewGroupName.Trim(), NewGroupUsername.Trim(), NewGroupPassword);
+        StatusText = $"Group '{NewGroupName}' created — now add devices using the field below";
         NewGroupName = string.Empty;
         NewGroupUsername = string.Empty;
         NewGroupPassword = string.Empty;
         Refresh();
+
+        if (Groups.Count > 0)
+            SelectedGroup = Groups.Last();
     }
 
     private void DeleteGroup()
     {
-        if (SelectedGroup == null) return;
+        if (SelectedGroup == null)
+        {
+            StatusText = "Select a group to delete first";
+            return;
+        }
         var name = SelectedGroup.Name;
         _credentialStore.DeleteGroup(SelectedGroup.Id);
         StatusText = $"Group '{name}' deleted";
@@ -199,25 +226,39 @@ public class CredentialManagerViewModel : ViewModelBase
 
     private void UpdateGroup()
     {
-        if (SelectedGroup == null) return;
-        _credentialStore.UpdateGroup(SelectedGroup.Id, NewGroupName, NewGroupUsername, NewGroupPassword);
+        if (SelectedGroup == null)
+        {
+            StatusText = "Select a group to update first";
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(NewGroupName) || string.IsNullOrWhiteSpace(NewGroupUsername))
+        {
+            StatusText = "Group name and username cannot be empty";
+            return;
+        }
+        _credentialStore.UpdateGroup(SelectedGroup.Id, NewGroupName.Trim(), NewGroupUsername.Trim(), NewGroupPassword);
         StatusText = $"Group '{NewGroupName}' updated";
         Refresh();
     }
 
     private void AddDeviceToGroup()
     {
-        if (SelectedGroup == null || string.IsNullOrWhiteSpace(AddToGroupAddress)) return;
-        _credentialStore.AddDeviceToGroup(SelectedGroup.Id, AddToGroupAddress.Trim());
-        StatusText = $"Added {AddToGroupAddress} to group '{SelectedGroup.Name}'";
-        AddToGroupAddress = string.Empty;
+        if (SelectedGroup == null)
+        {
+            StatusText = "Select a group first, then enter a device address";
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(AddToGroupAddress))
+        {
+            StatusText = "Enter a device IP address or hostname (e.g. 192.168.1.100)";
+            return;
+        }
 
-        SelectedGroupDevices.Clear();
-        var updated = _credentialStore.GetAllGroups().FirstOrDefault(g => g.Id == SelectedGroup.Id);
-        if (updated != null)
-            foreach (var a in updated.DeviceAddresses)
-                SelectedGroupDevices.Add(a);
-        Refresh();
+        var address = AddToGroupAddress.Trim();
+        _credentialStore.AddDeviceToGroup(SelectedGroup.Id, address);
+        StatusText = $"Added {address} to group '{SelectedGroup.Name}'";
+        AddToGroupAddress = string.Empty;
+        RefreshGroupDevices();
     }
 
     private void RemoveDeviceFromGroup(object? parameter)
@@ -225,12 +266,6 @@ public class CredentialManagerViewModel : ViewModelBase
         if (SelectedGroup == null || parameter is not string address) return;
         _credentialStore.RemoveDeviceFromGroup(SelectedGroup.Id, address);
         StatusText = $"Removed {address} from group '{SelectedGroup.Name}'";
-
-        SelectedGroupDevices.Clear();
-        var updated = _credentialStore.GetAllGroups().FirstOrDefault(g => g.Id == SelectedGroup.Id);
-        if (updated != null)
-            foreach (var a in updated.DeviceAddresses)
-                SelectedGroupDevices.Add(a);
-        Refresh();
+        RefreshGroupDevices();
     }
 }
