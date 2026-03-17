@@ -41,8 +41,9 @@
                         <TextBlock Text="Timeout (sec):" VerticalAlignment="Center" Foreground="{StaticResource SecondaryText}" Margin="0,0,8,0" />
                         <TextBox Style="{StaticResource ModernTB}" Text="{Binding DiscoveryTimeout, UpdateSourceTrigger=PropertyChanged}" Width="60" VerticalAlignment="Center" />
                     </StackPanel>
-                    <ListBox Grid.Row="1" ItemsSource="{Binding Devices}" SelectedItem="{Binding SelectedDevice}"
-                             Style="{StaticResource ModernLB}" ItemContainerStyle="{StaticResource ModernLBI}">
+                    <ListBox Grid.Row="1" ItemsSource="{Binding Devices}" SelectedItem="{Binding SelectedDevice, Mode=TwoWay}"
+                             Style="{StaticResource ModernLB}" ItemContainerStyle="{StaticResource ModernLBI}"
+                             MinHeight="200" ScrollViewer.VerticalScrollBarVisibility="Auto">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <Grid>
