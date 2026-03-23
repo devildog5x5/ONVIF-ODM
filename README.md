@@ -31,15 +31,15 @@ Both editions share the same core business logic, ONVIF protocol services, and M
 
 Self-contained executables — **no .NET runtime installation required**. Just download, extract, and run.
 
-**Latest Release: v1.5.0** — Built: March 22, 2026
+**Latest Release: v1.4.1** — Built: March 17, 2026
 
 | Platform | Edition | Download | Built |
 |----------|---------|----------|-------|
-| **Windows x64** | WPF (native) | [OnvifDeviceManager-Wpf-win-x64-v1.5.0.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.5.0/OnvifDeviceManager-Wpf-win-x64-v1.5.0.zip) (176 MB) | 2026-03-22 |
-| **Windows x64** | Avalonia | [OnvifDeviceManager-Avalonia-win-x64-v1.5.0.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.5.0/OnvifDeviceManager-Avalonia-win-x64-v1.5.0.zip) (38 MB) | 2026-03-22 |
-| **Linux x64** | Avalonia | [OnvifDeviceManager-Avalonia-linux-x64-v1.5.0.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.5.0/OnvifDeviceManager-Avalonia-linux-x64-v1.5.0.zip) (36 MB) | 2026-03-22 |
-| **macOS Intel** | Avalonia | [OnvifDeviceManager-Avalonia-osx-x64-v1.5.0.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.5.0/OnvifDeviceManager-Avalonia-osx-x64-v1.5.0.zip) (40 MB) | 2026-03-22 |
-| **macOS Apple Silicon** | Avalonia | [OnvifDeviceManager-Avalonia-osx-arm64-v1.5.0.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.5.0/OnvifDeviceManager-Avalonia-osx-arm64-v1.5.0.zip) (39 MB) | 2026-03-22 |
+| **Windows x64** | WPF (native) | [OnvifDeviceManager-Wpf-win-x64-v1.4.1.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.4.1/OnvifDeviceManager-Wpf-win-x64-v1.4.1.zip) | 2026-03-17 |
+| **Windows x64** | Avalonia | [OnvifDeviceManager-Avalonia-win-x64-v1.4.1.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.4.1/OnvifDeviceManager-Avalonia-win-x64-v1.4.1.zip) | 2026-03-17 |
+| **Linux x64** | Avalonia | [OnvifDeviceManager-Avalonia-linux-x64-v1.4.1.tar.gz](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.4.1/OnvifDeviceManager-Avalonia-linux-x64-v1.4.1.tar.gz) | 2026-03-17 |
+| **macOS Intel** | Avalonia | [OnvifDeviceManager-Avalonia-osx-x64-v1.4.1.tar.gz](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.4.1/OnvifDeviceManager-Avalonia-osx-x64-v1.4.1.tar.gz) | 2026-03-17 |
+| **macOS Apple Silicon** | Avalonia | [OnvifDeviceManager-Avalonia-osx-arm64-v1.4.1.tar.gz](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.4.1/OnvifDeviceManager-Avalonia-osx-arm64-v1.4.1.tar.gz) | 2026-03-17 |
 
 > [See all releases](https://github.com/devildog5x5/ONVIF-ODM/releases)
 
@@ -54,7 +54,7 @@ Inno Setup installer scripts are provided in `build/installers/`. To create an i
 ### Linux Installation
 
 ```bash
-unzip OnvifDeviceManager-Avalonia-linux-x64-v1.5.0.zip
+tar -xzf OnvifDeviceManager-Avalonia-linux-x64-v1.4.1.tar.gz
 cd OnvifDeviceManager-Avalonia-linux-x64
 sudo ./linux-install.sh      # Installs to /opt/onvif-device-manager
 onvif-device-manager         # Run from anywhere
