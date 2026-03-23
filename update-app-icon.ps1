@@ -11,53 +11,90 @@ if (-not (Test-Path $SourcePng)) {
 
 Add-Type -AssemblyName System.Drawing
 
-$iconDestroyType = @"
-using System;
-using System.Runtime.InteropServices;
-public static class NativeMethods
-{
-    [DllImport("user32.dll", CharSet = CharSet.Auto)]
-    public static extern bool DestroyIcon(IntPtr handle);
-}
-"@
+function Write-MultiSizeIcoFromPng {
+    param(
+        [string]$PngPath,
+        [string]$IcoPath,
+        [int[]]$Sizes = @(16, 24, 32, 48, 64, 128, 256)
+    )
 
-Add-Type -TypeDefinition $iconDestroyType -Language CSharp
+    $sourceImage = $null
+    $pngByteArrays = New-Object System.Collections.Generic.List[byte[]]
 
-$sourceImage = $null
-$canvas = $null
-$graphics = $null
-$fileStream = $null
-$icon = $null
-$hIcon = [IntPtr]::Zero
+    try {
+        $sourceImage = [System.Drawing.Image]::FromFile($PngPath)
 
-try {
-    $sourceImage = [System.Drawing.Image]::FromFile($SourcePng)
-    $canvas = New-Object System.Drawing.Bitmap(256, 256)
-    $graphics = [System.Drawing.Graphics]::FromImage($canvas)
-    $graphics.Clear([System.Drawing.Color]::Transparent)
-    $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
-    $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
-    $graphics.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
-    $graphics.DrawImage($sourceImage, 0, 0, 256, 256)
+        foreach ($s in $Sizes) {
+            $bmp = New-Object System.Drawing.Bitmap($s, $s, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+            $g = [System.Drawing.Graphics]::FromImage($bmp)
+            try {
+                $g.Clear([System.Drawing.Color]::Transparent)
+                $g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+                $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
+                $g.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+                $g.CompositingQuality = [System.Drawing.Drawing2D.CompositingQuality]::HighQuality
+                $g.DrawImage($sourceImage, 0, 0, $s, $s)
+            }
+            finally {
+                $g.Dispose()
+            }
 
-    $hIcon = $canvas.GetHicon()
-    $icon = [System.Drawing.Icon]::FromHandle($hIcon)
-
-    $outputDir = Split-Path -Path $OutputIco -Parent
-    if (-not [string]::IsNullOrWhiteSpace($outputDir) -and -not (Test-Path $outputDir)) {
-        New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
+            $ms = New-Object System.IO.MemoryStream
+            try {
+                $bmp.Save($ms, [System.Drawing.Imaging.ImageFormat]::Png)
+                $pngByteArrays.Add($ms.ToArray())
+            }
+            finally {
+                $ms.Dispose()
+                $bmp.Dispose()
+            }
+        }
+    }
+    finally {
+        if ($sourceImage) { $sourceImage.Dispose() }
     }
 
-    $fileStream = New-Object System.IO.FileStream($OutputIco, [System.IO.FileMode]::Create)
-    $icon.Save($fileStream)
-}
-finally {
-    if ($fileStream) { $fileStream.Close() }
-    if ($icon) { $icon.Dispose() }
-    if ($hIcon -ne [IntPtr]::Zero) { [NativeMethods]::DestroyIcon($hIcon) | Out-Null }
-    if ($graphics) { $graphics.Dispose() }
-    if ($canvas) { $canvas.Dispose() }
-    if ($sourceImage) { $sourceImage.Dispose() }
+    $count = $pngByteArrays.Count
+    $headerSize = 6 + (16 * $count)
+    $offset = $headerSize
+
+    $fs = [System.IO.File]::Create($IcoPath)
+    $bw = New-Object System.IO.BinaryWriter($fs)
+    try {
+        $bw.Write([UInt16]0)
+        $bw.Write([UInt16]1)
+        $bw.Write([UInt16]$count)
+
+        foreach ($i in 0..($count - 1)) {
+            $dim = $Sizes[$i]
+            $bw.Write([byte]($(if ($dim -ge 256) { 0 } else { $dim })))
+            $bw.Write([byte]($(if ($dim -ge 256) { 0 } else { $dim })))
+            $bw.Write([byte]0)
+            $bw.Write([byte]0)
+            # PNG payload: planes/bit depth often 0 per ICO+PNG convention (Windows Vista+)
+            $bw.Write([UInt16]0)
+            $bw.Write([UInt16]0)
+            $bw.Write([UInt32]$pngByteArrays[$i].Length)
+            $bw.Write([UInt32]$offset)
+            $offset += $pngByteArrays[$i].Length
+        }
+
+        foreach ($bytes in $pngByteArrays) {
+            $bw.Write($bytes)
+        }
+    }
+    finally {
+        $bw.Close()
+    }
 }
 
-Write-Host "Updated application icon: $OutputIco" -ForegroundColor Green
+# Prefer ImageMagick when installed (optional best-quality path)
+$magick = Get-Command magick -ErrorAction SilentlyContinue
+if ($magick) {
+    & magick $SourcePng -define icon:auto-resize=256,128,96,64,48,32,24,16 $OutputIco
+    Write-Host "Updated application icon via ImageMagick: $OutputIco" -ForegroundColor Green
+    return
+}
+
+Write-MultiSizeIcoFromPng -PngPath $SourcePng -IcoPath $OutputIco
+Write-Host "Updated application icon (multi-size PNG/ICO, alpha preserved): $OutputIco" -ForegroundColor Green

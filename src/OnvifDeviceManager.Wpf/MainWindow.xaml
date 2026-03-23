@@ -43,7 +43,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal">
-                    <Image Source="pack://application:,,,/warrior_icon.ico" Width="28" Height="28"
+                    <Image Source="pack://application:,,,/branding_master.png" Width="28" Height="28"
                            Margin="0,0,12,0" RenderOptions.BitmapScalingMode="HighQuality" VerticalAlignment="Center"/>
                     <StackPanel>
                         <TextBlock Text="ONVIF Device Manager" FontSize="16" FontWeight="SemiBold" />

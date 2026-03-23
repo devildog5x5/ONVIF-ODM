@@ -253,6 +253,8 @@ All application and installer icon usage in this repo uses the warrior icon (`wa
 
 The release script (`create-release-package.ps1`) runs this icon refresh step before packaging.
 
+**If the taskbar or desktop shortcut still shows a generic icon:** run `.\update-app-icon.ps1`, rebuild or republish, then start the app from the **published `.exe`** (not `dotnet run`). Delete an old shortcut and create a new one from the executable so Windows picks up the embedded icon. The in-app title bar uses **`branding/master-icon.png`** (with alpha) for a crisp image; the **`.exe`** uses **`warrior_icon.ico`** (multi-resolution, alpha preserved).
+
 ## License
 
 MIT License - Copyright (c) 2026 Robert Foster

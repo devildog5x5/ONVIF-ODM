@@ -11,126 +11,134 @@
     </UserControl.Resources>
 
     <Panel>
-        <Grid Margin="24" RowDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto"
+        <Grid Margin="24" RowDefinitions="Auto,*,Auto"
               IsVisible="{Binding Device, Converter={x:Static ObjectConverters.IsNotNull}}">
 
-            <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <StackPanel Grid.Row="0" Margin="0,0,0,12">
                 <TextBlock Text="Live View" Classes="header" />
-                <TextBlock Text="Live video (RTSP in your media app) and snapshots — PTZ matches the profile below" Classes="body" Margin="0,4,0,0" />
+                <TextBlock Text="Live video (RTSP in your media app) and snapshots — scroll down for gunshot / alarm PTZ simulator" Classes="body" Margin="0,4,0,0" TextWrapping="Wrap" />
             </StackPanel>
 
-            <Border Grid.Row="1" Classes="card" Margin="0,0,0,12">
-                <StackPanel Spacing="8">
-                    <TextBlock Text="Stream &amp; profile" FontWeight="SemiBold" Foreground="#00D4AA" />
-                    <StackPanel Orientation="Horizontal" Spacing="12">
-                        <TextBlock Text="Profile:" Classes="body" VerticalAlignment="Center" />
-                        <ComboBox Classes="modern" Width="220" ItemsSource="{Binding Profiles}"
-                                  SelectedItem="{Binding SelectedProfile}">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding Name}" />
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <Button Classes="primary" Command="{Binding OpenRtspExternallyCommand}" Padding="12,8">
-                            <TextBlock Text="Play live video (RTSP)" />
-                        </Button>
-                        <Button Classes="secondary" Command="{Binding CopyStreamUriCommand}" Padding="12,8">
-                            <TextBlock Text="Copy RTSP URI" />
-                        </Button>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="Still image:" Classes="caption" VerticalAlignment="Center" />
-                        <Button Classes="secondary" Command="{Binding RefreshSnapshotCommand}" Padding="12,8">
-                            <TextBlock Text="Snapshot" />
-                        </Button>
-                        <Button Classes="secondary" Command="{Binding StartAutoRefreshCommand}" Padding="12,8"
-                                IsVisible="{Binding !IsRefreshing}">
-                            <TextBlock Text="Auto refresh" />
-                        </Button>
-                        <Button Classes="danger" Command="{Binding StopAutoRefreshCommand}" Padding="12,8"
-                                IsVisible="{Binding IsRefreshing}">
-                            <TextBlock Text="Stop refresh" />
-                        </Button>
-                    </StackPanel>
-                </StackPanel>
-            </Border>
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Spacing="0">
 
-            <Border Grid.Row="2" Classes="card" MinHeight="240">
-                <Grid>
-                    <Image Source="{Binding SnapshotBytes, Converter={StaticResource BytesToBitmap}}" Stretch="Uniform"
-                           IsVisible="{Binding SnapshotBytes, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
-                                IsVisible="{Binding SnapshotBytes, Converter={x:Static ObjectConverters.IsNull}}">
-                        <PathIcon Data="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"
-                                  Foreground="#607D8B" Width="64" Height="64" HorizontalAlignment="Center" />
-                        <TextBlock Text="No snapshot yet" Classes="body" HorizontalAlignment="Center" Margin="0,16,0,0" />
-                        <TextBlock Text="Use Play live video for full motion, or Snapshot / Auto refresh for stills" Classes="caption"
-                                   HorizontalAlignment="Center" Margin="0,4,0,0" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="420" />
-                    </StackPanel>
-                    <Border Background="#80000000" IsVisible="{Binding IsLoading}">
-                        <TextBlock Text="Loading..." Foreground="White" FontSize="16"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <Border Classes="card" Margin="0,0,0,12">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Stream &amp; profile" FontWeight="SemiBold" Foreground="#00D4AA" />
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <TextBlock Text="Profile:" Classes="body" VerticalAlignment="Center" />
+                                <ComboBox Classes="modern" Width="220" ItemsSource="{Binding Profiles}"
+                                          SelectedItem="{Binding SelectedProfile}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Classes="primary" Command="{Binding OpenRtspExternallyCommand}" Padding="12,8">
+                                    <TextBlock Text="Play live video (RTSP)" />
+                                </Button>
+                                <Button Classes="secondary" Command="{Binding CopyStreamUriCommand}" Padding="12,8">
+                                    <TextBlock Text="Copy RTSP URI" />
+                                </Button>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="Still image:" Classes="caption" VerticalAlignment="Center" />
+                                <Button Classes="secondary" Command="{Binding RefreshSnapshotCommand}" Padding="12,8">
+                                    <TextBlock Text="Snapshot" />
+                                </Button>
+                                <Button Classes="secondary" Command="{Binding StartAutoRefreshCommand}" Padding="12,8"
+                                        IsVisible="{Binding !IsRefreshing}">
+                                    <TextBlock Text="Auto refresh" />
+                                </Button>
+                                <Button Classes="danger" Command="{Binding StopAutoRefreshCommand}" Padding="12,8"
+                                        IsVisible="{Binding IsRefreshing}">
+                                    <TextBlock Text="Stop refresh" />
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
                     </Border>
-                </Grid>
-            </Border>
 
-            <Border Grid.Row="3" Classes="card" Margin="0,12,0,12" IsVisible="{Binding ShowPtzPanel}">
-                <Grid ColumnDefinitions="Auto,*,Auto">
-                    <TextBlock Grid.Column="0" Text="PTZ" FontWeight="SemiBold" Foreground="#00D4AA"
-                               VerticalAlignment="Center" Margin="0,0,12,0" />
-                    <Grid Grid.Column="1" HorizontalAlignment="Left" RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,Auto,Auto">
-                        <Button Grid.Row="0" Grid.Column="1" Classes="secondary" Content="▲" Command="{Binding MoveUpCommand}" Width="40" Height="40" Margin="2" />
-                        <Button Grid.Row="1" Grid.Column="0" Classes="secondary" Content="◀" Command="{Binding MoveLeftCommand}" Width="40" Height="40" Margin="2" />
-                        <Button Grid.Row="1" Grid.Column="1" Classes="danger" Content="■" Command="{Binding StopCommand}" Width="40" Height="40" Margin="2" />
-                        <Button Grid.Row="1" Grid.Column="2" Classes="secondary" Content="▶" Command="{Binding MoveRightCommand}" Width="40" Height="40" Margin="2" />
-                        <Button Grid.Row="2" Grid.Column="1" Classes="secondary" Content="▼" Command="{Binding MoveDownCommand}" Width="40" Height="40" Margin="2" />
-                    </Grid>
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <Button Classes="secondary" Content="Zoom +" Command="{Binding ZoomInCommand}" Width="72" />
-                        <Button Classes="secondary" Content="Zoom −" Command="{Binding ZoomOutCommand}" Width="72" />
-                        <Button Classes="primary" Content="Home" Command="{Binding HomeCommand}" Width="72" />
-                    </StackPanel>
-                </Grid>
-            </Border>
+                    <Border Classes="card" MinHeight="240" Margin="0,0,0,12">
+                        <Grid>
+                            <Image Source="{Binding SnapshotBytes, Converter={StaticResource BytesToBitmap}}" Stretch="Uniform"
+                                   IsVisible="{Binding SnapshotBytes, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                                        IsVisible="{Binding SnapshotBytes, Converter={x:Static ObjectConverters.IsNull}}">
+                                <PathIcon Data="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"
+                                          Foreground="#607D8B" Width="64" Height="64" HorizontalAlignment="Center" />
+                                <TextBlock Text="No snapshot yet" Classes="body" HorizontalAlignment="Center" Margin="0,16,0,0" />
+                                <TextBlock Text="Use Play live video for full motion, or Snapshot / Auto refresh for stills" Classes="caption"
+                                           HorizontalAlignment="Center" Margin="0,4,0,0" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="420" />
+                            </StackPanel>
+                            <Border Background="#80000000" IsVisible="{Binding IsLoading}">
+                                <TextBlock Text="Loading..." Foreground="White" FontSize="16"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                        </Grid>
+                    </Border>
 
-            <Border Grid.Row="4" Classes="card" Margin="0,0,0,12">
-                <StackPanel Spacing="6">
-                    <TextBlock Text="Stream URI" FontWeight="SemiBold" Classes="caption" />
-                    <TextBlock Text="{Binding StreamUri}" Classes="mono" TextWrapping="Wrap" />
+                    <Border Classes="card" Margin="0,0,0,12" IsVisible="{Binding ShowPtzPanel}">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <TextBlock Grid.Column="0" Text="PTZ" FontWeight="SemiBold" Foreground="#00D4AA"
+                                       VerticalAlignment="Center" Margin="0,0,12,0" />
+                            <Grid Grid.Column="1" HorizontalAlignment="Left" RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,Auto,Auto">
+                                <Button Grid.Row="0" Grid.Column="1" Classes="secondary" Content="▲" Command="{Binding MoveUpCommand}" Width="40" Height="40" Margin="2" />
+                                <Button Grid.Row="1" Grid.Column="0" Classes="secondary" Content="◀" Command="{Binding MoveLeftCommand}" Width="40" Height="40" Margin="2" />
+                                <Button Grid.Row="1" Grid.Column="1" Classes="danger" Content="■" Command="{Binding StopCommand}" Width="40" Height="40" Margin="2" />
+                                <Button Grid.Row="1" Grid.Column="2" Classes="secondary" Content="▶" Command="{Binding MoveRightCommand}" Width="40" Height="40" Margin="2" />
+                                <Button Grid.Row="2" Grid.Column="1" Classes="secondary" Content="▼" Command="{Binding MoveDownCommand}" Width="40" Height="40" Margin="2" />
+                            </Grid>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <Button Classes="secondary" Content="Zoom +" Command="{Binding ZoomInCommand}" Width="72" />
+                                <Button Classes="secondary" Content="Zoom −" Command="{Binding ZoomOutCommand}" Width="72" />
+                                <Button Classes="primary" Content="Home" Command="{Binding HomeCommand}" Width="72" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Classes="card" Margin="0,0,0,12">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Stream URI" FontWeight="SemiBold" Classes="caption" />
+                            <TextBlock Text="{Binding StreamUri}" Classes="mono" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="#120a0a" CornerRadius="8" Padding="12" BorderBrush="#3d1a1a" BorderThickness="1" Margin="0,0,0,12">
+                        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto">
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <TextBlock Text="Gunshot / alarm simulator" FontWeight="SemiBold" Foreground="#E94560" />
+                                <TextBlock Text="Pick event type (e.g. Gunshot Detection), preset or pan/tilt, then Simulate event." Classes="caption" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" Text="{Binding LastSimulatedEvent}" Classes="caption" HorizontalAlignment="Right" MaxWidth="200" TextWrapping="Wrap" TextAlignment="Right" />
+                            <StackPanel Grid.Row="1" Spacing="10" Margin="0,12,0,0" Grid.ColumnSpan="2">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <TextBlock Text="Event type" Classes="caption" VerticalAlignment="Center" />
+                                    <ComboBox Width="200" ItemsSource="{x:Static vm:LiveViewViewModel.EventTypes}"
+                                              SelectedIndex="{Binding EventTypeIndex}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="16">
+                                    <RadioButton Content="Goto preset #" IsChecked="{Binding EventTargetUsePreset, Mode=TwoWay}" GroupName="EvtTgt" />
+                                    <ComboBox Width="56" IsEnabled="{Binding EventTargetUsePreset}"
+                                              ItemsSource="{x:Static vm:LiveViewViewModel.PresetNumberChoices}"
+                                              SelectedItem="{Binding EventTargetPresetNumber}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <RadioButton Content="Pan / tilt" IsChecked="{Binding EventTargetUseCoordinates, Mode=TwoWay}" GroupName="EvtTgt" />
+                                    <TextBox Width="64" Watermark="Pan" Text="{Binding EventTargetPanString}" IsEnabled="{Binding EventTargetUseCoordinates}" />
+                                    <TextBlock Text="/" VerticalAlignment="Center" />
+                                    <TextBox Width="64" Watermark="Tilt" Text="{Binding EventTargetTiltString}" IsEnabled="{Binding EventTargetUseCoordinates}" />
+                                </StackPanel>
+                                <Button Classes="danger" Content="⚡ Simulate event" Command="{Binding SimulateEventCommand}" HorizontalAlignment="Left" Padding="14,8" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
                 </StackPanel>
-            </Border>
+            </ScrollViewer>
 
-            <Border Grid.Row="5" Background="#120a0a" CornerRadius="8" Padding="12" BorderBrush="#3d1a1a" BorderThickness="1">
-                <Grid RowDefinitions="Auto,*" ColumnDefinitions="*,Auto">
-                    <TextBlock Text="Event simulator — move PTZ as if an alarm fired (e.g. gunshot)" FontWeight="SemiBold" Foreground="#E94560" />
-                    <TextBlock Grid.Column="1" Text="{Binding LastSimulatedEvent}" Classes="caption" HorizontalAlignment="Right" />
-                    <StackPanel Grid.Row="1" Spacing="10" Margin="0,10,0,0">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <TextBlock Text="Event type" Classes="caption" VerticalAlignment="Center" />
-                            <ComboBox Width="200" ItemsSource="{x:Static vm:LiveViewViewModel.EventTypes}"
-                                      SelectedIndex="{Binding EventTypeIndex}" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Spacing="16">
-                            <RadioButton Content="Goto preset #" IsChecked="{Binding EventTargetUsePreset, Mode=TwoWay}" GroupName="EvtTgt" />
-                            <ComboBox Width="56" IsEnabled="{Binding EventTargetUsePreset}"
-                                      ItemsSource="{x:Static vm:LiveViewViewModel.PresetNumberChoices}"
-                                      SelectedItem="{Binding EventTargetPresetNumber}" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <RadioButton Content="Pan / tilt" IsChecked="{Binding EventTargetUseCoordinates, Mode=TwoWay}" GroupName="EvtTgt" />
-                            <TextBox Width="64" Watermark="Pan" Text="{Binding EventTargetPanString}" IsEnabled="{Binding EventTargetUseCoordinates}" />
-                            <TextBlock Text="/" VerticalAlignment="Center" />
-                            <TextBox Width="64" Watermark="Tilt" Text="{Binding EventTargetTiltString}" IsEnabled="{Binding EventTargetUseCoordinates}" />
-                        </StackPanel>
-                        <Button Classes="danger" Content="⚡ Simulate event" Command="{Binding SimulateEventCommand}" HorizontalAlignment="Left" Padding="14,8" />
-                    </StackPanel>
-                </Grid>
-            </Border>
-
-            <Border Grid.Row="6" Margin="0,12,0,0" Padding="12,8" Background="#1E2A4A" CornerRadius="8">
+            <Border Grid.Row="2" Margin="0,12,0,0" Padding="12,8" Background="#1E2A4A" CornerRadius="8">
                 <TextBlock Text="{Binding StatusText}" Classes="caption" />
             </Border>
         </Grid>

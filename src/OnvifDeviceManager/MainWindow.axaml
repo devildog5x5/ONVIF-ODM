@@ -53,7 +53,7 @@
                 Padding="16,12">
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Image Source="avares://OnvifDeviceManager/Assets/warrior_icon.ico" Width="28" Height="28" Margin="0,0,12,0" />
+                    <Image Source="avares://OnvifDeviceManager/Assets/branding_master.png" Width="28" Height="28" Margin="0,0,12,0" />
                     <StackPanel>
                         <TextBlock Text="ONVIF Device Manager" Classes="subheader" />
                         <TextBlock Text="Discover and manage ONVIF IP cameras" Classes="caption" />

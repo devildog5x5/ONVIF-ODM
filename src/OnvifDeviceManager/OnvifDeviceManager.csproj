@@ -28,6 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AvaloniaResource Include="..\..\branding\master-icon.png" Link="Assets\branding_master.png" />
     <AvaloniaResource Include="..\..\warrior_icon.ico" Link="Assets\warrior_icon.ico" />
     <!-- Same icon beside the published binary (Linux .desktop Icon= path, installers, etc.) -->
     <Content Include="..\..\warrior_icon.ico" Link="warrior_icon.ico">

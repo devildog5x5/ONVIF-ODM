@@ -23,6 +23,7 @@
     <ProjectReference Include="..\OnvifDeviceManager.Core\OnvifDeviceManager.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="..\..\branding\master-icon.png" Link="branding_master.png" />
     <Resource Include="..\..\warrior_icon.ico" Link="warrior_icon.ico" />
     <Content Include="..\..\warrior_icon.ico" Link="warrior_icon.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

@@ -24,16 +24,18 @@
             </Grid.RowDefinitions>
 
             <!-- Header -->
-            <TextBlock Grid.Row="0" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,20">
+            <TextBlock Grid.Row="0" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,12">
                 <Run Text="Live View" />
                 <Run Text=" — " Foreground="{StaticResource MutedText}" />
                 <Run Text="Live video (RTSP) and still snapshots for the active camera only" Foreground="{StaticResource MutedText}" FontSize="14" />
             </TextBlock>
 
-            <Grid Grid.Row="1">
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                          Padding="0,0,10,0">
+            <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -140,8 +142,11 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <Grid Grid.Row="0" Margin="0,0,0,8">
-                            <TextBlock Text="Event Simulator — ONVIF Alarm Response" FontWeight="SemiBold" Foreground="{StaticResource Danger}" />
-                            <TextBlock HorizontalAlignment="Right" Text="{Binding LastSimulatedEvent}" Foreground="{StaticResource MutedText}" FontSize="11" />
+                            <StackPanel>
+                                <TextBlock Text="Gunshot / alarm simulator (PTZ response)" FontWeight="SemiBold" Foreground="{StaticResource Danger}" />
+                                <TextBlock Text="Choose event type (e.g. Gunshot Detection), target preset or pan/tilt, then SIMULATE." FontSize="11" Foreground="{StaticResource MutedText}" Margin="0,4,0,0" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <TextBlock HorizontalAlignment="Right" VerticalAlignment="Top" Text="{Binding LastSimulatedEvent}" Foreground="{StaticResource MutedText}" FontSize="11" MaxWidth="220" TextWrapping="Wrap" TextAlignment="Right" />
                         </Grid>
                         <Grid Grid.Row="1">
                             <Grid.ColumnDefinitions>
@@ -190,6 +195,7 @@
                     </Grid>
                 </Border>
             </Grid>
+            </ScrollViewer>
 
             <!-- Status Bar -->
             <Border Grid.Row="2" Background="{StaticResource SecondaryBg}" CornerRadius="8" Padding="16,10" Margin="0,12,0,0">
