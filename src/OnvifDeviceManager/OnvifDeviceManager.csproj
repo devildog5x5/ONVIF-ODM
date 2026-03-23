@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
+    <ApplicationIcon>..\..\warrior_icon.ico</ApplicationIcon>
     <RootNamespace>OnvifDeviceManager</RootNamespace>
     <AssemblyName>OnvifDeviceManager</AssemblyName>
     <Version>1.0.0</Version>
@@ -24,6 +25,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OnvifDeviceManager.Core\OnvifDeviceManager.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="..\..\warrior_icon.ico" Link="Assets\warrior_icon.ico" />
   </ItemGroup>
 
 </Project>

@@ -24,6 +24,7 @@ public class DiscoveryViewModel : ViewModelBase
     private bool _isConnecting;
     private bool _saveCredentials = true;
     private string _credentialSource = string.Empty;
+    private string? _activeSessionAddress;
 
     public DiscoveryViewModel(OnvifDiscoveryService discoveryService, OnvifDeviceService deviceService,
         OnvifMediaService mediaService, CredentialStore credentialStore, IUiDispatcher dispatcher)
@@ -45,8 +46,19 @@ public class DiscoveryViewModel : ViewModelBase
 
     public event Action<OnvifDevice>? DeviceSelected;
     public event Action<string>? StatusChanged;
+    /// <summary>Fired when the user disconnects from a device in Discovery (session ended for that device).</summary>
+    public event Action<OnvifDevice>? DeviceSessionEnded;
 
     public ObservableCollection<OnvifDevice> Devices { get; } = new();
+
+    /// <summary>Address of the camera currently selected in the main app (highlights the matching row in Discovery).</summary>
+    public string? ActiveSessionAddress
+    {
+        get => _activeSessionAddress;
+        private set => SetProperty(ref _activeSessionAddress, value);
+    }
+
+    public void SetActiveSessionDevice(OnvifDevice? device) => ActiveSessionAddress = device?.Address;
 
     public bool IsDiscovering
     {
@@ -430,10 +442,12 @@ public class DiscoveryViewModel : ViewModelBase
     private void DisconnectDevice()
     {
         if (SelectedDevice == null || !SelectedDevice.IsAuthenticated) return;
-        SelectedDevice.IsAuthenticated = false;
-        SelectedDevice.Status = DeviceStatus.Online;
-        SelectedDevice.Profiles.Clear();
-        StatusText = $"Disconnected from {SelectedDevice.DisplayName}";
+        var d = SelectedDevice;
+        d.IsAuthenticated = false;
+        d.Status = DeviceStatus.Online;
+        d.Profiles.Clear();
+        StatusText = $"Disconnected from {d.DisplayName}";
         StatusChanged?.Invoke(StatusText);
+        DeviceSessionEnded?.Invoke(d);
     }
 }

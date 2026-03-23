@@ -43,6 +43,7 @@ public class MainViewModel : ViewModelBase
 
         DiscoveryViewModel.DeviceSelected += OnDeviceSelected;
         DiscoveryViewModel.StatusChanged += OnStatusChanged;
+        DiscoveryViewModel.DeviceSessionEnded += OnDiscoveryDeviceSessionEnded;
 
         _ = AutoDiscoverAsync();
     }
@@ -146,8 +147,26 @@ public class MainViewModel : ViewModelBase
             ConnectedDevices.Add(device);
 
         SelectedDevice = device;
+        SyncDiscoverySelection(device);
         StatusMessage = $"Connected to {device.DisplayName} ({device.Username}@{device.Address})";
         Navigate("DeviceInfo");
+    }
+
+    private void OnDiscoveryDeviceSessionEnded(OnvifDevice device)
+    {
+        var match = ConnectedDevices.FirstOrDefault(d => d.Address == device.Address);
+        if (match != null)
+            ConnectedDevices.Remove(match);
+
+        if (SelectedDevice != null && SelectedDevice.Address == device.Address)
+            SelectedDevice = null;
+    }
+
+    private void SyncDiscoverySelection(OnvifDevice device)
+    {
+        var inList = DiscoveryViewModel.Devices.FirstOrDefault(d => d.Address == device.Address);
+        if (inList != null)
+            DiscoveryViewModel.SelectedDevice = inList;
     }
 
     private void SwitchDevice(object? parameter)
@@ -155,6 +174,7 @@ public class MainViewModel : ViewModelBase
         if (parameter is OnvifDevice device && device.IsAuthenticated)
         {
             SelectedDevice = device;
+            SyncDiscoverySelection(device);
             StatusMessage = $"Switched to {device.DisplayName} ({device.Username}@{device.Address})";
         }
     }
@@ -166,6 +186,8 @@ public class MainViewModel : ViewModelBase
 
     private void UpdateChildViewModels()
     {
+        DiscoveryViewModel.SetActiveSessionDevice(_selectedDevice);
+
         if (_selectedDevice == null)
         {
             // Clear all child view models when no device selected — ensures left-panel sections

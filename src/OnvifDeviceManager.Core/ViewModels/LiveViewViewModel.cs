@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Windows.Input;
 using OnvifDeviceManager.Models;
@@ -56,6 +57,7 @@ public class LiveViewViewModel : ViewModelBase
         StartAutoRefreshCommand = new RelayCommand(StartAutoRefresh);
         StopAutoRefreshCommand = new RelayCommand(StopAutoRefresh);
         CopyStreamUriCommand = new AsyncRelayCommand(CopyStreamUriAsync);
+        OpenRtspExternallyCommand = new AsyncRelayCommand(OpenRtspExternallyAsync);
         SimulateEventCommand = new AsyncRelayCommand(SimulateEventAsync);
         MoveUpCommand = new AsyncRelayCommand(() => ContinuousMoveAsync(0, TiltSpeed, 0));
         MoveDownCommand = new AsyncRelayCommand(() => ContinuousMoveAsync(0, -TiltSpeed, 0));
@@ -80,13 +82,20 @@ public class LiveViewViewModel : ViewModelBase
         get => _selectedProfile;
         set
         {
-            if (SetProperty(ref _selectedProfile, value) && value != null)
+            if (SetProperty(ref _selectedProfile, value))
             {
-                StreamUri = value.StreamUri;
-                _ = RefreshSnapshotAsync();
+                OnPropertyChanged(nameof(ShowPtzPanel));
+                if (value != null)
+                {
+                    StreamUri = value.StreamUri;
+                    _ = RefreshSnapshotAsync();
+                }
             }
         }
     }
+
+    /// <summary>True when the current media profile supports PTZ (d-pad in Live View).</summary>
+    public bool ShowPtzPanel => Device != null && SelectedProfile?.IsPtzEnabled == true;
 
     public byte[]? SnapshotBytes
     {
@@ -132,6 +141,7 @@ public class LiveViewViewModel : ViewModelBase
     public ICommand StartAutoRefreshCommand { get; }
     public ICommand StopAutoRefreshCommand { get; }
     public ICommand CopyStreamUriCommand { get; }
+    public ICommand OpenRtspExternallyCommand { get; }
     public ICommand SimulateEventCommand { get; }
     public ICommand MoveUpCommand { get; }
     public ICommand MoveDownCommand { get; }
@@ -147,7 +157,26 @@ public class LiveViewViewModel : ViewModelBase
     public float ZoomSpeed { get => _zoomSpeed; set => SetProperty(ref _zoomSpeed, Math.Clamp(value, 0f, 1f)); }
 
     public int EventTargetPresetNumber { get => _eventTargetPresetNumber; set => SetProperty(ref _eventTargetPresetNumber, Math.Clamp(value, 1, 9)); }
-    public bool EventTargetUsePreset { get => _eventTargetUsePreset; set => SetProperty(ref _eventTargetUsePreset, value); }
+    public bool EventTargetUsePreset
+    {
+        get => _eventTargetUsePreset;
+        set
+        {
+            if (!SetProperty(ref _eventTargetUsePreset, value)) return;
+            OnPropertyChanged(nameof(EventTargetUseCoordinates));
+        }
+    }
+
+    /// <summary>Inverse of <see cref="EventTargetUsePreset"/> for paired radio buttons in the Avalonia UI.</summary>
+    public bool EventTargetUseCoordinates
+    {
+        get => !_eventTargetUsePreset;
+        set
+        {
+            if (value)
+                EventTargetUsePreset = false;
+        }
+    }
     public float EventTargetPan { get => _eventTargetPan; set => SetProperty(ref _eventTargetPan, value); }
     public float EventTargetTilt { get => _eventTargetTilt; set => SetProperty(ref _eventTargetTilt, value); }
     public string EventTargetPanString { get => _eventTargetPanString; set => SetProperty(ref _eventTargetPanString, value ?? "0"); }
@@ -160,9 +189,12 @@ public class LiveViewViewModel : ViewModelBase
         "Gunshot Detection", "Motion Detected", "Perimeter Breach", "General Alarm", "Vehicle Detected", "Custom Event"
     };
 
+    public static readonly int[] PresetNumberChoices = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+
     public void SetDevice(OnvifDevice device)
     {
         Device = device;
+        OnPropertyChanged(nameof(ShowPtzPanel));
         StopAutoRefresh();
         RequestStopLiveStream?.Invoke();
 
@@ -172,6 +204,8 @@ public class LiveViewViewModel : ViewModelBase
 
         if (Profiles.Count > 0)
             SelectedProfile = Profiles[0];
+        else
+            SelectedProfile = null;
     }
 
     /// <summary>Fired when the device changes; the view should stop any live RTSP stream.</summary>
@@ -187,6 +221,7 @@ public class LiveViewViewModel : ViewModelBase
         SnapshotBytes = null;
         StreamUri = string.Empty;
         StatusText = string.Empty;
+        OnPropertyChanged(nameof(ShowPtzPanel));
     }
 
     public async Task RefreshSnapshotAsync()
@@ -257,6 +292,47 @@ public class LiveViewViewModel : ViewModelBase
             await _clipboard.SetTextAsync(StreamUri);
             StatusText = "Stream URI copied to clipboard";
         }
+    }
+
+    /// <summary>Opens the RTSP URL with the OS default handler (often VLC). WPF uses embedded LibVLC when available.</summary>
+    private Task OpenRtspExternallyAsync()
+    {
+        if (Device == null || string.IsNullOrWhiteSpace(StreamUri))
+        {
+            StatusText = "No stream URI to open";
+            return Task.CompletedTask;
+        }
+
+        try
+        {
+            var uri = BuildAuthenticatedRtspUri(StreamUri, Device.Username, Device.Password);
+            Process.Start(new ProcessStartInfo { FileName = uri, UseShellExecute = true });
+            StatusText = "Opened stream URL with the default application";
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Could not open stream: {ex.Message}";
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public static string BuildAuthenticatedRtspUri(string uri, string? username, string? password)
+    {
+        if (string.IsNullOrWhiteSpace(username))
+            return uri;
+
+        if (!Uri.TryCreate(uri, UriKind.Absolute, out var u) || string.IsNullOrEmpty(u.UserInfo))
+        {
+            var builder = new UriBuilder(uri)
+            {
+                UserName = username,
+                Password = password ?? ""
+            };
+            return builder.Uri.ToString();
+        }
+
+        return uri;
     }
 
     private string GetPtzServiceUrl() =>

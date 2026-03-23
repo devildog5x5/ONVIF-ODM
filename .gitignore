@@ -51,6 +51,9 @@ bld/
 ## Published output
 publish/
 
+## Local release drops at repo root (use GitHub Releases for binaries)
+/OnvifDeviceManager-*.zip
+
 ## OS Files
 .DS_Store
 Thumbs.db

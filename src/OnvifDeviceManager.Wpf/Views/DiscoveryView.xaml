@@ -10,6 +10,7 @@
     <UserControl.Resources>
         <conv:StatusToColorConverter x:Key="StatusToColor" />
         <conv:NullToVisibilityConverter x:Key="NullToVis" />
+        <conv:DeviceSessionHighlightConverter x:Key="DeviceSessionHighlight" />
     </UserControl.Resources>
 
     <Grid Margin="24">
@@ -85,27 +86,35 @@
                                  ScrollViewer.VerticalScrollBarVisibility="Auto">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <Ellipse Width="12" Height="12" Margin="0,0,12,0" VerticalAlignment="Center"
-                                                 Fill="{Binding Status, Converter={StaticResource StatusToColor}}" />
-                                        <StackPanel Grid.Column="1">
-                                            <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="14" />
-                                            <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                                                <TextBlock Text="{Binding Manufacturer}" Foreground="{StaticResource SecondaryText}" FontSize="12" />
-                                                <TextBlock Text=" - " Foreground="{StaticResource MutedText}" FontSize="12" />
-                                                <TextBlock Text="{Binding Model}" Foreground="{StaticResource MutedText}" FontSize="12" />
+                                    <Border Padding="8,6" CornerRadius="6">
+                                        <Border.Background>
+                                            <MultiBinding Converter="{StaticResource DeviceSessionHighlight}">
+                                                <Binding />
+                                                <Binding Path="DataContext.ActiveSessionAddress" RelativeSource="{RelativeSource AncestorType=ListBox}" />
+                                            </MultiBinding>
+                                        </Border.Background>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Ellipse Width="12" Height="12" Margin="0,0,12,0" VerticalAlignment="Center"
+                                                     Fill="{Binding Status, Converter={StaticResource StatusToColor}}" />
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="14" />
+                                                <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                    <TextBlock Text="{Binding Manufacturer}" Foreground="{StaticResource SecondaryText}" FontSize="12" />
+                                                    <TextBlock Text=" - " Foreground="{StaticResource MutedText}" FontSize="12" />
+                                                    <TextBlock Text="{Binding Model}" Foreground="{StaticResource MutedText}" FontSize="12" />
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding Address}" Foreground="{StaticResource MutedText}" FontSize="11" 
+                                                           FontFamily="{StaticResource MonoFont}" Margin="0,2,0,0" />
                                             </StackPanel>
-                                            <TextBlock Text="{Binding Address}" Foreground="{StaticResource MutedText}" FontSize="11" 
-                                                       FontFamily="{StaticResource MonoFont}" Margin="0,2,0,0" />
-                                        </StackPanel>
-                                        <TextBlock Grid.Column="2" Text="{Binding Status}" Foreground="{StaticResource MutedText}" 
-                                                   FontSize="11" VerticalAlignment="Center" />
-                                    </Grid>
+                                            <TextBlock Grid.Column="2" Text="{Binding Status}" Foreground="{StaticResource MutedText}" 
+                                                       FontSize="11" VerticalAlignment="Center" />
+                                        </Grid>
+                                    </Border>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
@@ -180,6 +189,11 @@
                     <Button Style="{StaticResource PrimaryBtn}" Content="Connect" 
                             Command="{Binding ConnectCommand}" HorizontalAlignment="Stretch" Margin="0,0,0,8"
                             FontSize="15" Padding="20,12" />
+
+                    <Button Style="{StaticResource DangerBtn}" Content="Disconnect (end session)" 
+                            Command="{Binding DisconnectCommand}" HorizontalAlignment="Stretch" Margin="0,0,0,8"
+                            Padding="14,10" FontSize="13"
+                            IsEnabled="{Binding SelectedDevice.IsAuthenticated}" />
 
                     <Button Style="{StaticResource SecondaryBtn}" Content="Connect All (saved credentials)" 
                             Command="{Binding ConnectAllCommand}" HorizontalAlignment="Stretch"

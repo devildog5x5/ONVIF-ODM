@@ -1,0 +1,6 @@
+<Project>
+  <!-- Default application icon for all executables in this repo (override in a .csproj if needed). -->
+  <PropertyGroup>
+    <ApplicationIcon Condition="'$(ApplicationIcon)' == ''">$(MSBuildThisFileDirectory)warrior_icon.ico</ApplicationIcon>
+  </PropertyGroup>
+</Project>

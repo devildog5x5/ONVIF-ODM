@@ -7,6 +7,7 @@
         Title="ONVIF Device Manager"
         Width="1400" Height="900"
         MinWidth="1100" MinHeight="700"
+        Icon="pack://application:,,,/warrior_icon.ico"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource PrimaryBg}"
         Foreground="White"
@@ -86,15 +87,15 @@
                                    Visibility="{Binding SelectedDevice, Converter={StaticResource NullToVis}, ConverterParameter=Invert}" />
 
                         <TextBlock Text="DEVICE (for selected camera only)" FontSize="11" Foreground="{StaticResource MutedText}" FontWeight="Bold" Margin="16,16,0,6" />
-                        <Button Style="{StaticResource SecondaryBtn}" Content="Device Info" Command="{Binding NavigateCommand}" CommandParameter="DeviceInfo" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" />
-                        <Button Style="{StaticResource SecondaryBtn}" Content="Live View" Command="{Binding NavigateCommand}" CommandParameter="LiveView" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" />
-                        <Button Style="{StaticResource SecondaryBtn}" Content="PTZ Control" Command="{Binding NavigateCommand}" CommandParameter="PTZ" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" />
-                        <Button Style="{StaticResource SecondaryBtn}" Content="Media Profiles" Command="{Binding NavigateCommand}" CommandParameter="Profiles" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" />
+                        <Button Style="{StaticResource SecondaryBtn}" Content="Device Info" Command="{Binding NavigateCommand}" CommandParameter="DeviceInfo" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" IsEnabled="{Binding IsDeviceConnected}" />
+                        <Button Style="{StaticResource SecondaryBtn}" Content="Live View" Command="{Binding NavigateCommand}" CommandParameter="LiveView" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" IsEnabled="{Binding IsDeviceConnected}" />
+                        <Button Style="{StaticResource SecondaryBtn}" Content="PTZ Control" Command="{Binding NavigateCommand}" CommandParameter="PTZ" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" IsEnabled="{Binding IsDeviceConnected}" />
+                        <Button Style="{StaticResource SecondaryBtn}" Content="Media Profiles" Command="{Binding NavigateCommand}" CommandParameter="Profiles" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" IsEnabled="{Binding IsDeviceConnected}" />
 
                         <TextBlock Text="MANAGEMENT" FontSize="11" Foreground="{StaticResource MutedText}" FontWeight="Bold" Margin="16,20,0,6" />
-                        <Button Style="{StaticResource SecondaryBtn}" Content="Network" Command="{Binding NavigateCommand}" CommandParameter="Network" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" />
-                        <Button Style="{StaticResource SecondaryBtn}" Content="Users" Command="{Binding NavigateCommand}" CommandParameter="Users" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" />
-                        <Button Style="{StaticResource SecondaryBtn}" Content="Events" Command="{Binding NavigateCommand}" CommandParameter="Events" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" />
+                        <Button Style="{StaticResource SecondaryBtn}" Content="Network" Command="{Binding NavigateCommand}" CommandParameter="Network" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" IsEnabled="{Binding IsDeviceConnected}" />
+                        <Button Style="{StaticResource SecondaryBtn}" Content="Users" Command="{Binding NavigateCommand}" CommandParameter="Users" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" IsEnabled="{Binding IsDeviceConnected}" />
+                        <Button Style="{StaticResource SecondaryBtn}" Content="Events" Command="{Binding NavigateCommand}" CommandParameter="Events" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" IsEnabled="{Binding IsDeviceConnected}" />
 
                         <TextBlock Text="APPLICATION" FontSize="11" Foreground="{StaticResource MutedText}" FontWeight="Bold" Margin="16,20,0,6" />
                         <Button Style="{StaticResource SecondaryBtn}" Content="Credentials" Command="{Binding NavigateCommand}" CommandParameter="Credentials" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" />

@@ -133,7 +133,7 @@ public partial class LiveViewView : UserControl
             return;
         }
 
-        var authUri = BuildAuthenticatedRtspUri(uri, vm.Device.Username, vm.Device.Password);
+        var authUri = LiveViewViewModel.BuildAuthenticatedRtspUri(uri, vm.Device.Username, vm.Device.Password);
 
         try
         {
@@ -173,20 +173,4 @@ public partial class LiveViewView : UserControl
         StopLiveButton.IsEnabled = false;
     }
 
-    private static string BuildAuthenticatedRtspUri(string uri, string? username, string? password)
-    {
-        if (string.IsNullOrWhiteSpace(username))
-            return uri;
-
-        if (!Uri.TryCreate(uri, UriKind.Absolute, out var u) || string.IsNullOrEmpty(u.UserInfo))
-        {
-            var builder = new UriBuilder(uri)
-            {
-                UserName = username,
-                Password = password ?? ""
-            };
-            return builder.Uri.ToString();
-        }
-        return uri;
-    }
 }

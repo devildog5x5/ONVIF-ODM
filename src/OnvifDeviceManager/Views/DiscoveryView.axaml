@@ -3,10 +3,12 @@
              xmlns:vm="using:OnvifDeviceManager.ViewModels"
              xmlns:conv="using:OnvifDeviceManager.Converters"
              x:Class="OnvifDeviceManager.Views.DiscoveryView"
-             x:DataType="vm:DiscoveryViewModel">
+             x:DataType="vm:DiscoveryViewModel"
+             x:CompileBindings="False">
 
     <UserControl.Resources>
         <conv:StatusToColorConverter x:Key="StatusToColor" />
+        <conv:DeviceSessionHighlightConverter x:Key="DeviceSessionHighlight" />
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -54,24 +56,32 @@
                             <TextBlock Text="{Binding Devices.Count, StringFormat='  ({0} found)'}" Classes="caption" VerticalAlignment="Center" />
                         </StackPanel>
 
-                        <ListBox Classes="modern" ItemsSource="{Binding Devices}" SelectedItem="{Binding SelectedDevice}" MinHeight="200">
+                        <ListBox Name="DevicesList" Classes="modern" ItemsSource="{Binding Devices}" SelectedItem="{Binding SelectedDevice}" MinHeight="200">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <Grid ColumnDefinitions="Auto,*,Auto" Margin="4">
-                                        <Ellipse Grid.Column="0" Width="12" Height="12" Margin="0,0,12,0"
-                                                 VerticalAlignment="Center"
-                                                 Fill="{Binding Status, Converter={StaticResource StatusToColor}}" />
-                                        <StackPanel Grid.Column="1">
-                                            <TextBlock Text="{Binding DisplayName}" FontSize="14" FontWeight="SemiBold" Foreground="White" />
-                                            <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                                                <TextBlock Text="{Binding Manufacturer}" Classes="caption" />
-                                                <TextBlock Text=" - " Classes="caption" />
-                                                <TextBlock Text="{Binding Model}" Classes="caption" />
+                                    <Border Padding="8,6" CornerRadius="6">
+                                        <Border.Background>
+                                            <MultiBinding Converter="{StaticResource DeviceSessionHighlight}">
+                                                <Binding />
+                                                <Binding Path="DataContext.ActiveSessionAddress" RelativeSource="{RelativeSource AncestorType=ListBox}" />
+                                            </MultiBinding>
+                                        </Border.Background>
+                                        <Grid ColumnDefinitions="Auto,*,Auto" Margin="0">
+                                            <Ellipse Grid.Column="0" Width="12" Height="12" Margin="0,0,12,0"
+                                                     VerticalAlignment="Center"
+                                                     Fill="{Binding Status, Converter={StaticResource StatusToColor}}" />
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="{Binding DisplayName}" FontSize="14" FontWeight="SemiBold" Foreground="White" />
+                                                <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                    <TextBlock Text="{Binding Manufacturer}" Classes="caption" />
+                                                    <TextBlock Text=" - " Classes="caption" />
+                                                    <TextBlock Text="{Binding Model}" Classes="caption" />
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding Address}" Classes="mono" FontSize="11" Margin="0,2,0,0" />
                                             </StackPanel>
-                                            <TextBlock Text="{Binding Address}" Classes="mono" FontSize="11" Margin="0,2,0,0" />
-                                        </StackPanel>
-                                        <TextBlock Grid.Column="2" Text="{Binding Status}" Classes="caption" VerticalAlignment="Center" />
-                                    </Grid>
+                                            <TextBlock Grid.Column="2" Text="{Binding Status}" Classes="caption" VerticalAlignment="Center" />
+                                        </Grid>
+                                    </Border>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
@@ -133,6 +143,10 @@
 
                         <Button Classes="primary" Content="Connect" Command="{Binding ConnectCommand}"
                                 HorizontalAlignment="Stretch" Margin="0,0,0,8" FontSize="15" Padding="20,12" />
+
+                        <Button Classes="danger" Content="Disconnect (end session)" Command="{Binding DisconnectCommand}"
+                                HorizontalAlignment="Stretch" Margin="0,0,0,8" Padding="14,10" FontSize="13"
+                                IsEnabled="{Binding SelectedDevice.IsAuthenticated}" />
 
                         <Button Classes="secondary" Content="Connect All (saved credentials)"
                                 Command="{Binding ConnectAllCommand}" HorizontalAlignment="Stretch" Padding="14,8" FontSize="12" />

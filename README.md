@@ -1,5 +1,7 @@
 # ONVIF Device Manager
 
+[![Build](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml/badge.svg)](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml)
+
 A modern, feature-rich ONVIF Device Manager built with C# and .NET 8. Ships with **two UI editions**:
 
 - **WPF Edition** - Native Windows desktop application with Segoe MDL2 icons
@@ -31,7 +33,9 @@ Both editions share the same core business logic, ONVIF protocol services, and M
 
 Self-contained executables — **no .NET runtime installation required**. Just download, extract, and run.
 
-**Latest Release: v1.5.0** — Built: March 22, 2026
+**Latest tagged release: v1.5.0** — Release assets built: March 22, 2026
+
+**Source / README refreshed:** 2026-03-23 (documentation and key paths below). The `main` branch is verified on every push by **[GitHub Actions — Build workflow](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml)** ([workflow file](.github/workflows/dotnet.yml)).
 
 | Platform | Edition | Download | Built |
 |----------|---------|----------|-------|
@@ -41,7 +45,9 @@ Self-contained executables — **no .NET runtime installation required**. Just d
 | **macOS Intel** | Avalonia | [OnvifDeviceManager-Avalonia-osx-x64-v1.5.0.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.5.0/OnvifDeviceManager-Avalonia-osx-x64-v1.5.0.zip) (40 MB) | 2026-03-22 |
 | **macOS Apple Silicon** | Avalonia | [OnvifDeviceManager-Avalonia-osx-arm64-v1.5.0.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.5.0/OnvifDeviceManager-Avalonia-osx-arm64-v1.5.0.zip) (39 MB) | 2026-03-22 |
 
-> [See all releases](https://github.com/devildog5x5/ONVIF-ODM/releases)
+> [See all releases](https://github.com/devildog5x5/ONVIF-ODM/releases) · [All workflow runs](https://github.com/devildog5x5/ONVIF-ODM/actions)
+
+To produce matching binaries locally from source, run **`.\build\build-all.ps1`** then **`.\create-release-package.ps1`** (see [Release Build SOP](#release-build-sop)).
 
 ### Windows Installer
 
@@ -103,12 +109,14 @@ Standard procedure for creating a release:
 
 5. **Update README (links, version, dates/timestamps):**  
    - Update direct download links and version numbers in the Download section.  
-   - **Date and timestamp updates:** Run the PowerShell snippet under "Key files — last modified" to get current file dates, update the table with those values, and update the "last refreshed" date (e.g. **2026-03-22**) in that section's intro text.
+   - **Date and timestamp updates:** Run the PowerShell snippet under "Key files — last modified" to get current file dates, update the table with those values, and update the "last refreshed" line (date and time) in that section's intro text.
 
 ## Project Structure
 
 ```
 OnvifDeviceManager.sln
+├── Directory.Build.props                # Default ApplicationIcon (warrior_icon.ico) for all projects
+├── .github/workflows/dotnet.yml         # CI: dotnet build Release on push/PR
 ├── src/OnvifDeviceManager.Core/         # Shared class library
 │   ├── Models/                          # Data models
 │   │   ├── OnvifDevice.cs               # Core device model
@@ -140,7 +148,7 @@ OnvifDeviceManager.sln
 ├── src/OnvifDeviceManager/              # Avalonia UI (cross-platform)
 │   ├── Views/                           # .axaml Avalonia views
 │   ├── Themes/DarkTheme.axaml
-│   ├── Converters/
+│   ├── Converters/                      # Includes DeviceSessionHighlightConverter.cs
 │   ├── Platform/AvaloniaServices.cs
 │   ├── MainWindow.axaml
 │   └── App.axaml
@@ -148,7 +156,7 @@ OnvifDeviceManager.sln
 └── src/OnvifDeviceManager.Wpf/          # WPF UI (Windows native)
     ├── Views/                           # .xaml WPF views
     ├── Themes/DarkTheme.xaml
-    ├── Converters/
+    ├── Converters/                      # Includes DeviceSessionHighlightConverter.cs
     ├── Platform/WpfServices.cs
     ├── MainWindow.xaml
     └── App.xaml
@@ -156,18 +164,28 @@ OnvifDeviceManager.sln
 
 ### Key files — last modified (on disk)
 
-Dates below are **file last-write time** in the maintainer workspace when this section was last refreshed (**2026-03-22**). After you pull or edit files, run the snippet under the table to see current dates on your machine. For **last git commit** per path, use: `git log -1 --format=%cs -- <path>`.
+Dates below are **file last-write time** in the maintainer workspace when this section was last refreshed (**2026-03-23 11:13 local**). After you pull or edit files, run the snippet under the table to see current dates on your machine. For **last git commit** per path, use: `git log -1 --format=%cs -- <path>`.
 
 | Path | Purpose | Last modified |
 |------|---------|---------------|
+| `Directory.Build.props` | Default `ApplicationIcon` for repo projects | 2026-03-23 11:08 |
+| `.github/workflows/dotnet.yml` | CI Release build (Windows runner) | 2026-03-23 |
 | `branding/master-icon.png` | Master icon image | 2026-03-22 |
 | `warrior_icon.ico` | App / window icon | 2026-03-22 |
 | `src/OnvifDeviceManager.Wpf/OnvifDeviceManager.Wpf.csproj` | WPF project | 2026-03-22 |
-| `src/OnvifDeviceManager.Wpf/MainWindow.xaml` | Main layout | 2026-03-22 |
-| `src/OnvifDeviceManager.Wpf/Views/LiveViewView.xaml` | Live view UI | 2026-03-22 |
-| `src/OnvifDeviceManager.Wpf/Views/LiveViewView.xaml.cs` | Live view / LibVLC logic | 2026-03-22 |
-| `src/OnvifDeviceManager.Core/ViewModels/MainViewModel.cs` | Main ViewModel | 2026-03-22 |
-| `src/OnvifDeviceManager.Core/ViewModels/LiveViewViewModel.cs` | Live view ViewModel | 2026-03-22 |
+| `src/OnvifDeviceManager.Wpf/MainWindow.xaml` | Main layout | 2026-03-23 11:09 |
+| `src/OnvifDeviceManager.Wpf/Views/DiscoveryView.xaml` | Discovery UI / session highlight | 2026-03-23 11:12 |
+| `src/OnvifDeviceManager.Wpf/Views/LiveViewView.xaml` | Live view UI | 2026-03-23 11:12 |
+| `src/OnvifDeviceManager.Wpf/Views/LiveViewView.xaml.cs` | Live view / LibVLC logic | 2026-03-23 11:09 |
+| `src/OnvifDeviceManager.Wpf/Converters/DeviceSessionHighlightConverter.cs` | Discovery row highlight (WPF) | 2026-03-23 11:10 |
+| `src/OnvifDeviceManager/OnvifDeviceManager.csproj` | Avalonia project + icon resource | 2026-03-23 11:10 |
+| `src/OnvifDeviceManager/MainWindow.axaml` | Avalonia main layout | 2026-03-23 11:10 |
+| `src/OnvifDeviceManager/Views/DiscoveryView.axaml` | Discovery UI (Avalonia) | 2026-03-23 11:12 |
+| `src/OnvifDeviceManager/Views/LiveViewView.axaml` | Live view (Avalonia) | 2026-03-23 11:11 |
+| `src/OnvifDeviceManager/Converters/DeviceSessionHighlightConverter.cs` | Discovery row highlight (Avalonia) | 2026-03-23 11:10 |
+| `src/OnvifDeviceManager.Core/ViewModels/MainViewModel.cs` | Main ViewModel | 2026-03-23 11:08 |
+| `src/OnvifDeviceManager.Core/ViewModels/DiscoveryViewModel.cs` | Discovery / active session | 2026-03-23 11:08 |
+| `src/OnvifDeviceManager.Core/ViewModels/LiveViewViewModel.cs` | Live view ViewModel | 2026-03-23 11:11 |
 | `src/OnvifDeviceManager.Core/Services/OnvifPtzService.cs` | PTZ / ONVIF service | 2026-03-22 |
 | `build/build-all.ps1` | Build script | 2026-03-22 |
 | `create-release-package.ps1` | Release packager | 2026-03-22 |
@@ -176,15 +194,22 @@ Dates below are **file last-write time** in the maintainer workspace when this s
 
 ```powershell
 $paths = @(
+  'Directory.Build.props','.github/workflows/dotnet.yml',
   'branding/master-icon.png','warrior_icon.ico',
   'src/OnvifDeviceManager.Wpf/OnvifDeviceManager.Wpf.csproj',
   'src/OnvifDeviceManager.Wpf/MainWindow.xaml',
+  'src/OnvifDeviceManager.Wpf/Views/DiscoveryView.xaml',
   'src/OnvifDeviceManager.Wpf/Views/LiveViewView.xaml','src/OnvifDeviceManager.Wpf/Views/LiveViewView.xaml.cs',
-  'src/OnvifDeviceManager.Core/ViewModels/MainViewModel.cs','src/OnvifDeviceManager.Core/ViewModels/LiveViewViewModel.cs',
+  'src/OnvifDeviceManager.Wpf/Converters/DeviceSessionHighlightConverter.cs',
+  'src/OnvifDeviceManager/OnvifDeviceManager.csproj','src/OnvifDeviceManager/MainWindow.axaml',
+  'src/OnvifDeviceManager/Views/DiscoveryView.axaml','src/OnvifDeviceManager/Views/LiveViewView.axaml',
+  'src/OnvifDeviceManager/Converters/DeviceSessionHighlightConverter.cs',
+  'src/OnvifDeviceManager.Core/ViewModels/MainViewModel.cs',
+  'src/OnvifDeviceManager.Core/ViewModels/DiscoveryViewModel.cs','src/OnvifDeviceManager.Core/ViewModels/LiveViewViewModel.cs',
   'src/OnvifDeviceManager.Core/Services/OnvifPtzService.cs',
   'build/build-all.ps1','create-release-package.ps1'
 )
-$paths | ForEach-Object { if (Test-Path $_) { '{0}  {1}' -f ((Get-Item $_).LastWriteTime.ToString('yyyy-MM-dd')), $_ } }
+$paths | ForEach-Object { if (Test-Path $_) { '{0}  {1}' -f ((Get-Item $_).LastWriteTime.ToString('yyyy-MM-dd HH:mm:ss')), $_ } }
 ```
 
 ## Architecture
