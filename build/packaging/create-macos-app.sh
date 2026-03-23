@@ -27,6 +27,34 @@ mkdir -p "$APP_BUNDLE/Contents/Resources"
 cp -r "$PUBLISH_DIR"/* "$APP_BUNDLE/Contents/MacOS/"
 chmod +x "$APP_BUNDLE/Contents/MacOS/OnvifDeviceManager"
 
+# Bundle icon (CFBundleIconFile) from branding master — same artwork as warrior_icon.ico
+ICON_PLIST_SNIPPET=""
+MASTER="$ROOT_DIR/branding/master-icon.png"
+if [ -f "$MASTER" ] && command -v sips >/dev/null 2>&1 && command -v iconutil >/dev/null 2>&1; then
+    tmp=$(mktemp -d)
+    iset="$tmp/AppIcon.iconset"
+    mkdir -p "$iset"
+    sips -z 16 16 "$MASTER" --out "$iset/icon_16x16.png" >/dev/null 2>&1
+    sips -z 32 32 "$MASTER" --out "$iset/icon_16x16@2x.png" >/dev/null 2>&1
+    sips -z 32 32 "$MASTER" --out "$iset/icon_32x32.png" >/dev/null 2>&1
+    sips -z 64 64 "$MASTER" --out "$iset/icon_32x32@2x.png" >/dev/null 2>&1
+    sips -z 128 128 "$MASTER" --out "$iset/icon_128x128.png" >/dev/null 2>&1
+    sips -z 256 256 "$MASTER" --out "$iset/icon_128x128@2x.png" >/dev/null 2>&1
+    sips -z 256 256 "$MASTER" --out "$iset/icon_256x256.png" >/dev/null 2>&1
+    sips -z 512 512 "$MASTER" --out "$iset/icon_256x256@2x.png" >/dev/null 2>&1
+    sips -z 512 512 "$MASTER" --out "$iset/icon_512x512.png" >/dev/null 2>&1
+    sips -z 1024 1024 "$MASTER" --out "$iset/icon_512x512@2x.png" >/dev/null 2>&1
+    if iconutil -c icns "$iset" -o "$APP_BUNDLE/Contents/Resources/AppIcon.icns" 2>/dev/null; then
+        ICON_PLIST_SNIPPET='    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
+'
+        echo "App bundle icon: AppIcon.icns (from branding/master-icon.png)"
+    fi
+    rm -rf "$tmp"
+else
+    echo "(Skipping AppIcon.icns: need macOS with sips + iconutil and branding/master-icon.png)"
+fi
+
 cat > "$APP_BUNDLE/Contents/Info.plist" << EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -54,7 +82,7 @@ cat > "$APP_BUNDLE/Contents/Info.plist" << EOF
     <string>public.app-category.utilities</string>
     <key>NSLocalNetworkUsageDescription</key>
     <string>ONVIF Device Manager needs network access to discover and manage IP cameras.</string>
-</dict>
+${ICON_PLIST_SNIPPET}</dict>
 </plist>
 EOF
 

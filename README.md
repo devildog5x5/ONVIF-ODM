@@ -89,6 +89,10 @@ dotnet run --project src/OnvifDeviceManager         # Avalonia (any platform)
 # Build all release executables + archives
 ./build/build-all.sh          # Linux/macOS
 .\build\build-all.ps1         # Windows PowerShell
+
+# Quick local self-contained previews (output under publish/, gitignored) — each folder contains the .exe plus warrior_icon.ico
+dotnet publish src/OnvifDeviceManager.Wpf/OnvifDeviceManager.Wpf.csproj -c Release -r win-x64 -o publish/preview-executables/OnvifDeviceManager-Wpf-win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+dotnet publish src/OnvifDeviceManager/OnvifDeviceManager.csproj -c Release -r win-x64 -o publish/preview-executables/OnvifDeviceManager-Avalonia-win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
 ## Release Build SOP
@@ -234,11 +238,18 @@ $paths | ForEach-Object { if (Test-Path $_) { '{0}  {1}' -f ((Get-Item $_).LastW
 
 ## Icon Standard Process
 
-All application and installer icon usage in this repo uses the warrior icon:
+All application and installer icon usage in this repo uses the warrior icon (`warrior_icon.ico`, generated from the same artwork as `branding/master-icon.png`):
 
-- Source image: `branding/master-icon.png`
-- Generated icon: `warrior_icon.ico`
-- Refresh command: `powershell -ExecutionPolicy Bypass -File .\update-app-icon.ps1`
+| Where | How |
+|--------|-----|
+| **Repo default** | `Directory.Build.props` sets `ApplicationIcon` when a project does not override it. |
+| **WPF** | `ApplicationIcon` + embedded `Resource`; `App.xaml` default `Window.Icon`; `MainWindow.xaml` `Icon` + title bar `Image`; **published folder** includes `warrior_icon.ico` beside the `.exe` (`ExcludeFromSingleFile`) for shortcuts/installers. |
+| **Avalonia** | `ApplicationIcon`; `AvaloniaResource` `Assets/warrior_icon.ico` for `MainWindow` `Icon` + title `Image`; **published folder** includes `warrior_icon.ico` beside the `.exe`. |
+| **Inno Setup (WPF + Avalonia)** | `SetupIconFile=..\..\warrior_icon.ico`; Start Menu / desktop `[Icons]` use `IconFilename: "{app}\warrior_icon.ico"`. |
+| **Linux** | `.desktop` `Icon=/opt/onvif-device-manager/warrior_icon.ico` (`linux-install.sh` + `build/packaging/onvif-device-manager.desktop`). |
+| **macOS** | `build/packaging/create-macos-app.sh` builds `AppIcon.icns` from `branding/master-icon.png` (same pixels as the warrior brand) and sets `CFBundleIconFile` when `sips` + `iconutil` are available. |
+
+- **Refresh command:** `powershell -ExecutionPolicy Bypass -File .\update-app-icon.ps1`
 
 The release script (`create-release-package.ps1`) runs this icon refresh step before packaging.
 

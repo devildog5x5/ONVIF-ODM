@@ -26,6 +26,7 @@ cat > "$DESKTOP_FILE" << 'EOF'
 Name=ONVIF Device Manager
 Comment=Discover and manage ONVIF IP cameras
 Exec=/opt/onvif-device-manager/OnvifDeviceManager
+Icon=/opt/onvif-device-manager/warrior_icon.ico
 Terminal=false
 Type=Application
 Categories=Utility;Network;Video;

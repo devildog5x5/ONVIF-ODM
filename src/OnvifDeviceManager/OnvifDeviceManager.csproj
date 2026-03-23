@@ -29,6 +29,12 @@
 
   <ItemGroup>
     <AvaloniaResource Include="..\..\warrior_icon.ico" Link="Assets\warrior_icon.ico" />
+    <!-- Same icon beside the published binary (Linux .desktop Icon= path, installers, etc.) -->
+    <Content Include="..\..\warrior_icon.ico" Link="warrior_icon.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
   </ItemGroup>
 
 </Project>
