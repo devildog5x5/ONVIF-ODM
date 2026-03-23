@@ -2,7 +2,7 @@ $ErrorActionPreference = "Stop"
 
 $RootDir = Split-Path -Parent $PSScriptRoot
 $OutputDir = Join-Path $RootDir "publish"
-$Version = "1.0.0"
+$Version = "1.5.0"
 
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host " ONVIF Device Manager - Build All Platforms" -ForegroundColor Cyan
@@ -21,7 +21,8 @@ function Publish-Project {
     )
     $out = Join-Path $OutputDir $Name
     Write-Host ">> Publishing $Name ($Rid)..." -ForegroundColor Yellow
-    dotnet publish (Join-Path $RootDir "src" $Project) `
+    $projPath = Join-Path (Join-Path $RootDir "src") $Project
+    dotnet publish $projPath `
         -c Release `
         -r $Rid `
         --self-contained true `

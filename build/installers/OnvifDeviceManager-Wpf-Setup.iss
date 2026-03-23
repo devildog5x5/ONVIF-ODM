@@ -5,7 +5,7 @@
 ;   dotnet publish src/OnvifDeviceManager.Wpf -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o publish/OnvifDeviceManager-Wpf-win-x64
 
 #define MyAppName "ONVIF Device Manager"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.5.0"
 #define MyAppPublisher "Robert Foster"
 #define MyAppURL "https://github.com/devildog5x5/ONVIF-ODM"
 #define MyAppExeName "OnvifDeviceManager.Wpf.exe"
@@ -26,7 +26,7 @@ AllowNoIcons=yes
 LicenseFile=..\..\LICENSE
 OutputDir=..\..\publish\installers
 OutputBaseFilename=OnvifDeviceManager-Wpf-Setup-{#MyAppVersion}
-SetupIconFile=
+SetupIconFile=..\..\warrior_icon.ico
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
