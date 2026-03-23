@@ -63,6 +63,14 @@ public class DeviceInfoViewModel : ViewModelBase
         _ = RefreshAsync();
     }
 
+    public void ClearDevice()
+    {
+        Device = null;
+        Hostname = string.Empty;
+        DateTimeInfo = null;
+        StatusText = string.Empty;
+    }
+
     private async Task RefreshAsync()
     {
         if (Device == null) return;

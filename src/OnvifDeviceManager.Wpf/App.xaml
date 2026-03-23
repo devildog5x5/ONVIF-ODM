@@ -8,6 +8,10 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Themes/DarkTheme.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <!-- Default window icon: warrior brand for all windows -->
+            <Style TargetType="Window">
+                <Setter Property="Icon" Value="pack://application:,,,/warrior_icon.ico" />
+            </Style>
             <conv:BoolToVisibilityConverter x:Key="BoolToVis" />
             <conv:BoolToTextConverter x:Key="BoolToSubscribe" />
             <conv:NullToVisibilityConverter x:Key="NullToVis" />

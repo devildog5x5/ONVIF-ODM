@@ -3,10 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:OnvifDeviceManager.ViewModels;assembly=OnvifDeviceManager.Core"
              xmlns:conv="clr-namespace:OnvifDeviceManager.Wpf.Converters"
+             xmlns:vlc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF"
              DataContext="{Binding}"
              Background="{StaticResource PrimaryBg}"
              Foreground="{StaticResource PrimaryText}"
-             FontFamily="{StaticResource MainFont}">
+             FontFamily="{StaticResource MainFont}"
+             Loaded="UserControl_Loaded"
+             Unloaded="UserControl_Unloaded">
 
     <UserControl.Resources>
         <conv:BytesToImageConverter x:Key="BytesToImage" />
@@ -14,71 +17,188 @@
 
     <Grid>
         <Grid Margin="24" Visibility="{Binding Device, Converter={StaticResource NullToVis}}">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-
-        <!-- Header -->
-        <TextBlock Grid.Row="0" Text="Live View" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,20" />
-
-        <Grid Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <!-- Controls -->
-            <Border Grid.Row="0" Style="{StaticResource Card}" Margin="0,0,0,16">
-                <StackPanel Orientation="Horizontal">
-                    <ComboBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}"
-                              DisplayMemberPath="Name" MinWidth="200" Margin="0,0,16,0"
-                              Background="{StaticResource InputBg}" Foreground="White" BorderBrush="{StaticResource BorderClr}" />
-                    <Button Style="{StaticResource PrimaryBtn}" Content="Snapshot" Command="{Binding RefreshSnapshotCommand}" Margin="0,0,8,0" />
-                    <Button Style="{StaticResource SecondaryBtn}" Content="Auto Refresh" Command="{Binding StartAutoRefreshCommand}" Margin="0,0,8,0" />
-                    <Button Style="{StaticResource DangerBtn}" Content="Stop" Command="{Binding StopAutoRefreshCommand}" />
-                </StackPanel>
-            </Border>
+            <!-- Header -->
+            <TextBlock Grid.Row="0" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,20">
+                <Run Text="Live View" />
+                <Run Text=" — " Foreground="{StaticResource MutedText}" />
+                <Run Text="Live RTSP video + snapshots" Foreground="{StaticResource MutedText}" FontSize="14" />
+            </TextBlock>
 
-            <!-- Image -->
-            <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,0,0,16">
-                <Grid Background="{StaticResource InputBg}">
-                    <Image Source="{Binding SnapshotBytes, Converter={StaticResource BytesToImage}}"
-                           Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    <TextBlock Text="No snapshot" Foreground="{StaticResource MutedText}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                               Visibility="{Binding SnapshotBytes, Converter={StaticResource NullToVis}, ConverterParameter=Invert}" />
-                </Grid>
-            </Border>
+            <Grid Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-            <!-- Stream URI -->
-            <Border Grid.Row="2" Style="{StaticResource Card}">
-                <StackPanel>
-                    <TextBlock Text="Stream URI" FontWeight="SemiBold" Margin="0,0,0,8" />
+                <!-- Profile + snapshot controls -->
+                <Border Grid.Row="0" Style="{StaticResource Card}" Margin="0,0,0,12">
                     <StackPanel Orientation="Horizontal">
-                        <TextBox Style="{StaticResource ModernTB}" Text="{Binding StreamUri, Mode=OneWay}" IsReadOnly="True"
-                                 FontFamily="{StaticResource MonoFont}" FontSize="12" MinWidth="400" Margin="0,0,12,0" />
-                        <Button Style="{StaticResource SecondaryBtn}" Content="Copy URI" Command="{Binding CopyStreamUriCommand}" />
+                        <ComboBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}"
+                                  DisplayMemberPath="Name" MinWidth="200" Margin="0,0,16,0"
+                                  Background="{StaticResource InputBg}" Foreground="White" BorderBrush="{StaticResource BorderClr}" />
+                        <Button Style="{StaticResource SecondaryBtn}" Content="Snapshot" Command="{Binding RefreshSnapshotCommand}" Margin="0,0,8,0" />
+                        <Button Style="{StaticResource SecondaryBtn}" Content="Auto Refresh" Command="{Binding StartAutoRefreshCommand}" Margin="0,0,8,0" />
+                        <Button Style="{StaticResource DangerBtn}" Content="Stop" Command="{Binding StopAutoRefreshCommand}" />
                     </StackPanel>
-                </StackPanel>
+                </Border>
+
+                <!-- Live Video (RTSP) + Snapshot fallback -->
+                <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,0,0,12">
+                    <Grid Background="Black" MinHeight="240">
+                        <vlc:VideoView x:Name="VideoView" Background="Black"
+                                       HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+                        <Image Source="{Binding SnapshotBytes, Converter={StaticResource BytesToImage}}"
+                               Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Visibility="{Binding IsLiveStreaming, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}" />
+                        <TextBlock x:Name="VideoPlaceholder" Text="LIVE VIDEO — Connect, select profile, then click START RTSP&#x0a;PTZ controls work while viewing"
+                                   Foreground="{StaticResource MutedText}" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   TextAlignment="Center" TextWrapping="Wrap"
+                                   Visibility="{Binding ShowVideoPlaceholder, Converter={StaticResource BoolToVis}}" />
+                    </Grid>
+                </Border>
+
+                <!-- PTZ Control Bar (below video) -->
+                <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,0,0,12"
+                        Visibility="{Binding Device, Converter={StaticResource NullToVis}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="PTZ" FontWeight="SemiBold" Foreground="{StaticResource Accent}"
+                                   VerticalAlignment="Center" Margin="0,0,12,0" />
+                        <Grid Grid.Column="1" HorizontalAlignment="Left">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Row="0" Grid.Column="1" Content="▲" Style="{StaticResource SecondaryBtn}"
+                                    Command="{Binding MoveUpCommand}" Width="36" Height="36" FontSize="14" Margin="2" />
+                            <Button Grid.Row="1" Grid.Column="0" Content="◀" Style="{StaticResource SecondaryBtn}"
+                                    Command="{Binding MoveLeftCommand}" Width="36" Height="36" FontSize="14" Margin="2" />
+                            <Button Grid.Row="1" Grid.Column="1" Content="■" Style="{StaticResource DangerBtn}"
+                                    Command="{Binding StopCommand}" Width="36" Height="36" FontSize="12" Margin="2" />
+                            <Button Grid.Row="1" Grid.Column="2" Content="▶" Style="{StaticResource SecondaryBtn}"
+                                    Command="{Binding MoveRightCommand}" Width="36" Height="36" FontSize="14" Margin="2" />
+                            <Button Grid.Row="2" Grid.Column="1" Content="▼" Style="{StaticResource SecondaryBtn}"
+                                    Command="{Binding MoveDownCommand}" Width="36" Height="36" FontSize="14" Margin="2" />
+                        </Grid>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Content="Zoom +" Style="{StaticResource SecondaryBtn}" Command="{Binding ZoomInCommand}" Margin="0,0,4,0" Width="60" Height="32" />
+                            <Button Content="Zoom −" Style="{StaticResource SecondaryBtn}" Command="{Binding ZoomOutCommand}" Margin="0,0,8,0" Width="60" Height="32" />
+                            <Button Content="Home" Style="{StaticResource PrimaryBtn}" Command="{Binding HomeCommand}" Width="70" Height="32" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- RTSP Stream controls -->
+                <Border Grid.Row="3" Style="{StaticResource Card}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Live RTSP stream (full video, not snapshots)" FontWeight="SemiBold" Foreground="{StaticResource Accent}" Margin="0,0,0,8" />
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox x:Name="StreamUriBox" Style="{StaticResource ModernTB}"
+                                     Text="{Binding StreamUri, Mode=OneWay}" IsReadOnly="True"
+                                     FontFamily="{StaticResource MonoFont}" FontSize="11" MinWidth="350" Margin="0,0,8,0" />
+                            <Button x:Name="StartLiveButton" Style="{StaticResource PrimaryBtn}" Content="▶ START RTSP"
+                                    Click="StartLiveButton_Click" Margin="0,0,8,0" Padding="12,8" />
+                            <Button x:Name="StopLiveButton" Style="{StaticResource DangerBtn}" Content="⏹ STOP"
+                                    Click="StopLiveButton_Click" Padding="12,8" IsEnabled="False" />
+                            <Button Style="{StaticResource SecondaryBtn}" Content="Copy URI" Command="{Binding CopyStreamUriCommand}" Margin="8,0,0,0" Padding="12,8" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Event Simulator -->
+                <Border Grid.Row="4" Background="#120a0a" CornerRadius="8" Padding="12" Margin="0,0,0,0"
+                        BorderBrush="#3d1a1a" BorderThickness="1">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0" Margin="0,0,0,8">
+                            <TextBlock Text="Event Simulator — ONVIF Alarm Response" FontWeight="SemiBold" Foreground="{StaticResource Danger}" />
+                            <TextBlock HorizontalAlignment="Right" Text="{Binding LastSimulatedEvent}" Foreground="{StaticResource MutedText}" FontSize="11" />
+                        </Grid>
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Event Type" FontSize="10" Foreground="{StaticResource MutedText}" Margin="0,0,0,4" />
+                                <ComboBox x:Name="EventTypeCombo" MinWidth="140" Padding="6,4"
+                                          SelectionChanged="EventTypeCombo_SelectionChanged"
+                                          Background="{StaticResource InputBg}" Foreground="White" BorderBrush="{StaticResource BorderClr}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Target" FontSize="10" Foreground="{StaticResource MutedText}" Margin="0,0,0,4" />
+                                <StackPanel>
+                                    <RadioButton x:Name="PresetRadio" Content="Preset" IsChecked="True"
+                                                 Checked="EventTargetRadio_Changed" Foreground="{StaticResource SecondaryText}" />
+                                    <RadioButton x:Name="CoordsRadio" Content="Coords" Margin="0,4,0,0"
+                                                 Checked="EventTargetRadio_Changed" Foreground="{StaticResource SecondaryText}" />
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel x:Name="PresetPanel" Grid.Column="4">
+                                <TextBlock Text="Preset #" FontSize="10" Foreground="{StaticResource MutedText}" Margin="0,0,0,4" />
+                                <ComboBox x:Name="PresetCombo" Width="60" Padding="6,4"
+                                          SelectionChanged="PresetCombo_SelectionChanged"
+                                          Background="{StaticResource InputBg}" Foreground="White" BorderBrush="{StaticResource BorderClr}" />
+                            </StackPanel>
+                            <StackPanel x:Name="CoordsPanel" Grid.Column="4" Visibility="Collapsed">
+                                <TextBlock Text="Pan / Tilt" FontSize="10" Foreground="{StaticResource MutedText}" Margin="0,0,0,4" />
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBox x:Name="EventPanBox" Style="{StaticResource ModernTB}"
+                                             Text="{Binding EventTargetPanString, UpdateSourceTrigger=PropertyChanged}" Width="50" Padding="6,4" FontSize="11" />
+                                    <TextBlock Text=" / " Foreground="{StaticResource MutedText}" VerticalAlignment="Center" />
+                                    <TextBox x:Name="EventTiltBox" Style="{StaticResource ModernTB}"
+                                             Text="{Binding EventTargetTiltString, UpdateSourceTrigger=PropertyChanged}" Width="50" Padding="6,4" FontSize="11" />
+                                </StackPanel>
+                            </StackPanel>
+                            <Button Grid.Column="6" Content="⚡ SIMULATE" Style="{StaticResource DangerBtn}"
+                                    Command="{Binding SimulateEventCommand}" Padding="14,8" VerticalAlignment="Bottom" />
+                        </Grid>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Status Bar -->
+            <Border Grid.Row="2" Background="{StaticResource SecondaryBg}" CornerRadius="8" Padding="16,10" Margin="0,12,0,0">
+                <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource MutedText}" FontSize="12" VerticalAlignment="Center" />
             </Border>
         </Grid>
 
-        <!-- Status Bar -->
-        <Border Grid.Row="2" Background="{StaticResource SecondaryBg}" CornerRadius="8" Padding="16,10" Margin="0,16,0,0">
-            <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource MutedText}" FontSize="12" VerticalAlignment="Center" />
-        </Border>
-        </Grid>
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
                     Visibility="{Binding Device, Converter={StaticResource NullToVis}, ConverterParameter=Invert}">
             <TextBlock Text="&#xE714;" FontFamily="Segoe MDL2 Assets" FontSize="64" Foreground="#607D8B" HorizontalAlignment="Center" />
             <TextBlock Text="No Device Connected" FontSize="20" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center" Margin="0,16,0,8" />
             <TextBlock Text="To use this page:" FontSize="13" Foreground="#B0BEC5" HorizontalAlignment="Center" Margin="0,0,0,8" />
-            <TextBlock Text="1. Click Discover Devices to scan your network" FontSize="13" Foreground="#B0BEC5" Margin="0,2" />
-            <TextBlock Text="2. Select a camera from the list" FontSize="13" Foreground="#B0BEC5" Margin="0,2" />
-            <TextBlock Text="3. Enter username and password" FontSize="13" Foreground="#B0BEC5" Margin="0,2" />
-            <TextBlock Text="4. Click Connect" FontSize="13" Foreground="#B0BEC5" Margin="0,2" />
+            <TextBlock Text="1. Go to Discovery and scan for devices" FontSize="13" Foreground="#B0BEC5" Margin="0,2" />
+            <TextBlock Text="2. Select a camera and click Connect" FontSize="13" Foreground="#B0BEC5" Margin="0,2" />
+            <TextBlock Text="3. Return here for live video and PTZ" FontSize="13" Foreground="#B0BEC5" Margin="0,2" />
         </StackPanel>
     </Grid>
 </UserControl>

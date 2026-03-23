@@ -42,7 +42,8 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal">
-                    <Ellipse Width="28" Height="28" Fill="{StaticResource Accent}" Margin="0,0,12,0" />
+                    <Image Source="pack://application:,,,/warrior_icon.ico" Width="28" Height="28"
+                           Margin="0,0,12,0" RenderOptions.BitmapScalingMode="HighQuality" VerticalAlignment="Center"/>
                     <StackPanel>
                         <TextBlock Text="ONVIF Device Manager" FontSize="16" FontWeight="SemiBold" />
                         <TextBlock Text="Discover and manage ONVIF IP cameras" FontSize="11" Foreground="{StaticResource MutedText}" />
@@ -69,7 +70,22 @@
                         <TextBlock Text="DISCOVERY" FontSize="11" Foreground="{StaticResource MutedText}" FontWeight="Bold" Margin="16,12,0,6" />
                         <Button Style="{StaticResource PrimaryBtn}" Content="Scan for Devices" Command="{Binding NavigateCommand}" CommandParameter="Discovery" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" />
 
-                        <TextBlock Text="DEVICE" FontSize="11" Foreground="{StaticResource MutedText}" FontWeight="Bold" Margin="16,20,0,6" />
+                        <!-- Active Device — all sections below apply to this camera only -->
+                        <Border Background="#0d1a0d" CornerRadius="6" Padding="10,8" Margin="4,12,4,4" BorderBrush="#3fb950" BorderThickness="1"
+                                Visibility="{Binding SelectedDevice, Converter={StaticResource NullToVis}}">
+                            <StackPanel>
+                                <TextBlock Text="ACTIVE DEVICE" FontSize="10" FontWeight="Bold" Foreground="{StaticResource Accent}" Margin="0,0,0,4" />
+                                <TextBlock Text="{Binding SelectedDevice.DisplayName, FallbackValue='—'}" 
+                                           FontSize="12" FontWeight="SemiBold" Foreground="White" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding SelectedDevice.Address, FallbackValue=''}" 
+                                           FontSize="10" Foreground="{StaticResource MutedText}" Margin="0,2,0,0" />
+                            </StackPanel>
+                        </Border>
+                        <TextBlock Text="No device selected — connect from Discovery" FontSize="10" Foreground="{StaticResource MutedText}" 
+                                   Margin="12,8,8,4" TextWrapping="Wrap"
+                                   Visibility="{Binding SelectedDevice, Converter={StaticResource NullToVis}, ConverterParameter=Invert}" />
+
+                        <TextBlock Text="DEVICE (for selected camera only)" FontSize="11" Foreground="{StaticResource MutedText}" FontWeight="Bold" Margin="16,16,0,6" />
                         <Button Style="{StaticResource SecondaryBtn}" Content="Device Info" Command="{Binding NavigateCommand}" CommandParameter="DeviceInfo" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" />
                         <Button Style="{StaticResource SecondaryBtn}" Content="Live View" Command="{Binding NavigateCommand}" CommandParameter="LiveView" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" />
                         <Button Style="{StaticResource SecondaryBtn}" Content="PTZ Control" Command="{Binding NavigateCommand}" CommandParameter="PTZ" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" />

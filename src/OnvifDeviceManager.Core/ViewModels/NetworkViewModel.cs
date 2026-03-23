@@ -51,6 +51,13 @@ public class NetworkViewModel : ViewModelBase
         _ = RefreshAsync();
     }
 
+    public void ClearDevice()
+    {
+        Device = null;
+        NetworkConfig = new NetworkConfiguration();
+        StatusText = string.Empty;
+    }
+
     private async Task RefreshAsync()
     {
         if (Device == null) return;

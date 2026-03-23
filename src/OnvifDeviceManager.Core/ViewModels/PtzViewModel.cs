@@ -153,6 +153,17 @@ public class PtzViewModel : ViewModelBase
         }
     }
 
+    public void ClearDevice()
+    {
+        Device = null;
+        PtzProfiles.Clear();
+        SelectedProfile = null;
+        Presets.Clear();
+        SelectedPreset = null;
+        CurrentStatus = null;
+        StatusText = string.Empty;
+    }
+
     private string GetPtzServiceUrl()
     {
         return Device?.Capabilities.PtzServiceAddress ?? Device?.ServiceAddress ?? string.Empty;

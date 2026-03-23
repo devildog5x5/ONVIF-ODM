@@ -26,7 +26,7 @@ public class MainViewModel : ViewModelBase
     {
         DiscoveryViewModel = new DiscoveryViewModel(_discoveryService, _deviceService, _mediaService, _credentialStore, dispatcher);
         DeviceInfoViewModel = new DeviceInfoViewModel(_deviceService);
-        LiveViewViewModel = new LiveViewViewModel(_mediaService, dispatcher, clipboard);
+        LiveViewViewModel = new LiveViewViewModel(_mediaService, _ptzService, dispatcher, clipboard);
         PtzViewModel = new PtzViewModel(_ptzService);
         ProfilesViewModel = new ProfilesViewModel(_mediaService);
         NetworkViewModel = new NetworkViewModel(_deviceService);
@@ -166,7 +166,19 @@ public class MainViewModel : ViewModelBase
 
     private void UpdateChildViewModels()
     {
-        if (_selectedDevice == null) return;
+        if (_selectedDevice == null)
+        {
+            // Clear all child view models when no device selected — ensures left-panel sections
+            // display and operate only for the currently selected camera.
+            DeviceInfoViewModel.ClearDevice();
+            LiveViewViewModel.ClearDevice();
+            PtzViewModel.ClearDevice();
+            ProfilesViewModel.ClearDevice();
+            NetworkViewModel.ClearDevice();
+            UsersViewModel.ClearDevice();
+            EventsViewModel.ClearDevice();
+            return;
+        }
 
         DeviceInfoViewModel.SetDevice(_selectedDevice);
         LiveViewViewModel.SetDevice(_selectedDevice);

@@ -83,6 +83,14 @@ public class UsersViewModel : ViewModelBase
         _ = RefreshAsync();
     }
 
+    public void ClearDevice()
+    {
+        Device = null;
+        Users.Clear();
+        SelectedUser = null;
+        StatusText = string.Empty;
+    }
+
     private async Task RefreshAsync()
     {
         if (Device == null) return;

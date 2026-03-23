@@ -55,6 +55,15 @@ public class EventsViewModel : ViewModelBase
             : "Events service not available on this device.";
     }
 
+    public void ClearDevice()
+    {
+        Device = null;
+        Events.Clear();
+        SelectedEvent = null;
+        IsSubscribed = false;
+        StatusText = string.Empty;
+    }
+
     private void ClearEvents()
     {
         Events.Clear();

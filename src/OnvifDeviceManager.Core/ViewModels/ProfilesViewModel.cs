@@ -63,6 +63,14 @@ public class ProfilesViewModel : ViewModelBase
         StatusText = $"{Profiles.Count} profile(s) loaded";
     }
 
+    public void ClearDevice()
+    {
+        Device = null;
+        Profiles.Clear();
+        SelectedProfile = null;
+        StatusText = string.Empty;
+    }
+
     private async Task RefreshAsync()
     {
         if (Device == null || !Device.Capabilities.HasMedia || string.IsNullOrEmpty(Device.Capabilities.MediaServiceAddress))

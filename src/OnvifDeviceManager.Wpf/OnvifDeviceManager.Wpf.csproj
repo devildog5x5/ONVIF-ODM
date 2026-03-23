@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
+    <ApplicationIcon>..\..\warrior_icon.ico</ApplicationIcon>
     <UseWPF>true</UseWPF>
     <RootNamespace>OnvifDeviceManager.Wpf</RootNamespace>
     <AssemblyName>OnvifDeviceManager.Wpf</AssemblyName>
@@ -15,7 +16,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="LibVLCSharp.WPF" Version="3.8.5" />
+    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.20" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\OnvifDeviceManager.Core\OnvifDeviceManager.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="..\..\warrior_icon.ico" Link="warrior_icon.ico" />
   </ItemGroup>
 
 </Project>
