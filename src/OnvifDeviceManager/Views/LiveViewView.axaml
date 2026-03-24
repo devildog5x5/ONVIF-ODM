@@ -81,21 +81,46 @@
                     </Border>
 
                     <Border Classes="card" Margin="0,0,0,12" IsVisible="{Binding ShowPtzPanel}">
-                        <Grid ColumnDefinitions="Auto,*,Auto">
-                            <TextBlock Grid.Column="0" Text="PTZ" FontWeight="SemiBold" Foreground="#00D4AA"
-                                       VerticalAlignment="Center" Margin="0,0,12,0" />
-                            <Grid Grid.Column="1" HorizontalAlignment="Left" RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,Auto,Auto">
-                                <Button Grid.Row="0" Grid.Column="1" Classes="secondary" Content="▲" Command="{Binding MoveUpCommand}" Width="40" Height="40" Margin="2" />
-                                <Button Grid.Row="1" Grid.Column="0" Classes="secondary" Content="◀" Command="{Binding MoveLeftCommand}" Width="40" Height="40" Margin="2" />
-                                <Button Grid.Row="1" Grid.Column="1" Classes="danger" Content="■" Command="{Binding StopCommand}" Width="40" Height="40" Margin="2" />
-                                <Button Grid.Row="1" Grid.Column="2" Classes="secondary" Content="▶" Command="{Binding MoveRightCommand}" Width="40" Height="40" Margin="2" />
-                                <Button Grid.Row="2" Grid.Column="1" Classes="secondary" Content="▼" Command="{Binding MoveDownCommand}" Width="40" Height="40" Margin="2" />
+                        <Grid RowDefinitions="Auto,Auto">
+                            <TextBlock Grid.Row="0" Text="PTZ — where the camera is pointing + controls"
+                                       FontWeight="SemiBold" Foreground="#00D4AA" Margin="0,0,0,10" />
+                            <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,*,Auto">
+                                <StackPanel Grid.Column="0" Margin="0,0,20,0" MinWidth="200">
+                                    <TextBlock Text="Pan / tilt (center = neutral)" Classes="caption" Margin="0,0,0,6" />
+                                    <Border BorderBrush="#3d4450" BorderThickness="1" Width="108" Height="108" CornerRadius="4"
+                                            Background="#0d1117" HorizontalAlignment="Left" Padding="4">
+                                        <Grid Width="100" Height="100" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <Line StartPoint="50,0" EndPoint="50,100" Stroke="#4a5568" StrokeThickness="1" />
+                                            <Line StartPoint="0,50" EndPoint="100,50" Stroke="#4a5568" StrokeThickness="1" />
+                                            <Ellipse Width="12" Height="12" Fill="#00D4AA" Stroke="#1A1A2E" StrokeThickness="1"
+                                                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                     RenderTransformOrigin="0.5,0.5">
+                                                <Ellipse.RenderTransform>
+                                                    <TranslateTransform X="{Binding PtzIndicatorOffsetX}" Y="{Binding PtzIndicatorOffsetY}" />
+                                                </Ellipse.RenderTransform>
+                                            </Ellipse>
+                                        </Grid>
+                                    </Border>
+                                    <TextBlock Text="{Binding PtzPositionText}" TextWrapping="Wrap" MaxWidth="220" FontSize="11"
+                                               Foreground="#B0BEC5" Margin="0,8,0,0" />
+                                    <Button Classes="secondary" Content="Refresh position" Margin="0,8,0,0" Padding="10,6" HorizontalAlignment="Left"
+                                            Command="{Binding RefreshPtzPositionCommand}" />
+                                    <TextBlock Text="Updates after each move and about every 1.6s on this page." FontSize="10"
+                                               Foreground="#607D8B" TextWrapping="Wrap" MaxWidth="220" Margin="0,6,0,0" />
+                                </StackPanel>
+                                <Grid Grid.Column="1" HorizontalAlignment="Left" RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,Auto,Auto">
+                                    <Button Grid.Row="0" Grid.Column="1" Classes="secondary" Content="▲" Command="{Binding MoveUpCommand}" Width="40" Height="40" Margin="2" />
+                                    <Button Grid.Row="1" Grid.Column="0" Classes="secondary" Content="◀" Command="{Binding MoveLeftCommand}" Width="40" Height="40" Margin="2" />
+                                    <Button Grid.Row="1" Grid.Column="1" Classes="danger" Content="■" Command="{Binding StopCommand}" Width="40" Height="40" Margin="2" />
+                                    <Button Grid.Row="1" Grid.Column="2" Classes="secondary" Content="▶" Command="{Binding MoveRightCommand}" Width="40" Height="40" Margin="2" />
+                                    <Button Grid.Row="2" Grid.Column="1" Classes="secondary" Content="▼" Command="{Binding MoveDownCommand}" Width="40" Height="40" Margin="2" />
+                                </Grid>
+                                <StackPanel Grid.Column="3" Orientation="Vertical" Spacing="6" VerticalAlignment="Top" Margin="12,0,0,0">
+                                    <Button Classes="secondary" Content="Zoom +" Command="{Binding ZoomInCommand}" Width="72" />
+                                    <Button Classes="secondary" Content="Zoom −" Command="{Binding ZoomOutCommand}" Width="72" />
+                                    <Button Classes="primary" Content="Home" Command="{Binding HomeCommand}" Width="72" />
+                                </StackPanel>
                             </Grid>
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <Button Classes="secondary" Content="Zoom +" Command="{Binding ZoomInCommand}" Width="72" />
-                                <Button Classes="secondary" Content="Zoom −" Command="{Binding ZoomOutCommand}" Width="72" />
-                                <Button Classes="primary" Content="Home" Command="{Binding HomeCommand}" Width="72" />
-                            </StackPanel>
                         </Grid>
                     </Border>
 

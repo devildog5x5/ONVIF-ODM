@@ -34,6 +34,11 @@ public class LiveViewViewModel : ViewModelBase
     private int _eventTypeIndex;
     private string _lastSimulatedEvent = string.Empty;
     private bool _isLiveStreaming;
+    private float _ptzPan;
+    private float _ptzTilt;
+    private float _ptzZoom;
+    private bool _ptzPositionKnown;
+    private CancellationTokenSource? _ptzPollCts;
 
     public bool IsLiveStreaming
     {
@@ -67,6 +72,7 @@ public class LiveViewViewModel : ViewModelBase
         ZoomOutCommand = new AsyncRelayCommand(() => ContinuousMoveAsync(0, 0, -ZoomSpeed));
         StopCommand = new AsyncRelayCommand(StopMoveAsync);
         HomeCommand = new AsyncRelayCommand(GoHomeAsync);
+        RefreshPtzPositionCommand = new AsyncRelayCommand(() => RefreshPtzPositionAsync(false));
     }
 
     public OnvifDevice? Device
@@ -84,12 +90,23 @@ public class LiveViewViewModel : ViewModelBase
         {
             if (SetProperty(ref _selectedProfile, value))
             {
+                StopPtzPositionPolling();
                 OnPropertyChanged(nameof(ShowPtzPanel));
+                NotifyPtzDisplayProperties();
                 if (value != null)
                 {
                     StreamUri = value.StreamUri;
                     _ = RefreshSnapshotAsync();
+                    if (value.IsPtzEnabled && Device != null)
+                    {
+                        _ = RefreshPtzPositionAsync(false);
+                        StartPtzPositionPolling();
+                    }
+                    else
+                        ClearPtzDisplay();
                 }
+                else
+                    ClearPtzDisplay();
             }
         }
     }
@@ -151,6 +168,27 @@ public class LiveViewViewModel : ViewModelBase
     public ICommand ZoomOutCommand { get; }
     public ICommand StopCommand { get; }
     public ICommand HomeCommand { get; }
+    public ICommand RefreshPtzPositionCommand { get; }
+
+    /// <summary>Normalized pan from last GetStatus (−1…1 typical).</summary>
+    public float PtzPan => _ptzPan;
+
+    public float PtzTilt => _ptzTilt;
+
+    public float PtzZoom => _ptzZoom;
+
+    public bool PtzPositionKnown => _ptzPositionKnown;
+
+    public string PtzPositionText =>
+        _ptzPositionKnown
+            ? $"Pan {_ptzPan:F3} · Tilt {_ptzTilt:F3} · Zoom {_ptzZoom:F3}"
+            : "Position: use PTZ or Refresh — values from camera";
+
+    /// <summary>Horizontal offset (px) for reticle dot; center = 0.</summary>
+    public double PtzIndicatorOffsetX => Math.Clamp(_ptzPan, -1f, 1f) * 38d;
+
+    /// <summary>Vertical offset (px); positive tilt up moves dot up.</summary>
+    public double PtzIndicatorOffsetY => -Math.Clamp(_ptzTilt, -1f, 1f) * 38d;
 
     public float PanSpeed { get => _panSpeed; set => SetProperty(ref _panSpeed, Math.Clamp(value, 0f, 1f)); }
     public float TiltSpeed { get => _tiltSpeed; set => SetProperty(ref _tiltSpeed, Math.Clamp(value, 0f, 1f)); }
@@ -196,6 +234,7 @@ public class LiveViewViewModel : ViewModelBase
         Device = device;
         OnPropertyChanged(nameof(ShowPtzPanel));
         StopAutoRefresh();
+        StopPtzPositionPolling();
         RequestStopLiveStream?.Invoke();
 
         Profiles.Clear();
@@ -205,7 +244,10 @@ public class LiveViewViewModel : ViewModelBase
         if (Profiles.Count > 0)
             SelectedProfile = Profiles[0];
         else
+        {
             SelectedProfile = null;
+            ClearPtzDisplay();
+        }
     }
 
     /// <summary>Fired when the device changes; the view should stop any live RTSP stream.</summary>
@@ -214,6 +256,7 @@ public class LiveViewViewModel : ViewModelBase
     public void ClearDevice()
     {
         StopAutoRefresh();
+        StopPtzPositionPolling();
         RequestStopLiveStream?.Invoke();
         Device = null;
         Profiles.Clear();
@@ -222,6 +265,88 @@ public class LiveViewViewModel : ViewModelBase
         StreamUri = string.Empty;
         StatusText = string.Empty;
         OnPropertyChanged(nameof(ShowPtzPanel));
+        ClearPtzDisplay();
+    }
+
+    private void ClearPtzDisplay()
+    {
+        _ptzPan = 0;
+        _ptzTilt = 0;
+        _ptzZoom = 0;
+        _ptzPositionKnown = false;
+        NotifyPtzDisplayProperties();
+    }
+
+    private void NotifyPtzDisplayProperties()
+    {
+        OnPropertyChanged(nameof(PtzPan));
+        OnPropertyChanged(nameof(PtzTilt));
+        OnPropertyChanged(nameof(PtzZoom));
+        OnPropertyChanged(nameof(PtzPositionKnown));
+        OnPropertyChanged(nameof(PtzPositionText));
+        OnPropertyChanged(nameof(PtzIndicatorOffsetX));
+        OnPropertyChanged(nameof(PtzIndicatorOffsetY));
+    }
+
+    private void StartPtzPositionPolling()
+    {
+        StopPtzPositionPolling();
+        if (Device == null || SelectedProfile == null || !SelectedProfile.IsPtzEnabled)
+            return;
+
+        _ptzPollCts = new CancellationTokenSource();
+        var token = _ptzPollCts.Token;
+        _ = Task.Run(async () =>
+        {
+            while (!token.IsCancellationRequested)
+            {
+                try
+                {
+                    await _dispatcher.InvokeAsync(async () => await RefreshPtzPositionAsync(true));
+                    await Task.Delay(1600, token);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+            }
+        }, token);
+    }
+
+    private void StopPtzPositionPolling()
+    {
+        _ptzPollCts?.Cancel();
+        _ptzPollCts?.Dispose();
+        _ptzPollCts = null;
+    }
+
+    private async Task RefreshPtzPositionAsync(bool quiet)
+    {
+        if (Device == null || SelectedProfile == null || !SelectedProfile.IsPtzEnabled)
+        {
+            ClearPtzDisplay();
+            return;
+        }
+
+        try
+        {
+            var st = await _ptzService.GetStatusAsync(
+                GetPtzServiceUrl(), SelectedProfile.Token,
+                Device.Username, Device.Password);
+
+            _ptzPan = st.Pan;
+            _ptzTilt = st.Tilt;
+            _ptzZoom = st.Zoom;
+            _ptzPositionKnown = true;
+            NotifyPtzDisplayProperties();
+            if (!quiet)
+                StatusText = $"PTZ position updated ({DateTime.Now:HH:mm:ss})";
+        }
+        catch (Exception ex)
+        {
+            if (!quiet)
+                StatusText = $"PTZ position error: {ex.Message}";
+        }
     }
 
     public async Task RefreshSnapshotAsync()
@@ -350,6 +475,7 @@ public class LiveViewViewModel : ViewModelBase
             await _ptzService.StopAsync(
                 GetPtzServiceUrl(), SelectedProfile.Token,
                 true, true, Device.Username, Device.Password);
+            await RefreshPtzPositionAsync(true);
         }
         catch (Exception ex) { StatusText = $"Move error: {ex.Message}"; }
     }
@@ -362,6 +488,7 @@ public class LiveViewViewModel : ViewModelBase
             await _ptzService.StopAsync(
                 GetPtzServiceUrl(), SelectedProfile.Token,
                 true, true, Device.Username, Device.Password);
+            await RefreshPtzPositionAsync(true);
         }
         catch { }
     }
@@ -375,6 +502,8 @@ public class LiveViewViewModel : ViewModelBase
                 GetPtzServiceUrl(), SelectedProfile.Token,
                 Device.Username, Device.Password);
             StatusText = "Moving to home position";
+            await Task.Delay(900);
+            await RefreshPtzPositionAsync(true);
         }
         catch (Exception ex) { StatusText = $"Home error: {ex.Message}"; }
     }
@@ -416,5 +545,7 @@ public class LiveViewViewModel : ViewModelBase
             }
         }
         catch (Exception ex) { StatusText = $"Simulate error: {ex.Message}"; }
+
+        await RefreshPtzPositionAsync(true);
     }
 }
