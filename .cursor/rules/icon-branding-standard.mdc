@@ -1,0 +1,13 @@
+---
+description: Always use the master warrior icon for app/build assets
+alwaysApply: true
+---
+
+# Icon Branding Standard
+
+- Use `warrior_icon.ico` as the only application icon for this repository.
+- Treat `branding/master-icon.png` as the source image of truth.
+- Before release packaging, run `./update-app-icon.ps1` to regenerate `warrior_icon.ico` from the source image.
+- Keep project and installer references pointed to `warrior_icon.ico` (for example `ApplicationIcon`, installer setup icon, and shortcut icon fields).
+- **Apply this icon to all applications in this repo and any future applications** unless the user explicitly instructs otherwise.
+- Do not introduce alternate icons unless the user explicitly instructs otherwise.
