@@ -1,11 +1,14 @@
 ; ONVIF Device Manager (WPF) - Inno Setup Installer Script
 ; Compile with Inno Setup 6.x: https://jrsoftware.org/isinfo.php
+; Output filename includes compile date/time (local) via ISPP: OnvifDeviceManager-Wpf-Setup-{version}-{yyyyMMddHHmmss}.exe
 ;
 ; Before compiling, run:
 ;   dotnet publish src/OnvifDeviceManager.Wpf -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o publish/OnvifDeviceManager-Wpf-win-x64
 
 #define MyAppName "ONVIF Device Manager"
 #define MyAppVersion "1.5.0"
+; ISPP FormatDateTime: yyyy MM dd; hh=24h hour (padded); nn=minute; ss=second
+#define BuildStamp GetDateTimeString('yyyyMMdd-hhnnss', '', '')
 #define MyAppPublisher "Robert Foster"
 #define MyAppURL "https://github.com/devildog5x5/ONVIF-ODM"
 #define MyAppExeName "OnvifDeviceManager.Wpf.exe"
@@ -25,7 +28,7 @@ DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 LicenseFile=..\..\LICENSE
 OutputDir=..\..\publish\installers
-OutputBaseFilename=OnvifDeviceManager-Wpf-Setup-{#MyAppVersion}
+OutputBaseFilename=OnvifDeviceManager-Wpf-Setup-{#MyAppVersion}-{#BuildStamp}
 SetupIconFile=..\..\warrior_icon.ico
 Compression=lzma2/ultra64
 SolidCompression=yes

@@ -7,7 +7,8 @@
         Title="ONVIF Device Manager"
         Width="1400" Height="900"
         MinWidth="1100" MinHeight="700"
-        Icon="pack://application:,,,/warrior_icon.ico"
+        ShowInTaskbar="True"
+        Icon="pack://application:,,,/OnvifDeviceManager.Wpf;component/warrior_icon.ico"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource PrimaryBg}"
         Foreground="White"
@@ -43,8 +44,9 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal">
-                    <Image Source="pack://application:,,,/branding_master.png" Width="28" Height="28"
-                           Margin="0,0,12,0" RenderOptions.BitmapScalingMode="HighQuality" VerticalAlignment="Center"/>
+                    <Image x:Name="TitleBrandImage" Width="32" Height="32"
+                           Margin="0,0,12,0" RenderOptions.BitmapScalingMode="HighQuality" VerticalAlignment="Center"
+                           SnapsToDevicePixels="True" />
                     <StackPanel>
                         <TextBlock Text="ONVIF Device Manager" FontSize="16" FontWeight="SemiBold" />
                         <TextBlock Text="Discover and manage ONVIF IP cameras" FontSize="11" Foreground="{StaticResource MutedText}" />
@@ -60,7 +62,7 @@
         <!-- Body -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="220" />
+                <ColumnDefinition Width="300" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
@@ -88,8 +90,11 @@
 
                         <TextBlock Text="DEVICE (for selected camera only)" FontSize="11" Foreground="{StaticResource MutedText}" FontWeight="Bold" Margin="16,16,0,6" />
                         <Button Style="{StaticResource SecondaryBtn}" Content="Device Info" Command="{Binding NavigateCommand}" CommandParameter="DeviceInfo" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" IsEnabled="{Binding IsDeviceConnected}" />
-                        <Button Style="{StaticResource SecondaryBtn}" Content="Live View" Command="{Binding NavigateCommand}" CommandParameter="LiveView" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" IsEnabled="{Binding IsDeviceConnected}" />
-                        <Button Style="{StaticResource SecondaryBtn}" Content="PTZ Control" Command="{Binding NavigateCommand}" CommandParameter="PTZ" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" IsEnabled="{Binding IsDeviceConnected}" />
+                        <Button Style="{StaticResource SecondaryBtn}" Content="Live View + PTZ + Event Simulator" Command="{Binding NavigateCommand}" CommandParameter="LiveView" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" IsEnabled="{Binding IsDeviceConnected}" />
+                        <TextBlock Text="Live stream, PTZ control, and gunshot/event simulator are combined in Live View."
+                                   FontSize="10" Foreground="{StaticResource MutedText}"
+                                   Margin="14,2,8,6" TextWrapping="Wrap"
+                                   Visibility="{Binding IsDeviceConnected, Converter={StaticResource BoolToVis}}" />
                         <Button Style="{StaticResource SecondaryBtn}" Content="Media Profiles" Command="{Binding NavigateCommand}" CommandParameter="Profiles" HorizontalAlignment="Stretch" Margin="4,2" Padding="14,10" IsEnabled="{Binding IsDeviceConnected}" />
 
                         <TextBlock Text="MANAGEMENT" FontSize="11" Foreground="{StaticResource MutedText}" FontWeight="Bold" Margin="16,20,0,6" />
