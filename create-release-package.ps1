@@ -1,15 +1,17 @@
 # ONVIF Device Manager - Release Package Creator
-# Creates ZIP files for GitHub Releases
+# Creates ZIP files for GitHub Releases (filenames include version + local date/time stamp).
+
+param([string]$Version = "1.5.0")
 
 $ErrorActionPreference = "Stop"
 
-$Version = "1.5.0"
 $RootDir = $PSScriptRoot
 $OutputDir = Join-Path $RootDir "publish"
+$BuildStamp = Get-Date -Format "yyyyMMdd-HHmmss"
 
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  ONVIF Device Manager Release Packager" -ForegroundColor Cyan
-Write-Host "  Version: $Version" -ForegroundColor Cyan
+Write-Host "  Version: $Version  |  Build stamp: $BuildStamp" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -32,7 +34,7 @@ Write-Host ""
 $wpfFolder = Join-Path $OutputDir "OnvifDeviceManager-Wpf-win-x64"
 if (-not (Test-Path $wpfFolder)) {
     Write-Host "Running build to create publish artifacts..." -ForegroundColor Yellow
-    & (Join-Path (Join-Path $RootDir "build") "build-all.ps1")
+    & (Join-Path (Join-Path $RootDir "build") "build-all.ps1") -Version $Version -BuildStamp $BuildStamp
     if (-not (Test-Path $wpfFolder)) {
         Write-Host "ERROR: Build failed or output not found." -ForegroundColor Red
         exit 1
@@ -40,9 +42,14 @@ if (-not (Test-Path $wpfFolder)) {
 }
 Write-Host ""
 
-# Check installer
-$installerPath = Join-Path (Join-Path $OutputDir "installers") "OnvifDeviceManager-Wpf-Setup-$Version.exe"
-$hasInstaller = Test-Path $installerPath
+# Installer (Inno output may include date/time stamp — match any for this version)
+$installerDir = Join-Path $OutputDir "installers"
+$installerPath = $null
+if (Test-Path $installerDir) {
+    $installerPath = Get-ChildItem -Path $installerDir -Filter "OnvifDeviceManager-Wpf-Setup-$Version*.exe" -ErrorAction SilentlyContinue |
+        Sort-Object LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty FullName
+}
+$hasInstaller = -not [string]::IsNullOrWhiteSpace($installerPath) -and (Test-Path $installerPath)
 
 # Optional: Sign binaries if script exists
 $signScript = Join-Path $RootDir "sign-binaries.ps1"
@@ -65,7 +72,7 @@ Write-Host "Creating release packages..." -ForegroundColor Yellow
 Write-Host ""
 
 # Create WPF portable ZIP
-$wpfZip = Join-Path $RootDir "OnvifDeviceManager-Wpf-win-x64-v$Version.zip"
+$wpfZip = Join-Path $RootDir "OnvifDeviceManager-Wpf-win-x64-v$Version-$BuildStamp.zip"
 if (Test-Path $wpfZip) { Remove-Item $wpfZip -Force }
 Compress-Archive -Path (Join-Path $wpfFolder "*") -DestinationPath $wpfZip -Force
 $wpfSize = [math]::Round((Get-Item $wpfZip).Length / 1MB, 2)
@@ -93,6 +100,6 @@ Write-Host ""
 Write-Host "Next steps:" -ForegroundColor Cyan
 Write-Host "  1. Go to: https://github.com/devildog5x5/ONVIF-ODM/releases/new" -ForegroundColor White
 Write-Host "  2. Create a new release (e.g., 'v$Version')" -ForegroundColor White
-Write-Host "  3. Upload the ZIP files from publish\ as release assets" -ForegroundColor White
+Write-Host "  3. Upload the ZIP files (and installer if any) — names include v$Version-$BuildStamp" -ForegroundColor White
 Write-Host "  4. Update README: links, version, and Key files table dates (run snippet in README)" -ForegroundColor White
 Write-Host ""

@@ -46,11 +46,17 @@ public class LiveViewViewModel : ViewModelBase
         set
         {
             if (SetProperty(ref _isLiveStreaming, value))
+            {
                 OnPropertyChanged(nameof(ShowVideoPlaceholder));
+                OnPropertyChanged(nameof(ShowSnapshotAsStill));
+            }
         }
     }
 
     public bool ShowVideoPlaceholder => !IsLiveStreaming && SnapshotBytes == null;
+
+    /// <summary>Still snapshot drawn on top of the video surface when not playing RTSP (Avalonia/WPF).</summary>
+    public bool ShowSnapshotAsStill => !IsLiveStreaming && SnapshotBytes != null;
 
     public LiveViewViewModel(OnvifMediaService mediaService, OnvifPtzService ptzService, IUiDispatcher dispatcher, IClipboardService clipboard)
     {
@@ -120,7 +126,10 @@ public class LiveViewViewModel : ViewModelBase
         set
         {
             if (SetProperty(ref _snapshotBytes, value))
+            {
                 OnPropertyChanged(nameof(ShowVideoPlaceholder));
+                OnPropertyChanged(nameof(ShowSnapshotAsStill));
+            }
         }
     }
 
@@ -242,7 +251,19 @@ public class LiveViewViewModel : ViewModelBase
             Profiles.Add(profile);
 
         if (Profiles.Count > 0)
-            SelectedProfile = Profiles[0];
+        {
+            // Prefer a profile that can actually stream, while still favoring PTZ when possible.
+            SelectedProfile =
+                Profiles.FirstOrDefault(p => p.IsPtzEnabled && !string.IsNullOrWhiteSpace(p.StreamUri)) ??
+                Profiles.FirstOrDefault(p => !string.IsNullOrWhiteSpace(p.StreamUri)) ??
+                Profiles.FirstOrDefault(p => p.IsPtzEnabled) ??
+                Profiles[0];
+
+            if (string.IsNullOrWhiteSpace(SelectedProfile?.StreamUri))
+                StatusText = "Connected. Selected profile has no stream URI; choose another profile for live video.";
+            else if (SelectedProfile?.IsPtzEnabled != true)
+                StatusText = "Connected. Live video ready. PTZ controls will auto-switch to a PTZ profile if available.";
+        }
         else
         {
             SelectedProfile = null;
@@ -463,18 +484,41 @@ public class LiveViewViewModel : ViewModelBase
     private string GetPtzServiceUrl() =>
         Device?.Capabilities.PtzServiceAddress ?? Device?.ServiceAddress ?? string.Empty;
 
+    private bool EnsurePtzReady()
+    {
+        if (Device == null || SelectedProfile == null)
+            return false;
+
+        if (SelectedProfile.IsPtzEnabled)
+            return true;
+
+        var ptzProfile = Profiles.FirstOrDefault(p => p.IsPtzEnabled);
+        if (ptzProfile != null)
+        {
+            SelectedProfile = ptzProfile;
+            StatusText = $"Switched to PTZ profile '{ptzProfile.Name}' for PTZ controls.";
+            return true;
+        }
+
+        StatusText = "No PTZ-enabled profile is available on this camera.";
+        return false;
+    }
+
     private async Task ContinuousMoveAsync(float pan, float tilt, float zoom)
     {
-        if (Device == null || SelectedProfile == null || !SelectedProfile.IsPtzEnabled) return;
+        if (!EnsurePtzReady()) return;
+        var device = Device;
+        var profile = SelectedProfile;
+        if (device == null || profile == null) return;
         try
         {
             await _ptzService.ContinuousMoveAsync(
-                GetPtzServiceUrl(), SelectedProfile.Token,
-                pan, tilt, zoom, Device.Username, Device.Password);
+                GetPtzServiceUrl(), profile.Token,
+                pan, tilt, zoom, device.Username, device.Password);
             await Task.Delay(500);
             await _ptzService.StopAsync(
-                GetPtzServiceUrl(), SelectedProfile.Token,
-                true, true, Device.Username, Device.Password);
+                GetPtzServiceUrl(), profile.Token,
+                true, true, device.Username, device.Password);
             await RefreshPtzPositionAsync(true);
         }
         catch (Exception ex) { StatusText = $"Move error: {ex.Message}"; }
@@ -482,12 +526,15 @@ public class LiveViewViewModel : ViewModelBase
 
     private async Task StopMoveAsync()
     {
-        if (Device == null || SelectedProfile == null) return;
+        if (!EnsurePtzReady()) return;
+        var device = Device;
+        var profile = SelectedProfile;
+        if (device == null || profile == null) return;
         try
         {
             await _ptzService.StopAsync(
-                GetPtzServiceUrl(), SelectedProfile.Token,
-                true, true, Device.Username, Device.Password);
+                GetPtzServiceUrl(), profile.Token,
+                true, true, device.Username, device.Password);
             await RefreshPtzPositionAsync(true);
         }
         catch { }
@@ -495,12 +542,15 @@ public class LiveViewViewModel : ViewModelBase
 
     private async Task GoHomeAsync()
     {
-        if (Device == null || SelectedProfile == null || !SelectedProfile.IsPtzEnabled) return;
+        if (!EnsurePtzReady()) return;
+        var device = Device;
+        var profile = SelectedProfile;
+        if (device == null || profile == null) return;
         try
         {
             await _ptzService.GotoHomeAsync(
-                GetPtzServiceUrl(), SelectedProfile.Token,
-                Device.Username, Device.Password);
+                GetPtzServiceUrl(), profile.Token,
+                device.Username, device.Password);
             StatusText = "Moving to home position";
             await Task.Delay(900);
             await RefreshPtzPositionAsync(true);
@@ -510,7 +560,10 @@ public class LiveViewViewModel : ViewModelBase
 
     public async Task SimulateEventAsync()
     {
-        if (Device == null || SelectedProfile == null) return;
+        if (!EnsurePtzReady()) return;
+        var device = Device;
+        var profile = SelectedProfile;
+        if (device == null || profile == null) return;
 
         var eventType = EventTypes[Math.Clamp(EventTypeIndex, 0, EventTypes.Length - 1)];
         LastSimulatedEvent = $"{eventType} @ {DateTime.Now:HH:mm:ss}";
@@ -520,14 +573,14 @@ public class LiveViewViewModel : ViewModelBase
             if (EventTargetUsePreset)
             {
                 var presets = await _ptzService.GetPresetsAsync(
-                    GetPtzServiceUrl(), SelectedProfile.Token,
-                    Device.Username, Device.Password);
+                    GetPtzServiceUrl(), profile.Token,
+                    device.Username, device.Password);
                 var idx = Math.Clamp(EventTargetPresetNumber - 1, 0, Math.Max(0, presets.Count - 1));
                 if (idx < presets.Count)
                 {
                     await _ptzService.GotoPresetAsync(
-                        GetPtzServiceUrl(), SelectedProfile.Token, presets[idx].Token,
-                        Device.Username, Device.Password);
+                        GetPtzServiceUrl(), profile.Token, presets[idx].Token,
+                        device.Username, device.Password);
                     StatusText = $"Event '{eventType}' → Preset {EventTargetPresetNumber}";
                 }
                 else StatusText = $"Preset {EventTargetPresetNumber} not found";
@@ -539,8 +592,8 @@ public class LiveViewViewModel : ViewModelBase
                 var pan = Math.Clamp(panVal, -1f, 1f);
                 var tilt = Math.Clamp(tiltVal, -1f, 1f);
                 await _ptzService.AbsoluteMoveAsync(
-                    GetPtzServiceUrl(), SelectedProfile.Token, pan, tilt, 0.5f,
-                    Device.Username, Device.Password);
+                    GetPtzServiceUrl(), profile.Token, pan, tilt, 0.5f,
+                    device.Username, device.Password);
                 StatusText = $"Event '{eventType}' → Pan:{pan:F2} Tilt:{tilt:F2}";
             }
         }

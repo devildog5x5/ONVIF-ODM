@@ -33,17 +33,21 @@ Both editions share the same core business logic, ONVIF protocol services, and M
 
 Self-contained executables — **no .NET runtime installation required**. Just download, extract, and run.
 
-**Latest tagged release: v1.5.0** — Release assets built: March 22, 2026
+**File names include date and time:** Archives produced by `.\build\build-all.ps1` (or `./build/build-all.sh`) and the portable WPF ZIP from `.\create-release-package.ps1` end with `-v{version}-{yyyyMMdd-HHmmss}.zip` (local clock). That stamp is part of the filename so every build is identifiable. **GitHub release links that omit the timestamp** (for example `…-v1.5.0.zip` only) belong to **older** uploads; for current packages, open **[Releases](https://github.com/devildog5x5/ONVIF-ODM/releases)** and choose the asset whose name matches the pattern below.
 
-**Source / README refreshed:** 2026-03-23 (documentation and key paths below). The `main` branch is verified on every push by **[GitHub Actions — Build workflow](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml)** ([workflow file](.github/workflows/dotnet.yml)).
+**Inno Setup** output is `OnvifDeviceManager-Wpf-Setup-{version}-{yyyyMMdd-hhmmss}.exe` (timestamp is applied when you compile the `.iss` file).
 
-| Platform | Edition | Download | Built |
-|----------|---------|----------|-------|
-| **Windows x64** | WPF (native) | [OnvifDeviceManager-Wpf-win-x64-v1.5.0.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.5.0/OnvifDeviceManager-Wpf-win-x64-v1.5.0.zip) (176 MB) | 2026-03-22 |
-| **Windows x64** | Avalonia | [OnvifDeviceManager-Avalonia-win-x64-v1.5.0.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.5.0/OnvifDeviceManager-Avalonia-win-x64-v1.5.0.zip) (38 MB) | 2026-03-22 |
-| **Linux x64** | Avalonia | [OnvifDeviceManager-Avalonia-linux-x64-v1.5.0.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.5.0/OnvifDeviceManager-Avalonia-linux-x64-v1.5.0.zip) (36 MB) | 2026-03-22 |
-| **macOS Intel** | Avalonia | [OnvifDeviceManager-Avalonia-osx-x64-v1.5.0.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.5.0/OnvifDeviceManager-Avalonia-osx-x64-v1.5.0.zip) (40 MB) | 2026-03-22 |
-| **macOS Apple Silicon** | Avalonia | [OnvifDeviceManager-Avalonia-osx-arm64-v1.5.0.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.5.0/OnvifDeviceManager-Avalonia-osx-arm64-v1.5.0.zip) (39 MB) | 2026-03-22 |
+**Latest tagged release line:** v1.5.0 (see Releases for exact asset names and sizes).
+
+**Source / README refreshed:** 2026-03-23 (documentation and key paths below). The `main` branch is verified on every push by **[GitHub Actions — Build workflow](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml)** ([workflow file](.github/workflows/dotnet.yml)). On each **`main`** push (and **manual workflow runs**), that workflow also **publishes self-contained Windows x64 WPF + Avalonia ZIPs** and uploads them as **Artifacts**; each ZIP file name includes **`v{Version}-{yyyyMMdd-HHmmss}`** (runner local time). Open the workflow run → **Artifacts** to download.
+
+| Platform | Edition | Asset name pattern (on [Releases](https://github.com/devildog5x5/ONVIF-ODM/releases)) |
+|----------|---------|----------------------------------------------------------------------------------------|
+| **Windows x64** | WPF (native) | `OnvifDeviceManager-Wpf-win-x64-v{version}-{yyyyMMdd-HHmmss}.zip` |
+| **Windows x64** | Avalonia | `OnvifDeviceManager-Avalonia-win-x64-v{version}-{yyyyMMdd-HHmmss}.zip` |
+| **Linux x64** | Avalonia | `OnvifDeviceManager-Avalonia-linux-x64-v{version}-{yyyyMMdd-HHmmss}.tar.gz` (from `build-all.sh`) or `.zip` (from `build-all.ps1` on Windows) |
+| **macOS Intel** | Avalonia | `OnvifDeviceManager-Avalonia-osx-x64-v{version}-…` (`.zip` or `.tar.gz` as above) |
+| **macOS Apple Silicon** | Avalonia | `OnvifDeviceManager-Avalonia-osx-arm64-v{version}-…` |
 
 > [See all releases](https://github.com/devildog5x5/ONVIF-ODM/releases) · [All workflow runs](https://github.com/devildog5x5/ONVIF-ODM/actions)
 
@@ -60,7 +64,7 @@ Inno Setup installer scripts are provided in `build/installers/`. To create an i
 ### Linux Installation
 
 ```bash
-unzip OnvifDeviceManager-Avalonia-linux-x64-v1.5.0.zip
+unzip OnvifDeviceManager-Avalonia-linux-x64-v1.5.0-*.zip
 cd OnvifDeviceManager-Avalonia-linux-x64
 sudo ./linux-install.sh      # Installs to /opt/onvif-device-manager
 onvif-device-manager         # Run from anywhere
@@ -100,20 +104,25 @@ dotnet publish src/OnvifDeviceManager/OnvifDeviceManager.csproj -c Release -r wi
 Standard procedure for creating a release:
 
 1. **Publish build:**  
-   `.\build\build-all.ps1` — creates self-contained outputs in `publish/` for all platforms.
+   `.\build\build-all.ps1` — creates self-contained outputs in `publish/` for all platforms and ZIPs named `…-v{version}-{yyyyMMdd-HHmmss}.zip`.
 
 2. **Create packages:**  
-   `.\create-release-package.ps1` — refreshes warrior icon from `branding/master-icon.png`, optionally signs binaries, creates `OnvifDeviceManager-Wpf-win-x64-v{version}.zip` and other archives.
+   `.\create-release-package.ps1` — refreshes warrior icon from `branding/master-icon.png`, optionally signs binaries, creates `OnvifDeviceManager-Wpf-win-x64-v{version}-{yyyyMMdd-HHmmss}.zip` (same stamp as step 1 when this script runs the build).
 
 3. **Build installer (optional):**  
-   Open `build/installers/OnvifDeviceManager-Wpf-Setup.iss` in Inno Setup 6 → Build → Compile → `publish/installers/OnvifDeviceManager-Wpf-Setup-{version}.exe`
+   Open `build/installers/OnvifDeviceManager-Wpf-Setup.iss` in Inno Setup 6 → Build → Compile → `publish/installers/OnvifDeviceManager-Wpf-Setup-{version}-{yyyyMMdd-hhmmss}.exe`
 
-4. **Create GitHub Release:**  
-   Tag `v{version}`, upload the ZIP files and setup EXE as release assets.
+4. **Create GitHub Release and publish direct links (required):**  
+   Tag `v{version}`, upload the ZIP files and setup EXE as release assets.  
+   Then publish a short link block (README/changelog/release notes) with **direct URLs** to each uploaded asset for all projects/platforms.
 
 5. **Update README (links, version, dates/timestamps):**  
    - Update direct download links and version numbers in the Download section.  
    - **Date and timestamp updates:** Run the PowerShell snippet under "Key files — last modified" to get current file dates, update the table with those values, and update the "last refreshed" line (date and time) in that section's intro text.
+
+6. **Hotfix / support SOP (required):**  
+   For every user-requested fix that is expected to be tested via download, publish a **new timestamped build** and provide the user a **direct link set** (Windows WPF + Windows Avalonia, plus Linux/macOS when applicable).  
+   Do not ask users to guess which asset is current; always send exact URLs.
 
 ## Project Structure
 

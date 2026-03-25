@@ -68,7 +68,7 @@
                 </Border>
 
                 <!-- Live Video (RTSP) + Snapshot fallback -->
-                <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,0,0,12">
+                <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,0,0,12">
                     <Grid Background="Black" MinHeight="280">
                         <vlc:VideoView x:Name="VideoView" Background="Black" Panel.ZIndex="0"
                                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
@@ -83,7 +83,7 @@
                 </Border>
 
                 <!-- PTZ: position indicator + controls (same profile as stream) -->
-                <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,0,0,12"
+                <Border Grid.Row="3" Style="{StaticResource Card}" Margin="0,0,0,12"
                         Visibility="{Binding ShowPtzPanel, Converter={StaticResource BoolToVis}}">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -155,7 +155,7 @@
                 </Border>
 
                 <!-- Stream URI (read-only) -->
-                <Border Grid.Row="3" Style="{StaticResource Card}" Margin="0,0,0,12">
+                <Border Grid.Row="4" Style="{StaticResource Card}" Margin="0,0,0,12">
                     <StackPanel>
                         <TextBlock Text="Current stream URI" FontWeight="SemiBold" Foreground="{StaticResource MutedText}" Margin="0,0,0,6" />
                         <TextBox x:Name="StreamUriBox" Style="{StaticResource ModernTB}"
@@ -164,8 +164,8 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Event Simulator -->
-                <Border Grid.Row="4" Background="#120a0a" CornerRadius="8" Padding="12" Margin="0,0,0,0"
+                <!-- Event Simulator (row 1: directly under stream card so it's visible without scrolling past video) -->
+                <Border Grid.Row="1" Background="#120a0a" CornerRadius="8" Padding="12" Margin="0,0,0,12"
                         BorderBrush="#3d1a1a" BorderThickness="1">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -241,7 +241,7 @@
             <TextBlock Text="To use this page:" FontSize="13" Foreground="#B0BEC5" HorizontalAlignment="Center" Margin="0,0,0,8" />
             <TextBlock Text="1. Go to Discovery and scan for devices" FontSize="13" Foreground="#B0BEC5" Margin="0,2" />
             <TextBlock Text="2. Select a camera and click Connect" FontSize="13" Foreground="#B0BEC5" Margin="0,2" />
-            <TextBlock Text="3. Return here for live video and PTZ" FontSize="13" Foreground="#B0BEC5" Margin="0,2" />
+            <TextBlock Text="3. Return here for live video, PTZ, and the gunshot / ONVIF event simulator" FontSize="13" Foreground="#B0BEC5" Margin="0,2" />
         </StackPanel>
     </Grid>
 </UserControl>

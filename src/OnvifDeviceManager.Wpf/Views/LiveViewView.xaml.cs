@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using LibVLCSharp.Shared;
@@ -11,6 +12,7 @@ public partial class LiveViewView : UserControl
     private bool _libVlcInitialized;
     private LibVLC? _libVlc;
     private MediaPlayer? _mediaPlayer;
+    private LiveViewViewModel? _boundVm;
 
     public LiveViewView()
     {
@@ -19,18 +21,23 @@ public partial class LiveViewView : UserControl
 
     private void UserControl_Loaded(object sender, RoutedEventArgs e)
     {
-        InitializeLibVlc();
         SetupEventSimulatorBindings();
 
         if (DataContext is LiveViewViewModel vm)
+        {
+            _boundVm = vm;
             vm.RequestStopLiveStream += OnRequestStopLiveStream;
+        }
     }
 
     private void UserControl_Unloaded(object sender, RoutedEventArgs e)
     {
-        if (DataContext is LiveViewViewModel vm)
-            vm.RequestStopLiveStream -= OnRequestStopLiveStream;
+        if (_boundVm != null)
+            _boundVm.RequestStopLiveStream -= OnRequestStopLiveStream;
+        _boundVm = null;
         StopLiveStream();
+        if (_mediaPlayer != null)
+            _mediaPlayer.EncounteredError -= MediaPlayer_EncounteredError;
         _mediaPlayer?.Dispose();
         _libVlc?.Dispose();
     }
@@ -69,8 +76,9 @@ public partial class LiveViewView : UserControl
             else
                 Core.Initialize();
 
-            _libVlc = new LibVLC("--network-caching=1000", "--rtsp-tcp", "--rtsp-timeout=10");
+            _libVlc = new LibVLC("--network-caching=1000", "--rtsp-timeout=10");
             _mediaPlayer = new MediaPlayer(_libVlc);
+            _mediaPlayer.EncounteredError += MediaPlayer_EncounteredError;
             VideoView.MediaPlayer = _mediaPlayer;
             _libVlcInitialized = true;
         }
@@ -120,6 +128,16 @@ public partial class LiveViewView : UserControl
         if (DataContext is not LiveViewViewModel vm || vm.Device == null)
             return;
 
+        if (!_libVlcInitialized)
+            InitializeLibVlc();
+
+        if (string.IsNullOrWhiteSpace(vm.StreamUri))
+        {
+            var streamProfile = vm.Profiles.FirstOrDefault(p => !string.IsNullOrWhiteSpace(p.StreamUri));
+            if (streamProfile != null)
+                vm.SelectedProfile = streamProfile;
+        }
+
         var uri = vm.StreamUri;
         if (string.IsNullOrWhiteSpace(uri))
         {
@@ -138,18 +156,93 @@ public partial class LiveViewView : UserControl
         try
         {
             _mediaPlayer.Stop();
-            var media = new Media(_libVlc, authUri, FromType.FromLocation);
-            _mediaPlayer.Play(media);
-            vm.IsLiveStreaming = true;
-            StartLiveButton.IsEnabled = false;
-            StopLiveButton.IsEnabled = true;
-            vm.StatusText = $"Live stream started at {DateTime.Now:HH:mm:ss}";
+            var started = TryStartStream(authUri, out var transportUsed);
+            if (started && !string.IsNullOrWhiteSpace(transportUsed))
+            {
+                vm.IsLiveStreaming = true;
+                StartLiveButton.IsEnabled = false;
+                StopLiveButton.IsEnabled = true;
+                vm.StatusText = $"Live stream started ({transportUsed}) at {DateTime.Now:HH:mm:ss}";
+            }
+            else
+            {
+                vm.IsLiveStreaming = false;
+                vm.StatusText = "Could not start RTSP stream (TCP/default fallback attempted). Try another profile or Open externally.";
+                StartLiveButton.IsEnabled = true;
+                StopLiveButton.IsEnabled = false;
+            }
         }
         catch (Exception ex)
         {
             vm.StatusText = $"Stream error: {ex.Message}";
             MessageBox.Show($"Failed to start stream: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
+    }
+
+    private void MediaPlayer_EncounteredError(object? sender, EventArgs e)
+    {
+        Dispatcher.Invoke(() =>
+        {
+            if (DataContext is LiveViewViewModel vm)
+            {
+                vm.IsLiveStreaming = false;
+                vm.StatusText = "Live stream error from media engine. Try another profile or Open externally.";
+            }
+            StartLiveButton.IsEnabled = true;
+            StopLiveButton.IsEnabled = false;
+        });
+    }
+
+    private bool TryStartStream(string uri, out string transportUsed)
+    {
+        transportUsed = string.Empty;
+        if (_libVlc == null || _mediaPlayer == null)
+            return false;
+
+        // Fallback chain:
+        // 1) Forced RTSP/TCP
+        // 2) LibVLC default transport
+        // 3) Compatibility mode (UDP + larger caching / relaxed clock sync)
+        // 4) Compatibility mode (RTSP-over-HTTP style transport for plugin-era cameras)
+        foreach (var mode in new[] { "rtsp-tcp", "default", "compat-udp", "compat-http" })
+        {
+            using var media = new Media(_libVlc, uri, FromType.FromLocation);
+            switch (mode)
+            {
+                case "rtsp-tcp":
+                    media.AddOption(":rtsp-tcp");
+                    media.AddOption(":network-caching=1000");
+                    break;
+                case "default":
+                    media.AddOption(":network-caching=1000");
+                    break;
+                case "compat-udp":
+                    media.AddOption(":rtsp-udp");
+                    media.AddOption(":network-caching=2500");
+                    media.AddOption(":live-caching=2500");
+                    media.AddOption(":clock-jitter=0");
+                    media.AddOption(":clock-synchro=0");
+                    media.AddOption(":no-audio");
+                    break;
+                case "compat-http":
+                    media.AddOption(":rtsp-http");
+                    media.AddOption(":network-caching=3000");
+                    media.AddOption(":live-caching=3000");
+                    media.AddOption(":http-reconnect=true");
+                    media.AddOption(":clock-jitter=0");
+                    media.AddOption(":clock-synchro=0");
+                    media.AddOption(":no-audio");
+                    break;
+            }
+
+            if (_mediaPlayer.Play(media))
+            {
+                transportUsed = mode;
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void StopLiveButton_Click(object sender, RoutedEventArgs e)

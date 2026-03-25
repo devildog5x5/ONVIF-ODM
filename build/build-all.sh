@@ -5,10 +5,12 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 OUTPUT_DIR="$ROOT_DIR/publish"
 VERSION="1.0.0"
+# Local date+time in archive names (override: BUILD_STAMP=20260323-153045 ./build-all.sh)
+BUILD_STAMP="${BUILD_STAMP:-$(date +%Y%m%d-%H%M%S)}"
 
 echo "============================================"
 echo " ONVIF Device Manager - Build All Platforms"
-echo " Version: $VERSION"
+echo " Version: $VERSION  |  Build stamp: $BUILD_STAMP"
 echo "============================================"
 echo ""
 
@@ -62,9 +64,9 @@ for dir in */; do
     dir_name="${dir%/}"
     echo ">> Archiving $dir_name..."
     if [[ "$dir_name" == *"win"* ]]; then
-        zip -qr "${dir_name}-v${VERSION}.zip" "$dir_name/"
+        zip -qr "${dir_name}-v${VERSION}-${BUILD_STAMP}.zip" "$dir_name/"
     else
-        tar -czf "${dir_name}-v${VERSION}.tar.gz" "$dir_name/"
+        tar -czf "${dir_name}-v${VERSION}-${BUILD_STAMP}.tar.gz" "$dir_name/"
     fi
 done
 

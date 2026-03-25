@@ -1,12 +1,20 @@
+param(
+    [string]$Version = "1.5.0",
+    [string]$BuildStamp = ""
+)
+
 $ErrorActionPreference = "Stop"
+
+if ([string]::IsNullOrWhiteSpace($BuildStamp)) {
+    $BuildStamp = Get-Date -Format "yyyyMMdd-HHmmss"
+}
 
 $RootDir = Split-Path -Parent $PSScriptRoot
 $OutputDir = Join-Path $RootDir "publish"
-$Version = "1.5.0"
 
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host " ONVIF Device Manager - Build All Platforms" -ForegroundColor Cyan
-Write-Host " Version: $Version" -ForegroundColor Cyan
+Write-Host " Version: $Version  |  Build stamp: $BuildStamp" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -56,7 +64,7 @@ Write-Host " Creating ZIP archives..." -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 
 Get-ChildItem -Path $OutputDir -Directory | ForEach-Object {
-    $zipPath = Join-Path $OutputDir "$($_.Name)-v$Version.zip"
+    $zipPath = Join-Path $OutputDir "$($_.Name)-v$Version-$BuildStamp.zip"
     Write-Host ">> Archiving $($_.Name)..." -ForegroundColor Yellow
     Compress-Archive -Path $_.FullName -DestinationPath $zipPath -Force
 }

@@ -14,7 +14,9 @@
             <TextBlock Text="3. Enter the camera's username and password" Classes="body" />
             <TextBlock Text="4. Click 'Connect'" Classes="body" />
         </StackPanel>
+        <TextBlock Text="On Live View (after you connect): Start live video (RTSP) for embedded motion video; gunshot / event simulator sits under Stream &amp; profile."
+                   Classes="caption" HorizontalAlignment="Center" Margin="0,8,0,0" TextWrapping="Wrap" MaxWidth="440" TextAlignment="Center" />
         <TextBlock Text="Or add a camera manually by IP address on the Discovery page." 
-                   Classes="caption" HorizontalAlignment="Center" Margin="0,8,0,0" />
+                   Classes="caption" HorizontalAlignment="Center" Margin="0,4,0,0" />
     </StackPanel>
 </UserControl>

@@ -8,6 +8,7 @@
         Title="ONVIF Device Manager"
         Width="1400" Height="900"
         MinWidth="1100" MinHeight="700"
+        ShowInTaskbar="True"
         Icon="avares://OnvifDeviceManager/Assets/warrior_icon.ico"
         WindowStartupLocation="CenterScreen"
         Background="#1A1A2E">
@@ -53,7 +54,8 @@
                 Padding="16,12">
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Image Source="avares://OnvifDeviceManager/Assets/branding_master.png" Width="28" Height="28" Margin="0,0,12,0" />
+                    <Image x:Name="TitleBrandImage" Source="avares://OnvifDeviceManager/Assets/warrior_icon.ico"
+                           Width="32" Height="32" Margin="0,0,12,0" />
                     <StackPanel>
                         <TextBlock Text="ONVIF Device Manager" Classes="subheader" />
                         <TextBlock Text="Discover and manage ONVIF IP cameras" Classes="caption" />
@@ -70,7 +72,7 @@
         </Border>
 
         <!-- Main Content -->
-        <Grid Grid.Row="1" ColumnDefinitions="220,*">
+        <Grid Grid.Row="1" ColumnDefinitions="300,*">
 
             <!-- Sidebar -->
             <Border Grid.Column="0" Background="#16213E" 
@@ -120,19 +122,12 @@
                                 <StackPanel Orientation="Horizontal">
                                     <PathIcon Data="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"
                                               Width="16" Height="16" Margin="0,0,10,0" />
-                                    <TextBlock Text="Live View" VerticalAlignment="Center" />
+                                    <TextBlock Text="Live View + PTZ + Event Simulator" VerticalAlignment="Center" />
                                 </StackPanel>
                             </Button>
-
-                            <Button Classes="secondary" Command="{Binding NavigateCommand}" CommandParameter="PTZ"
-                                    IsEnabled="{Binding IsDeviceConnected}"
-                                    HorizontalAlignment="Stretch" Margin="4,1" Padding="14,10" CornerRadius="8">
-                                <StackPanel Orientation="Horizontal">
-                                    <PathIcon Data="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm-7 7H3v4c0 1.1.9 2 2 2h4v-2H5v-4zM5 5h4V3H5c-1.1 0-2 .9-2 2v4h2V5zm14-2h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm0 16h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4z"
-                                              Width="16" Height="16" Margin="0,0,10,0" />
-                                    <TextBlock Text="PTZ Control" VerticalAlignment="Center" />
-                                </StackPanel>
-                            </Button>
+                            <TextBlock Text="Live stream, PTZ control, and gunshot/event simulator are combined in Live View."
+                                       Classes="caption" Margin="16,2,8,6" TextWrapping="Wrap"
+                                       IsVisible="{Binding IsDeviceConnected}" />
 
                             <Button Classes="secondary" Command="{Binding NavigateCommand}" CommandParameter="Profiles"
                                     IsEnabled="{Binding IsDeviceConnected}"

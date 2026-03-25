@@ -1,11 +1,13 @@
 ; ONVIF Device Manager (Avalonia) - Inno Setup Installer Script
 ; Compile with Inno Setup 6.x: https://jrsoftware.org/isinfo.php
+; Output includes compile date/time: OnvifDeviceManager-Avalonia-Setup-{version}-{yyyyMMdd-hhmmss}.exe
 ;
 ; Before compiling, run:
 ;   dotnet publish src/OnvifDeviceManager -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o publish/OnvifDeviceManager-Avalonia-win-x64
 
 #define MyAppName "ONVIF Device Manager (Cross-Platform)"
 #define MyAppVersion "1.5.0"
+#define BuildStamp GetDateTimeString('yyyyMMdd-hhnnss', '', '')
 #define MyAppPublisher "Robert Foster"
 #define MyAppURL "https://github.com/devildog5x5/ONVIF-ODM"
 #define MyAppExeName "OnvifDeviceManager.exe"
@@ -26,7 +28,7 @@ AllowNoIcons=yes
 SetupIconFile=..\..\warrior_icon.ico
 LicenseFile=..\..\LICENSE
 OutputDir=..\..\publish\installers
-OutputBaseFilename=OnvifDeviceManager-Avalonia-Setup-{#MyAppVersion}
+OutputBaseFilename=OnvifDeviceManager-Avalonia-Setup-{#MyAppVersion}-{#BuildStamp}
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
