@@ -4,7 +4,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 OUTPUT_DIR="$ROOT_DIR/publish"
-VERSION="1.0.0"
+VERSION="2.0.0"
 # Local date+time in archive names (override: BUILD_STAMP=20260323-153045 ./build-all.sh)
 BUILD_STAMP="${BUILD_STAMP:-$(date +%Y%m%d-%H%M%S)}"
 

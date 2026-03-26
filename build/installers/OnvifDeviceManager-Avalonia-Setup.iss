@@ -6,7 +6,7 @@
 ;   dotnet publish src/OnvifDeviceManager -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o publish/OnvifDeviceManager-Avalonia-win-x64
 
 #define MyAppName "ONVIF Device Manager (Cross-Platform)"
-#define MyAppVersion "1.5.0"
+#define MyAppVersion "2.0.0"
 #define BuildStamp GetDateTimeString('yyyyMMdd-hhnnss', '', '')
 #define MyAppPublisher "Robert Foster"
 #define MyAppURL "https://github.com/devildog5x5/ONVIF-ODM"

@@ -2,7 +2,7 @@
 # Creates ZIP files for GitHub Releases (filenames include version + local date/time stamp).
 
 param(
-    [string]$Version = "1.5.0",
+    [string]$Version = "2.0.0",
     [string]$BuildStamp = "",
     # Used to print SOP "latest builds" direct URLs (releases/download/...).
     [string]$GithubRepo = "devildog5x5/ONVIF-ODM"

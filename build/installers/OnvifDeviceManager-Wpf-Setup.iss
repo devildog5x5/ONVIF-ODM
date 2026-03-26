@@ -6,7 +6,7 @@
 ;   dotnet publish src/OnvifDeviceManager.Wpf -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o publish/OnvifDeviceManager-Wpf-win-x64
 
 #define MyAppName "ONVIF Device Manager"
-#define MyAppVersion "1.5.0"
+#define MyAppVersion "2.0.0"
 ; ISPP FormatDateTime: yyyy MM dd; hh=24h hour (padded); nn=minute; ss=second
 #define BuildStamp GetDateTimeString('yyyyMMdd-hhnnss', '', '')
 #define MyAppPublisher "Robert Foster"
