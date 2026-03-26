@@ -24,6 +24,9 @@ public class SettingsViewModel : ViewModelBase
         SaveCommand = new RelayCommand(Save);
         ResetCommand = new RelayCommand(Reset);
         OpenUrlCommand = new RelayCommand(OpenUrl);
+        OpenReadmeDownloadsCommand = new RelayCommand(() => OpenUrlStatic(AppDownloadLinks.ReadmeLatestDirectDownloads));
+        OpenReleasesLatestCommand = new RelayCommand(() => OpenUrlStatic(AppDownloadLinks.ReleasesLatest));
+        OpenCiWorkflowCommand = new RelayCommand(() => OpenUrlStatic(AppDownloadLinks.CiWorkflowMain));
         RefreshLatestDownloadsCommand = new AsyncRelayCommand(RefreshLatestDownloadsAsync);
         LatestReleaseAssets = new ObservableCollection<ReleaseDownloadItem>();
     }
@@ -82,6 +85,10 @@ public class SettingsViewModel : ViewModelBase
     /// <summary>Opens a URL in the default browser (CommandParameter = string url).</summary>
     public ICommand OpenUrlCommand { get; }
 
+    public ICommand OpenReadmeDownloadsCommand { get; }
+    public ICommand OpenReleasesLatestCommand { get; }
+    public ICommand OpenCiWorkflowCommand { get; }
+
     public ICommand RefreshLatestDownloadsCommand { get; }
 
     public ObservableCollection<ReleaseDownloadItem> LatestReleaseAssets { get; }
@@ -119,6 +126,11 @@ public class SettingsViewModel : ViewModelBase
     {
         if (parameter is not string url || string.IsNullOrWhiteSpace(url))
             return;
+        OpenUrlStatic(url);
+    }
+
+    private static void OpenUrlStatic(string url)
+    {
         try
         {
             Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
