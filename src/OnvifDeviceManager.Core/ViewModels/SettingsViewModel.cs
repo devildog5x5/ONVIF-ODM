@@ -82,7 +82,7 @@ public class SettingsViewModel : ViewModelBase
     /// <summary>Opens a URL in the default browser (CommandParameter = string url).</summary>
     public ICommand OpenUrlCommand { get; }
 
-    public IAsyncRelayCommand RefreshLatestDownloadsCommand { get; }
+    public ICommand RefreshLatestDownloadsCommand { get; }
 
     public ObservableCollection<ReleaseDownloadItem> LatestReleaseAssets { get; }
 
