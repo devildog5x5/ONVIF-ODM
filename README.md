@@ -38,7 +38,9 @@ Self-contained executables — **no .NET runtime installation required**. Just d
 | Source | What | How |
 |--------|------|-----|
 | **CI (recommended until Release assets are uploaded)** | Windows x64 **WPF** and **Avalonia** ZIPs (version + timestamp in each filename) | Open **[Build workflow — runs on `main`](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml?query=branch%3Amain)** → click the **latest successful** run → scroll to **Artifacts** → download `ONVIF-ODM-Windows-x64-r{run}-{attempt}` (ZIP contains both portable archives). |
-| **GitHub Release** | Same naming pattern; **permanent direct URLs** after you attach files to the tag | **[Releases](https://github.com/devildog5x5/ONVIF-ODM/releases)** → `v1.5.0` → assets, or use the [direct `releases/download` links](#direct-download-links-20260326-123919) below **only if** those exact filenames exist on that release. |
+| **GitHub Release** | Same naming pattern; **permanent direct URLs** after you attach files to the tag | **[Releases](https://github.com/devildog5x5/ONVIF-ODM/releases)** → `v1.5.0` → assets, or use **[Latest direct download links](#latest-direct-download-links)** below **only if** those exact filenames exist on that release. |
+
+**SOP — direct links to latest builds:** A shipping release or hotfix is not complete until maintainers (or automation) provide **verbatim full HTTPS** URLs for each platform ZIP — the canonical place is **[Latest direct download links](#latest-direct-download-links)** in this README (updated when the build stamp changes). `.\create-release-package.ps1` prints the same URLs at the end of each run for copy-paste into README, release notes, and user handoff. Do not rely on “open Releases and find the file” alone when a direct link is expected.
 
 `releases/download/...` links **404** until the matching `.zip` files are uploaded to that release. The workflow above always produces downloadable builds after each push to **`main`** (or **Run workflow** on `workflow_dispatch`).
 
@@ -50,7 +52,7 @@ Self-contained executables — **no .NET runtime installation required**. Just d
 
 **Inno Setup** output is `OnvifDeviceManager-Wpf-Setup-{version}-{yyyyMMdd-hhmmss}.exe` (timestamp is applied when you compile the `.iss` file).
 
-**Latest tagged release line:** v1.5.0 — **current published ZIPs use build stamp `20260326-123919`** (see [direct links](#direct-download-links-20260326-123919) below and [Releases](https://github.com/devildog5x5/ONVIF-ODM/releases)).
+**Latest tagged release line:** v1.5.0 — **current published ZIPs use build stamp `20260326-123919`** (see [Latest direct download links](#latest-direct-download-links) and [Releases](https://github.com/devildog5x5/ONVIF-ODM/releases)).
 
 **Source / README refreshed:** 2026-03-26 12:43 local (documentation and key paths below). The `main` branch is verified on every push by **[GitHub Actions — Build workflow](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml)** ([workflow file](.github/workflows/dotnet.yml)). On each **`main`** push (and **manual workflow runs**), that workflow also **publishes self-contained Windows x64 WPF + Avalonia ZIPs** and uploads them as **Artifacts**; each ZIP file name includes **`v{Version}-{yyyyMMdd-HHmmss}`** (runner local time). Open the workflow run → **Artifacts** to download.
 
@@ -64,11 +66,13 @@ Self-contained executables — **no .NET runtime installation required**. Just d
 
 > [See all releases](https://github.com/devildog5x5/ONVIF-ODM/releases) · [All workflow runs](https://github.com/devildog5x5/ONVIF-ODM/actions)
 
-### Direct download links (20260326-123919)
+### Latest direct download links
 
-**GitHub Release assets only** — these URLs work after the files are attached to **[v1.5.0](https://github.com/devildog5x5/ONVIF-ODM/releases/tag/v1.5.0)**. If a link 404s, use **[Build links](#build-links)** (CI Artifacts) until the release is updated.
+**Build stamp:** `20260326-123919` · **Release tag:** [v1.5.0](https://github.com/devildog5x5/ONVIF-ODM/releases/tag/v1.5.0)
 
-Use these **exact** URLs when sharing builds (hotfix / support SOP). After you publish newer timestamped assets, update this block.
+**GitHub Release assets only** — these full URLs work after the matching `.zip` files are attached to that release. If a link 404s, use **[Build links](#build-links)** (CI Artifacts) until upload is done.
+
+**SOP:** Keep this table in sync with the stamp from `build-all.ps1` / `create-release-package.ps1`; the packaging script prints an identical URL list for README and handoff.
 
 | Platform | Asset | Direct link |
 |----------|-------|-------------|
@@ -148,15 +152,15 @@ Standard procedure for creating a release:
 
 4. **Create GitHub Release and publish direct links (required):**  
    Tag `v{version}`, upload the ZIP files and setup EXE as release assets.  
-   Then publish a short link block (README/changelog/release notes) with **direct URLs** to each uploaded asset for all projects/platforms.
+   **Direct links to latest builds (required):** Immediately document **verbatim full HTTPS** URLs of the form `https://github.com/devildog5x5/ONVIF-ODM/releases/download/v{version}/<filename>.zip` for **every** platform ZIP you uploaded (WPF Windows, Avalonia Windows, Linux, macOS as applicable). `.\create-release-package.ps1` prints this list at the end of each run — copy it into README **[Latest direct download links](#latest-direct-download-links)**, release notes, and any user handoff.
 
 5. **Update README (links, version, dates/timestamps):**  
-   - Keep **[Build links](#build-links)** accurate (CI Artifacts path + Release direct URLs).  
-   - Update **direct `releases/download/...` links** and version numbers only when those assets exist on the GitHub Release (otherwise users rely on CI Artifacts until upload).  
+   - Keep **[Build links](#build-links)** accurate (CI Artifacts path + when to use Release URLs).  
+   - Update **[Latest direct download links](#latest-direct-download-links)** with **full `releases/download/...` URLs**, build stamp, and table rows whenever the stamp or version changes (or note CI-only until upload).  
    - **Date and timestamp updates:** Run the PowerShell snippet under "Key files — last modified" to get current file dates, update the table with those values, and update the "last refreshed" line (date and time) in that section's intro text.
 
 6. **Hotfix / support SOP (required):**  
-   For every user-requested fix that is expected to be tested via download, publish a **new timestamped build** and provide the user a **direct link set** (Windows WPF + Windows Avalonia, plus Linux/macOS when applicable).  
+   For every user-requested fix that is expected to be tested via download, publish a **new timestamped build** and provide the **same verbatim direct URLs** as in README **[Latest direct download links](#latest-direct-download-links)** (Windows WPF + Windows Avalonia, plus Linux/macOS when applicable).  
    Do not ask users to guess which asset is current; always send exact URLs.
 
 ### After every new binary build — completion checklist (SOP)
@@ -169,8 +173,8 @@ When you finish a **release-style** or **hotfix** build (local `build-all` / `cr
 | B | **Icon Standard Process** | `warrior_icon.ico` regenerated from `branding/master-icon.png` (automatic in `create-release-package.ps1`, or run `.\update-app-icon.ps1`). |
 | C | **Release Build SOP** §3 | Inno installer compiled **only if** you are shipping an `.exe` this round (otherwise N/A). |
 | D | **Release Build SOP** §4 | Assets uploaded to the correct **GitHub Release** tag; **superseded** ZIPs removed from that tag so “current” files are obvious. |
-| E | **Release Build SOP** §5 | README updated: **Build links** (CI + Release), **Latest … build stamp**, **Direct download links** table (`releases/download/...` URLs, when assets exist), **Source / README refreshed** date, **Key files — last modified** table (run the PowerShell snippet under that table). |
-| F | **Hotfix / support SOP** §6 | End user receives **verbatim direct URLs** for WPF + Avalonia Windows (and Linux/macOS if you built them)—not “get it from Releases.” |
+| E | **Release Build SOP** §5 | README updated: **Build links**, **[Latest direct download links](#latest-direct-download-links)** (full HTTPS `releases/download/...` per platform for the current stamp), **Latest … build stamp** line, **Source / README refreshed** date, **Key files — last modified** table (PowerShell snippet under that table). |
+| F | **Hotfix / support SOP** §6 | End user receives the **same verbatim direct URLs** as README **Latest direct download links** (WPF + Avalonia Windows + Linux/macOS if built)—not “get it from Releases.” |
 | G | **`dotnet build -c Release`** | Solution builds clean before packaging (no new errors). |
 
 **Agents / automation:** After packaging, output a short **“SOP completion”** block listing A–G with ✅ or N/A so nothing is skipped.

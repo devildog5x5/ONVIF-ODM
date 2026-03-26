@@ -3,7 +3,9 @@
 
 param(
     [string]$Version = "1.5.0",
-    [string]$BuildStamp = ""
+    [string]$BuildStamp = "",
+    # Used to print SOP "latest builds" direct URLs (releases/download/...).
+    [string]$GithubRepo = "devildog5x5/ONVIF-ODM"
 )
 
 $ErrorActionPreference = "Stop"
@@ -106,8 +108,8 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Next steps (see README: Release Build SOP + After every new binary build):" -ForegroundColor Cyan
 Write-Host "  1. Upload ZIPs to GitHub Release tag v$Version (remove older timestamped ZIPs on that tag if obsolete)." -ForegroundColor White
-Write-Host "  2. Update README direct links + build stamp + Key files table (PowerShell snippet in README)." -ForegroundColor White
-Write-Host "  3. Send users exact releases/download/... URLs (hotfix SOP)." -ForegroundColor White
+Write-Host "  2. Update README **Latest direct download links** + build stamp + Key files table (URLs printed below)." -ForegroundColor White
+Write-Host "  3. Send users the same verbatim URLs (hotfix SOP)." -ForegroundColor White
 Write-Host ""
 Write-Host "SOP checklist (echo in PR/chat with done/N/A):" -ForegroundColor Yellow
 Write-Host "  [A] Publish + package same stamp: v$Version-$BuildStamp" -ForegroundColor White
@@ -117,4 +119,18 @@ Write-Host "  [D] GitHub Release upload + prune old assets" -ForegroundColor Whi
 Write-Host "  [E] README links + dates table" -ForegroundColor White
 Write-Host "  [F] User-facing direct URLs" -ForegroundColor White
 Write-Host "  [G] dotnet build -c Release clean" -ForegroundColor White
+Write-Host ""
+$releaseBase = "https://github.com/$GithubRepo/releases/download/v$Version"
+$platformZips = @(
+    "OnvifDeviceManager-Wpf-win-x64-v$Version-$BuildStamp.zip",
+    "OnvifDeviceManager-Avalonia-win-x64-v$Version-$BuildStamp.zip",
+    "OnvifDeviceManager-Avalonia-linux-x64-v$Version-$BuildStamp.zip",
+    "OnvifDeviceManager-Avalonia-osx-x64-v$Version-$BuildStamp.zip",
+    "OnvifDeviceManager-Avalonia-osx-arm64-v$Version-$BuildStamp.zip"
+)
+Write-Host "Latest builds — direct links (SOP — use after assets are on GitHub Release v$Version):" -ForegroundColor Cyan
+Write-Host "Copy into README **Latest direct download links**, release notes, and user handoff." -ForegroundColor DarkGray
+foreach ($name in $platformZips) {
+    Write-Host "$releaseBase/$name" -ForegroundColor White
+}
 Write-Host ""
