@@ -67,15 +67,21 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Live Video (RTSP) + Snapshot fallback -->
+                <!-- Still snapshot (separate from VideoView so LibVLC host issues do not break stills) -->
+                <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,0,0,12" MinHeight="120"
+                        Visibility="{Binding ShowSnapshotAsStill, Converter={StaticResource BoolToVis}}">
+                    <StackPanel>
+                        <TextBlock Text="Still snapshot" FontSize="11" Foreground="{StaticResource MutedText}" Margin="0,0,0,6" />
+                        <Image Source="{Binding SnapshotBytes, Converter={StaticResource BytesToImage}}"
+                               Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" MaxHeight="400" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Live Video (RTSP) -->
                 <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,0,0,12">
                     <Grid Background="Black" MinHeight="280">
                         <vlc:VideoView x:Name="VideoView" Background="Black" Panel.ZIndex="0"
                                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
-                        <!-- Use ShowSnapshotAsStill (not IsLiveStreaming+Invert): mis-parsed ConverterParameter can leave this Image visible on top of LibVLC. -->
-                        <Image Source="{Binding SnapshotBytes, Converter={StaticResource BytesToImage}}"
-                               Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" Panel.ZIndex="1"
-                               Visibility="{Binding ShowSnapshotAsStill, Converter={StaticResource BoolToVis}}" />
                         <TextBlock x:Name="VideoPlaceholder" Text="LIVE VIDEO — Choose profile above, then Start live video (RTSP)&#x0a;PTZ (below) works while the stream plays"
                                    Foreground="{StaticResource MutedText}" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"
                                    TextAlignment="Center" TextWrapping="Wrap" Panel.ZIndex="2"

@@ -21,7 +21,8 @@
             </StackPanel>
 
             <!-- VideoView (LibVLC NativeControlHost) must not sit under ScrollViewer — breaks Win32 child window creation. -->
-            <Grid Grid.Row="1" RowDefinitions="Auto,Auto,*">
+            <!-- Snapshot still is in its own row so NativeControlHost failures do not break Image layout. -->
+            <Grid Grid.Row="1" RowDefinitions="Auto,Auto,Auto,*">
             <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <StackPanel Spacing="0">
 
@@ -104,13 +105,19 @@
                 </StackPanel>
             </ScrollViewer>
 
-                    <Border Grid.Row="1" Classes="card" MinHeight="280" Margin="0,0,0,12">
+                    <Border Grid.Row="1" Classes="card" Margin="0,0,0,12" MinHeight="120"
+                            IsVisible="{Binding ShowSnapshotAsStill}">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Still snapshot" Classes="caption" />
+                            <Image Source="{Binding SnapshotBytes, Converter={StaticResource BytesToBitmap}}" Stretch="Uniform"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" MaxHeight="400" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Row="2" Classes="card" MinHeight="280" Margin="0,0,0,12">
                         <Grid MinHeight="280" Background="Black">
                             <!-- Create VideoView lazily in code to avoid view-open crashes when native VLC runtime is unavailable -->
                             <Grid x:Name="VideoHost" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="0" />
-                            <Image Source="{Binding SnapshotBytes, Converter={StaticResource BytesToBitmap}}" Stretch="Uniform"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" ZIndex="1"
-                                   IsVisible="{Binding ShowSnapshotAsStill}" />
                             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" ZIndex="2"
                                         IsVisible="{Binding ShowVideoPlaceholder}">
                                 <PathIcon Data="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"
@@ -126,7 +133,7 @@
                         </Grid>
                     </Border>
 
-            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <StackPanel Spacing="0">
 
                     <Border Classes="card" Margin="0,0,0,12" IsVisible="{Binding ShowPtzPanel}">

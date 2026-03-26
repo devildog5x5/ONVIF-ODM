@@ -122,7 +122,7 @@ public partial class LiveViewView : UserControl
         return null;
     }
 
-    private void InitializeLibVlc()
+    private async Task InitializeLibVlcAsync()
     {
         if (_libVlcInitialized)
             return;
@@ -139,9 +139,22 @@ public partial class LiveViewView : UserControl
             _libVlc = new LibVLC("--network-caching=1500", "--rtsp-timeout=60", "--avcodec-hw=none");
             _mediaPlayer = new MediaPlayer(_libVlc);
             _mediaPlayer.EncounteredError += MediaPlayer_EncounteredError;
-            EnsureVideoViewCreated();
-            if (_videoView != null)
-                _videoView.MediaPlayer = _mediaPlayer;
+
+            // Defer VideoView attach until after layout — reduces NativeControlHost "child window" failures on Windows.
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                try
+                {
+                    EnsureVideoViewCreated();
+                    if (_videoView != null)
+                        _videoView.MediaPlayer = _mediaPlayer;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"VideoView attach failed: {ex.Message}");
+                }
+            }, DispatcherPriority.Loaded);
+
             _libVlcInitialized = true;
         }
         catch (Exception ex)
@@ -177,7 +190,7 @@ public partial class LiveViewView : UserControl
             return;
 
         if (!_libVlcInitialized)
-            InitializeLibVlc();
+            await InitializeLibVlcAsync().ConfigureAwait(true);
 
         if (string.IsNullOrWhiteSpace(vm.StreamUri))
         {
