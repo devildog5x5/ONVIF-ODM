@@ -106,7 +106,14 @@ public class OnvifMediaService : IDisposable
         return profiles;
     }
 
-    public async Task<string> GetStreamUriAsync(string serviceUrl, string profileToken, string? username = null, string? password = null)
+    public Task<string> GetStreamUriAsync(string serviceUrl, string profileToken, string? username = null, string? password = null)
+        => GetStreamUriInternalAsync(serviceUrl, profileToken, username, password, "RTSP");
+
+    /// <summary>RTP-over-TCP style setup; some firmware only returns a usable URI when TCP is requested.</summary>
+    public Task<string> GetStreamUriRtpOverTcpAsync(string serviceUrl, string profileToken, string? username = null, string? password = null)
+        => GetStreamUriInternalAsync(serviceUrl, profileToken, username, password, "TCP");
+
+    private async Task<string> GetStreamUriInternalAsync(string serviceUrl, string profileToken, string? username, string? password, string transportProtocol)
     {
         try
         {
@@ -114,7 +121,7 @@ public class OnvifMediaService : IDisposable
                 new XElement(TrtNs + "StreamSetup",
                     new XElement(TtNs + "Stream", "RTP-Unicast"),
                     new XElement(TtNs + "Transport",
-                        new XElement(TtNs + "Protocol", "RTSP"))),
+                        new XElement(TtNs + "Protocol", transportProtocol))),
                 new XElement(TrtNs + "ProfileToken", profileToken));
 
             var response = await _soapClient.SendRequestAsync(serviceUrl, body, username, password);
@@ -123,7 +130,7 @@ public class OnvifMediaService : IDisposable
         catch (SoapFaultException) { throw; }
         catch (Exception ex)
         {
-            CrashLogger.Log("GetStreamUriAsync", ex);
+            CrashLogger.Log($"GetStreamUriInternalAsync ({transportProtocol})", ex);
             return string.Empty;
         }
     }

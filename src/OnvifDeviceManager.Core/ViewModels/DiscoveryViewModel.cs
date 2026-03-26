@@ -341,7 +341,13 @@ public class DiscoveryViewModel : ViewModelBase
                 device.Profiles.Clear();
                 foreach (var profile in profiles)
                 {
-                    try { profile.StreamUri = await _mediaService.GetStreamUriAsync(mediaUrl, profile.Token, username, password); } catch { }
+                    try
+                    {
+                        profile.StreamUri = await _mediaService.GetStreamUriAsync(mediaUrl, profile.Token, username, password);
+                        if (string.IsNullOrWhiteSpace(profile.StreamUri))
+                            profile.StreamUri = await _mediaService.GetStreamUriRtpOverTcpAsync(mediaUrl, profile.Token, username, password);
+                    }
+                    catch { }
                     try { profile.SnapshotUri = await _mediaService.GetSnapshotUriAsync(mediaUrl, profile.Token, username, password); } catch { }
                     device.Profiles.Add(profile);
                 }

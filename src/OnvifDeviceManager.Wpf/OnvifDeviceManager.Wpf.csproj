@@ -32,4 +32,14 @@
     </Content>
   </ItemGroup>
 
+  <!-- PublishSingleFile bundles native DLLs into the exe; LibVLC needs libvlc.dll + plugins on disk relative to that root. -->
+  <Target Name="LibVlcExcludeFromSingleFile" AfterTargets="CollectVlcFilesToCopyWindows">
+    <ItemGroup>
+      <Content Update="@(Content)" Condition="'%(Content.Link)' != '' and $([System.String]::Copy('%(Content.Link)').StartsWith('libvlc'))">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
+    </ItemGroup>
+  </Target>
+
 </Project>

@@ -25,7 +25,8 @@ function Publish-Project {
     param(
         [string]$Project,
         [string]$Rid,
-        [string]$Name
+        [string]$Name,
+        [string]$WinExeBaseName = $null
     )
     $out = Join-Path $OutputDir $Name
     Write-Host ">> Publishing $Name ($Rid)..." -ForegroundColor Yellow
@@ -40,14 +41,17 @@ function Publish-Project {
         -p:Version=$Version `
         -o $out `
         --nologo -v quiet
+    if ($WinExeBaseName -and ($Rid -like "win-*")) {
+        & (Join-Path (Join-Path $RootDir "build") "repair-win-apphost.ps1") -PublishDir $out -ExeBaseName $WinExeBaseName
+    }
     Write-Host "   Done: $out" -ForegroundColor Green
 }
 
 Write-Host "[1/5] Building WPF (Windows x64)..." -ForegroundColor White
-Publish-Project "OnvifDeviceManager.Wpf\OnvifDeviceManager.Wpf.csproj" "win-x64" "OnvifDeviceManager-Wpf-win-x64"
+Publish-Project "OnvifDeviceManager.Wpf\OnvifDeviceManager.Wpf.csproj" "win-x64" "OnvifDeviceManager-Wpf-win-x64" "OnvifDeviceManager.Wpf"
 
 Write-Host "[2/5] Building Avalonia (Windows x64)..." -ForegroundColor White
-Publish-Project "OnvifDeviceManager\OnvifDeviceManager.csproj" "win-x64" "OnvifDeviceManager-Avalonia-win-x64"
+Publish-Project "OnvifDeviceManager\OnvifDeviceManager.csproj" "win-x64" "OnvifDeviceManager-Avalonia-win-x64" "OnvifDeviceManager"
 
 Write-Host "[3/5] Building Avalonia (Linux x64)..." -ForegroundColor White
 Publish-Project "OnvifDeviceManager\OnvifDeviceManager.csproj" "linux-x64" "OnvifDeviceManager-Avalonia-linux-x64"

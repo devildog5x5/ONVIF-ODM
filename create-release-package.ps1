@@ -1,13 +1,18 @@
 # ONVIF Device Manager - Release Package Creator
 # Creates ZIP files for GitHub Releases (filenames include version + local date/time stamp).
 
-param([string]$Version = "1.5.0")
+param(
+    [string]$Version = "1.5.0",
+    [string]$BuildStamp = ""
+)
 
 $ErrorActionPreference = "Stop"
 
 $RootDir = $PSScriptRoot
 $OutputDir = Join-Path $RootDir "publish"
-$BuildStamp = Get-Date -Format "yyyyMMdd-HHmmss"
+if ([string]::IsNullOrWhiteSpace($BuildStamp)) {
+    $BuildStamp = Get-Date -Format "yyyyMMdd-HHmmss"
+}
 
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  ONVIF Device Manager Release Packager" -ForegroundColor Cyan
@@ -40,6 +45,8 @@ if (-not (Test-Path $wpfFolder)) {
         exit 1
     }
 }
+
+& (Join-Path (Join-Path $RootDir "build") "repair-win-apphost.ps1") -PublishDir $wpfFolder -ExeBaseName "OnvifDeviceManager.Wpf"
 Write-Host ""
 
 # Installer (Inno output may include date/time stamp — match any for this version)
@@ -97,9 +104,17 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  Release Packages Ready!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Next steps:" -ForegroundColor Cyan
-Write-Host "  1. Go to: https://github.com/devildog5x5/ONVIF-ODM/releases/new" -ForegroundColor White
-Write-Host "  2. Create a new release (e.g., 'v$Version')" -ForegroundColor White
-Write-Host "  3. Upload the ZIP files (and installer if any) — names include v$Version-$BuildStamp" -ForegroundColor White
-Write-Host "  4. Update README: links, version, and Key files table dates (run snippet in README)" -ForegroundColor White
+Write-Host "Next steps (see README: Release Build SOP + After every new binary build):" -ForegroundColor Cyan
+Write-Host "  1. Upload ZIPs to GitHub Release tag v$Version (remove older timestamped ZIPs on that tag if obsolete)." -ForegroundColor White
+Write-Host "  2. Update README direct links + build stamp + Key files table (PowerShell snippet in README)." -ForegroundColor White
+Write-Host "  3. Send users exact releases/download/... URLs (hotfix SOP)." -ForegroundColor White
+Write-Host ""
+Write-Host "SOP checklist (echo in PR/chat with done/N/A):" -ForegroundColor Yellow
+Write-Host "  [A] Publish + package same stamp: v$Version-$BuildStamp" -ForegroundColor White
+Write-Host "  [B] Icon refresh (this script ran update-app-icon.ps1)" -ForegroundColor White
+Write-Host "  [C] Inno installer: $(if ($hasInstaller) { 'built' } else { 'N/A this run' })" -ForegroundColor White
+Write-Host "  [D] GitHub Release upload + prune old assets" -ForegroundColor White
+Write-Host "  [E] README links + dates table" -ForegroundColor White
+Write-Host "  [F] User-facing direct URLs" -ForegroundColor White
+Write-Host "  [G] dotnet build -c Release clean" -ForegroundColor White
 Write-Host ""

@@ -40,4 +40,14 @@
     </Content>
   </ItemGroup>
 
+  <!-- Windows: keep full LibVLC layout beside single-file exe (see VideoLAN.LibVLC.Windows targets). -->
+  <Target Name="LibVlcExcludeFromSingleFile" AfterTargets="CollectVlcFilesToCopyWindows">
+    <ItemGroup>
+      <Content Update="@(Content)" Condition="'%(Content.Link)' != '' and $([System.String]::Copy('%(Content.Link)').StartsWith('libvlc'))">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
+    </ItemGroup>
+  </Target>
+
 </Project>

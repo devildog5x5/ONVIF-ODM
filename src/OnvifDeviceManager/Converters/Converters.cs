@@ -43,12 +43,18 @@ public class BytesToBitmapConverter : IValueConverter
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is byte[] bytes && bytes.Length > 0)
+        if (value is not byte[] bytes || bytes.Length == 0)
+            return null;
+        try
         {
             using var stream = new MemoryStream(bytes);
             return new Bitmap(stream);
         }
-        return null;
+        catch
+        {
+            // Cameras may return HTML/XML instead of JPEG; avoid tearing down the UI thread.
+            return null;
+        }
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
