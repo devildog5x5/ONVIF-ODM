@@ -71,7 +71,10 @@ public partial class MainWindow : Window
         {
             var bmp = new BitmapImage();
             bmp.BeginInit();
-            bmp.UriSource = new Uri(PackAsm + "branding_master.png", UriKind.Absolute);
+            var brandPath = Path.Combine(AppContext.BaseDirectory, "branding_master.png");
+            bmp.UriSource = File.Exists(brandPath)
+                ? new Uri(Path.GetFullPath(brandPath), UriKind.Absolute)
+                : new Uri(PackAsm + "branding_master.png", UriKind.Absolute);
             bmp.CacheOption = BitmapCacheOption.OnLoad;
             bmp.EndInit();
             bmp.Freeze();

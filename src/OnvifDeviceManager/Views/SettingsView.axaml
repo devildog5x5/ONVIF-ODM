@@ -1,7 +1,9 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:OnvifDeviceManager.ViewModels"
+             xmlns:models="using:OnvifDeviceManager.Models"
              x:Class="OnvifDeviceManager.Views.SettingsView"
+             x:Name="SettingsRoot"
              x:DataType="vm:SettingsViewModel">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -55,6 +57,37 @@
                         <TextBox Grid.Row="1" Classes="modern" Text="{Binding DefaultUsername}" />
                         <TextBox Grid.Row="1" Grid.Column="2" Classes="modern" Text="{Binding DefaultPassword}" PasswordChar="*" />
                     </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Downloads & builds (GitHub) -->
+            <Border Classes="card" Margin="0,0,0,16">
+                <StackPanel Spacing="0">
+                    <TextBlock Text="Downloads &amp; builds" Classes="subheader" Margin="0,0,0,8" />
+                    <TextBlock Text="Quick links open in your browser. Refresh loads file names from the latest GitHub Release (same assets as README direct links when published)." Classes="caption" Margin="0,0,0,12" TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
+                        <Button Classes="secondary" Content="README — direct links" Padding="10,6" Command="{Binding OpenReadmeDownloadsCommand}" />
+                        <Button Classes="secondary" Content="Latest release" Padding="10,6" Command="{Binding OpenReleasesLatestCommand}" />
+                        <Button Classes="secondary" Content="CI builds (main)" Padding="10,6" Command="{Binding OpenCiWorkflowCommand}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
+                        <TextBlock Text="Release tag:" Classes="caption" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding LatestReleaseTag}" Foreground="White" VerticalAlignment="Center" />
+                        <Button Classes="primary" Content="Refresh file list" Padding="10,6" Command="{Binding RefreshLatestDownloadsCommand}" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding DownloadsSectionStatus}" Classes="caption" TextWrapping="Wrap" Margin="0,0,0,8" />
+                    <ItemsControl ItemsSource="{Binding LatestReleaseAssets}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:ReleaseDownloadItem">
+                                <Grid Margin="0,4" ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="{Binding Name}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                                    <Button Grid.Column="1" Classes="secondary" Content="Open" Padding="8,4"
+                                            Tag="{Binding Url}"
+                                            Click="OpenAssetButton_OnClick" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </StackPanel>
             </Border>
 

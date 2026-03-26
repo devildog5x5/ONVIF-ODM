@@ -78,7 +78,9 @@ public class BytesToImageConverter : IValueConverter
 {
     public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value is byte[] bytes && bytes.Length > 0)
+        if (value is not byte[] bytes || bytes.Length == 0)
+            return null;
+        try
         {
             var bitmap = new BitmapImage();
             bitmap.BeginInit();
@@ -88,7 +90,11 @@ public class BytesToImageConverter : IValueConverter
             bitmap.Freeze();
             return bitmap;
         }
-        return null;
+        catch
+        {
+            // Cameras often return HTML/XML or truncated bodies instead of JPEG; avoid crashing the UI thread.
+            return null;
+        }
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace OnvifDeviceManager.Services;
 
 public static class CrashLogger
@@ -14,6 +16,32 @@ public static class CrashLogger
     }
 
     public static string LogFilePath => LogFile;
+
+    /// <summary>Short multi-line summary for dialogs (empty <see cref="Exception.Message"/>, inner chain, first stack line).</summary>
+    public static string FormatExceptionForUser(Exception ex)
+    {
+        var sb = new StringBuilder();
+        var cur = ex;
+        for (var i = 0; cur != null && i < 4; i++)
+        {
+            var msg = string.IsNullOrWhiteSpace(cur.Message) ? $"({cur.GetType().Name})" : cur.Message;
+            if (i == 0)
+                sb.AppendLine(msg);
+            else
+                sb.AppendLine($"  → {cur.GetType().Name}: {msg}");
+            cur = cur.InnerException;
+        }
+
+        var stack = ex.StackTrace;
+        if (!string.IsNullOrWhiteSpace(stack))
+        {
+            var line = stack.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault();
+            if (!string.IsNullOrEmpty(line))
+                sb.AppendLine().Append("At: ").Append(line);
+        }
+
+        return sb.ToString().TrimEnd();
+    }
 
     public static void Log(string context, Exception ex)
     {

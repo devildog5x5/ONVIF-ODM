@@ -1,4 +1,8 @@
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Windows.Input;
+using OnvifDeviceManager.Models;
+using OnvifDeviceManager.Services;
 
 namespace OnvifDeviceManager.ViewModels;
 
@@ -12,11 +16,19 @@ public class SettingsViewModel : ViewModelBase
     private string _defaultUsername = "admin";
     private string _defaultPassword = string.Empty;
     private string _statusText = string.Empty;
+    private string _latestReleaseTag = "—";
+    private string _downloadsSectionStatus = "Click Refresh to load files from the latest GitHub Release.";
 
     public SettingsViewModel()
     {
         SaveCommand = new RelayCommand(Save);
         ResetCommand = new RelayCommand(Reset);
+        OpenUrlCommand = new RelayCommand(OpenUrl);
+        OpenReadmeDownloadsCommand = new RelayCommand(() => OpenUrlStatic(AppDownloadLinks.ReadmeLatestDirectDownloads));
+        OpenReleasesLatestCommand = new RelayCommand(() => OpenUrlStatic(AppDownloadLinks.ReleasesLatest));
+        OpenCiWorkflowCommand = new RelayCommand(() => OpenUrlStatic(AppDownloadLinks.CiWorkflowMain));
+        RefreshLatestDownloadsCommand = new AsyncRelayCommand(RefreshLatestDownloadsAsync);
+        LatestReleaseAssets = new ObservableCollection<ReleaseDownloadItem>();
     }
 
     public int DiscoveryTimeout
@@ -70,6 +82,29 @@ public class SettingsViewModel : ViewModelBase
     public ICommand SaveCommand { get; }
     public ICommand ResetCommand { get; }
 
+    /// <summary>Opens a URL in the default browser (CommandParameter = string url).</summary>
+    public ICommand OpenUrlCommand { get; }
+
+    public ICommand OpenReadmeDownloadsCommand { get; }
+    public ICommand OpenReleasesLatestCommand { get; }
+    public ICommand OpenCiWorkflowCommand { get; }
+
+    public ICommand RefreshLatestDownloadsCommand { get; }
+
+    public ObservableCollection<ReleaseDownloadItem> LatestReleaseAssets { get; }
+
+    public string LatestReleaseTag
+    {
+        get => _latestReleaseTag;
+        set => SetProperty(ref _latestReleaseTag, value);
+    }
+
+    public string DownloadsSectionStatus
+    {
+        get => _downloadsSectionStatus;
+        set => SetProperty(ref _downloadsSectionStatus, value);
+    }
+
     private void Save()
     {
         StatusText = "Settings saved";
@@ -85,5 +120,50 @@ public class SettingsViewModel : ViewModelBase
         DefaultUsername = "admin";
         DefaultPassword = string.Empty;
         StatusText = "Settings reset to defaults";
+    }
+
+    private static void OpenUrl(object? parameter)
+    {
+        if (parameter is not string url || string.IsNullOrWhiteSpace(url))
+            return;
+        OpenUrlStatic(url);
+    }
+
+    private static void OpenUrlStatic(string url)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
+        }
+        catch
+        {
+            /* ignore */
+        }
+    }
+
+    /// <summary>Opens a download URL in the default browser (used from Avalonia item template where compiled bindings are awkward).</summary>
+    public void OpenDownloadUrl(string url) => OpenUrlStatic(url);
+
+    private async Task RefreshLatestDownloadsAsync()
+    {
+        DownloadsSectionStatus = "Loading…";
+        LatestReleaseAssets.Clear();
+        LatestReleaseTag = "—";
+
+        var (tag, assets, err) = await GitHubLatestReleaseApi.TryGetLatestAsync().ConfigureAwait(true);
+        if (err != null)
+        {
+            LatestReleaseTag = "—";
+            DownloadsSectionStatus = $"Could not load release assets: {err}";
+            return;
+        }
+
+        LatestReleaseTag = string.IsNullOrWhiteSpace(tag) ? "—" : tag!;
+        foreach (var a in assets)
+            LatestReleaseAssets.Add(a);
+
+        DownloadsSectionStatus = assets.Count == 0
+            ? "Latest release has no downloadable assets yet."
+            : $"Loaded {assets.Count} file(s). Use Open to download in your browser.";
     }
 }

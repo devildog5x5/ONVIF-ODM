@@ -101,7 +101,7 @@ public class LiveViewViewModel : ViewModelBase
                 NotifyPtzDisplayProperties();
                 if (value != null)
                 {
-                    StreamUri = value.StreamUri;
+                    StreamUri = StreamUriPlayback.ApplyDeviceHost(value.StreamUri, Device);
                     _ = RefreshSnapshotAsync();
                     if (value.IsPtzEnabled && Device != null)
                     {
@@ -440,6 +440,31 @@ public class LiveViewViewModel : ViewModelBase
         }
     }
 
+    /// <summary>Re-fetches stream URI from the camera (RTSP then RTP-over-TCP SOAP) and updates the selected profile.</summary>
+    public async Task RefreshSelectedProfileStreamUriAsync()
+    {
+        if (Device == null || SelectedProfile == null) return;
+        var mediaUrl = Device.Capabilities.MediaServiceAddress;
+        if (string.IsNullOrWhiteSpace(mediaUrl)) return;
+
+        try
+        {
+            var u = await _mediaService.GetStreamUriAsync(mediaUrl, SelectedProfile.Token, Device.Username, Device.Password);
+            if (string.IsNullOrWhiteSpace(u))
+                u = await _mediaService.GetStreamUriRtpOverTcpAsync(mediaUrl, SelectedProfile.Token, Device.Username, Device.Password);
+            if (!string.IsNullOrWhiteSpace(u))
+            {
+                SelectedProfile.StreamUri = u;
+                StreamUri = StreamUriPlayback.ApplyDeviceHost(u, Device);
+                StatusText = "Stream address refreshed from camera.";
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Could not refresh stream URI: {ex.Message}";
+        }
+    }
+
     /// <summary>Opens the RTSP URL with the OS default handler (often VLC). WPF uses embedded LibVLC when available.</summary>
     private Task OpenRtspExternallyAsync()
     {
@@ -451,7 +476,7 @@ public class LiveViewViewModel : ViewModelBase
 
         try
         {
-            var uri = BuildAuthenticatedRtspUri(StreamUri, Device.Username, Device.Password);
+            var uri = BuildPlaybackRtspUri(StreamUri, Device, Device.Username, Device.Password);
             Process.Start(new ProcessStartInfo { FileName = uri, UseShellExecute = true });
             StatusText = "Opened stream URL with the default application";
         }
@@ -479,6 +504,13 @@ public class LiveViewViewModel : ViewModelBase
         }
 
         return uri;
+    }
+
+    /// <summary>Loopback host fix + credentials for LibVLC / external players.</summary>
+    public static string BuildPlaybackRtspUri(string streamUri, OnvifDevice? device, string? username, string? password)
+    {
+        var hostFixed = StreamUriPlayback.ApplyDeviceHost(streamUri, device);
+        return BuildAuthenticatedRtspUri(hostFixed, username, password);
     }
 
     private string GetPtzServiceUrl() =>

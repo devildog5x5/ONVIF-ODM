@@ -48,6 +48,8 @@ jobs:
             -p:PublishSingleFile=true `
             -p:IncludeNativeLibrariesForSelfExtract=true `
             --nologo -v minimal
+          ./build/repair-win-apphost.ps1 -PublishDir $wpfOut -ExeBaseName "OnvifDeviceManager.Wpf"
+          ./build/repair-win-apphost.ps1 -PublishDir $avOut -ExeBaseName "OnvifDeviceManager"
           $wpfZip = "artifacts/zips/OnvifDeviceManager-Wpf-win-x64-v${version}-${stamp}.zip"
           $avZip = "artifacts/zips/OnvifDeviceManager-Avalonia-win-x64-v${version}-${stamp}.zip"
           Compress-Archive -Path "$wpfOut/*" -DestinationPath $wpfZip -Force

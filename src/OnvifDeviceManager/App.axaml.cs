@@ -1,6 +1,8 @@
+using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using OnvifDeviceManager.Platform;
 using OnvifDeviceManager.Services;
 using OnvifDeviceManager.ViewModels;
@@ -16,13 +18,31 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        AppDomain.CurrentDomain.UnhandledException += (s, args) =>
+        // Avalonia UI-thread exceptions do not reliably surface through AppDomain.UnhandledException; hook explicitly.
+        Dispatcher.UIThread.UnhandledException += (_, e) =>
+        {
+            CrashLogger.Log("Avalonia.Dispatcher.UnhandledException", e.Exception);
+            ShowErrorMessage(
+                "ONVIF Device Manager — Error",
+                $"An error occurred:\n\n{CrashLogger.FormatExceptionForUser(e.Exception)}\n\nThe application will try to continue.\nLog: {CrashLogger.LogFilePath}",
+                warning: true);
+            e.Handled = true;
+        };
+
+        AppDomain.CurrentDomain.UnhandledException += (_, args) =>
         {
             var ex = args.ExceptionObject as Exception;
             CrashLogger.Log("AppDomain.UnhandledException", ex ?? new Exception("Unknown fatal error"));
+            if (ex != null)
+            {
+                ShowErrorMessage(
+                    "ONVIF Device Manager — Fatal error",
+                    $"A fatal error occurred:\n\n{CrashLogger.FormatExceptionForUser(ex)}\n\nLog: {CrashLogger.LogFilePath}",
+                    warning: false);
+            }
         };
 
-        TaskScheduler.UnobservedTaskException += (s, args) =>
+        TaskScheduler.UnobservedTaskException += (_, args) =>
         {
             CrashLogger.Log("TaskScheduler.UnobservedTaskException", args.Exception);
             args.SetObserved();
@@ -40,5 +60,26 @@ public partial class App : Application
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private static void ShowErrorMessage(string title, string text, bool warning)
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            const uint mb_ok = 0;
+            const uint mb_iconwarning = 0x30;
+            const uint mb_iconerror = 0x10;
+            UiMessageBox.MessageBoxW(0, text, title, mb_ok | (warning ? mb_iconwarning : mb_iconerror));
+            return;
+        }
+
+        Console.Error.WriteLine(title);
+        Console.Error.WriteLine(text);
+    }
+
+    private static class UiMessageBox
+    {
+        [DllImport("user32.dll", CharSet = CharSet.Unicode, EntryPoint = "MessageBoxW")]
+        internal static extern int MessageBoxW(nint hWnd, string text, string caption, uint type);
     }
 }

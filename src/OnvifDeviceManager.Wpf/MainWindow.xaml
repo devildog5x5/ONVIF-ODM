@@ -8,7 +8,6 @@
         Width="1400" Height="900"
         MinWidth="1100" MinHeight="700"
         ShowInTaskbar="True"
-        Icon="pack://application:,,,/OnvifDeviceManager.Wpf;component/warrior_icon.ico"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource PrimaryBg}"
         Foreground="White"

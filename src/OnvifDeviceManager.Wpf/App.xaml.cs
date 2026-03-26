@@ -14,8 +14,9 @@ public partial class App : Application
         {
             var ex = args.ExceptionObject as Exception;
             CrashLogger.Log("AppDomain.UnhandledException", ex ?? new Exception("Unknown fatal error"));
+            var detail = ex != null ? CrashLogger.FormatExceptionForUser(ex) : "Unknown fatal error";
             MessageBox.Show(
-                $"A fatal error occurred:\n\n{ex?.Message}\n\nA log has been saved to:\n{CrashLogger.LogFilePath}",
+                $"A fatal error occurred:\n\n{detail}\n\nA log has been saved to:\n{CrashLogger.LogFilePath}",
                 "ONVIF Device Manager - Fatal Error",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
@@ -25,7 +26,7 @@ public partial class App : Application
         {
             CrashLogger.Log("Dispatcher.UnhandledException", args.Exception);
             MessageBox.Show(
-                $"An error occurred:\n\n{args.Exception.Message}\n\nThe application will continue.\nLog: {CrashLogger.LogFilePath}",
+                $"An error occurred:\n\n{CrashLogger.FormatExceptionForUser(args.Exception)}\n\nThe application will continue.\nLog: {CrashLogger.LogFilePath}",
                 "ONVIF Device Manager - Error",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);

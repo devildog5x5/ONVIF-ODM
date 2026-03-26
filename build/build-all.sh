@@ -17,6 +17,23 @@ echo ""
 rm -rf "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
 
+# Windows apphost should be *.exe; if cross-published without an extension, fix before zipping.
+repair_win_apphost() {
+  local out="$1"
+  local base="$2"
+  [[ -d "$out" ]] || return 1
+  if [[ -f "$out/$base.exe" ]]; then
+    return 0
+  fi
+  if [[ -f "$out/$base" ]] && [[ ! -d "$out/$base" ]]; then
+    echo "WARNING: Windows apphost had no .exe extension; renaming $base -> $base.exe"
+    mv "$out/$base" "$out/$base.exe"
+    return 0
+  fi
+  echo "ERROR: Missing Windows apphost (expected $base.exe) in $out" >&2
+  return 1
+}
+
 publish() {
     local PROJECT=$1
     local RID=$2
@@ -40,9 +57,11 @@ publish() {
 
 echo "[1/5] Building WPF (Windows x64)..."
 publish "OnvifDeviceManager.Wpf/OnvifDeviceManager.Wpf.csproj" "win-x64" "OnvifDeviceManager-Wpf-win-x64"
+repair_win_apphost "$OUTPUT_DIR/OnvifDeviceManager-Wpf-win-x64" "OnvifDeviceManager.Wpf"
 
 echo "[2/5] Building Avalonia (Windows x64)..."
 publish "OnvifDeviceManager/OnvifDeviceManager.csproj" "win-x64" "OnvifDeviceManager-Avalonia-win-x64"
+repair_win_apphost "$OUTPUT_DIR/OnvifDeviceManager-Avalonia-win-x64" "OnvifDeviceManager"
 
 echo "[3/5] Building Avalonia (Linux x64)..."
 publish "OnvifDeviceManager/OnvifDeviceManager.csproj" "linux-x64" "OnvifDeviceManager-Avalonia-linux-x64"

@@ -94,6 +94,9 @@ public class ProfilesViewModel : ViewModelBase
                 {
                     profile.StreamUri = await _mediaService.GetStreamUriAsync(
                         Device.Capabilities.MediaServiceAddress, profile.Token, Device.Username, Device.Password);
+                    if (string.IsNullOrWhiteSpace(profile.StreamUri))
+                        profile.StreamUri = await _mediaService.GetStreamUriRtpOverTcpAsync(
+                            Device.Capabilities.MediaServiceAddress, profile.Token, Device.Username, Device.Password);
                 }
                 catch { }
 
