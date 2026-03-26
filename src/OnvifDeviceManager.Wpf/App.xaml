@@ -8,10 +8,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Themes/DarkTheme.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <!-- Default window icon: warrior brand for all windows -->
-            <Style TargetType="Window">
-                <Setter Property="Icon" Value="pack://application:,,,/OnvifDeviceManager.Wpf;component/warrior_icon.ico" />
-            </Style>
+            <!-- Icon set in code (MainWindow) — pack URIs here can throw at parse time when BaseDirectory/package resolution fails (e.g. some publish layouts). -->
             <conv:BoolToVisibilityConverter x:Key="BoolToVis" />
             <conv:BoolToTextConverter x:Key="BoolToSubscribe" />
             <conv:NullToVisibilityConverter x:Key="NullToVis" />

@@ -20,7 +20,9 @@
                 <TextBlock Text="Embedded RTSP live video (LibVLC) plus snapshots — gunshot / event simulator is under Stream &amp; profile." Classes="body" Margin="0,4,0,0" TextWrapping="Wrap" />
             </StackPanel>
 
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <!-- VideoView (LibVLC NativeControlHost) must not sit under ScrollViewer — breaks Win32 child window creation. -->
+            <Grid Grid.Row="1" RowDefinitions="Auto,Auto,*">
+            <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <StackPanel Spacing="0">
 
                     <Border Classes="card" Margin="0,0,0,12">
@@ -99,7 +101,10 @@
                         </Grid>
                     </Border>
 
-                    <Border Classes="card" MinHeight="280" Margin="0,0,0,12">
+                </StackPanel>
+            </ScrollViewer>
+
+                    <Border Grid.Row="1" Classes="card" MinHeight="280" Margin="0,0,0,12">
                         <Grid MinHeight="280" Background="Black">
                             <!-- Create VideoView lazily in code to avoid view-open crashes when native VLC runtime is unavailable -->
                             <Grid x:Name="VideoHost" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="0" />
@@ -120,6 +125,9 @@
                             </Border>
                         </Grid>
                     </Border>
+
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Spacing="0">
 
                     <Border Classes="card" Margin="0,0,0,12" IsVisible="{Binding ShowPtzPanel}">
                         <Grid RowDefinitions="Auto,Auto">
@@ -173,6 +181,7 @@
                     </Border>
                 </StackPanel>
             </ScrollViewer>
+            </Grid>
 
             <Border Grid.Row="2" Margin="0,12,0,0" Padding="12,8" Background="#1E2A4A" CornerRadius="8">
                 <TextBlock Text="{Binding StatusText}" Classes="caption" />

@@ -55,16 +55,16 @@ public class OnvifDiscoveryService
 
             while (DateTime.UtcNow < endTime && !cancellationToken.IsCancellationRequested)
             {
+                var remainingTime = endTime - DateTime.UtcNow;
+                if (remainingTime <= TimeSpan.Zero)
+                    break;
+
+                using var recvCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                recvCts.CancelAfter(remainingTime);
+
                 try
                 {
-                    var receiveTask = udpClient.ReceiveAsync();
-                    var remainingTime = endTime - DateTime.UtcNow;
-                    if (remainingTime <= TimeSpan.Zero) break;
-
-                    var completedTask = await Task.WhenAny(receiveTask, Task.Delay(remainingTime, cancellationToken));
-                    if (completedTask != receiveTask) break;
-
-                    var result = await receiveTask;
+                    var result = await udpClient.ReceiveAsync(recvCts.Token).ConfigureAwait(false);
                     var response = Encoding.UTF8.GetString(result.Buffer);
                     var device = ParseProbeResponse(response);
 
@@ -82,12 +82,23 @@ public class OnvifDiscoveryService
                         }
                     }
                 }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
                 catch (SocketException)
                 {
                     break;
                 }
                 catch (ObjectDisposedException)
                 {
+                    break;
+                }
+                catch (AggregateException ae)
+                {
+                    // Dispose/cancel can surface as AggregateException; treat like socket cancel.
+                    if (!ae.InnerExceptions.All(IsBenignUdpReceiveException))
+                        throw;
                     break;
                 }
             }
@@ -97,6 +108,11 @@ public class OnvifDiscoveryService
             // Interface may not support multicast
         }
     }
+
+    private static bool IsBenignUdpReceiveException(Exception ex) =>
+        ex is OperationCanceledException
+        or SocketException
+        or ObjectDisposedException;
 
     private static List<IPAddress> GetActiveNetworkInterfaces()
     {

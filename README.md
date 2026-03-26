@@ -33,6 +33,15 @@ Both editions share the same core business logic, ONVIF protocol services, and M
 
 Self-contained executables — **no .NET runtime installation required**. Just download, extract, and run.
 
+### Build links
+
+| Source | What | How |
+|--------|------|-----|
+| **CI (recommended until Release assets are uploaded)** | Windows x64 **WPF** and **Avalonia** ZIPs (version + timestamp in each filename) | Open **[Build workflow — runs on `main`](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml?query=branch%3Amain)** → click the **latest successful** run → scroll to **Artifacts** → download `ONVIF-ODM-Windows-x64-r{run}-{attempt}` (ZIP contains both portable archives). |
+| **GitHub Release** | Same naming pattern; **permanent direct URLs** after you attach files to the tag | **[Releases](https://github.com/devildog5x5/ONVIF-ODM/releases)** → `v1.5.0` → assets, or use the [direct `releases/download` links](#direct-download-links-20260326-123919) below **only if** those exact filenames exist on that release. |
+
+`releases/download/...` links **404** until the matching `.zip` files are uploaded to that release. The workflow above always produces downloadable builds after each push to **`main`** (or **Run workflow** on `workflow_dispatch`).
+
 **Windows (WPF and Avalonia x64):** Extract the **full** ZIP so the **`libvlc`** folder stays **next to** the `.exe`. The single-file `.exe` alone is not enough for embedded live video (LibVLC plugins are loose files).
 
 **Run the right binary name:** Windows x64 packages include **`OnvifDeviceManager.Wpf.exe`** (WPF) or **`OnvifDeviceManager.exe`** (Avalonia). Linux and macOS ZIPs ship an **extensionless** `OnvifDeviceManager` (that is not a Windows `.exe`). If you are on Windows and only see `OnvifDeviceManager` with no extension, you likely downloaded a **Linux/macOS** build, or an old folder — use a **`-win-x64`** ZIP, or re-download from [Releases](https://github.com/devildog5x5/ONVIF-ODM/releases). Release builds run `build/repair-win-apphost.ps1` after each Windows publish so an extensionless PE host is renamed to `.exe` automatically.
@@ -41,9 +50,9 @@ Self-contained executables — **no .NET runtime installation required**. Just d
 
 **Inno Setup** output is `OnvifDeviceManager-Wpf-Setup-{version}-{yyyyMMdd-hhmmss}.exe` (timestamp is applied when you compile the `.iss` file).
 
-**Latest tagged release line:** v1.5.0 — **current published ZIPs use build stamp `20260325-222521`** (see [direct links](#direct-download-links-20260325-222521) below and [Releases](https://github.com/devildog5x5/ONVIF-ODM/releases)).
+**Latest tagged release line:** v1.5.0 — **current published ZIPs use build stamp `20260326-123919`** (see [direct links](#direct-download-links-20260326-123919) below and [Releases](https://github.com/devildog5x5/ONVIF-ODM/releases)).
 
-**Source / README refreshed:** 2026-03-25 22:28 local (documentation and key paths below). The `main` branch is verified on every push by **[GitHub Actions — Build workflow](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml)** ([workflow file](.github/workflows/dotnet.yml)). On each **`main`** push (and **manual workflow runs**), that workflow also **publishes self-contained Windows x64 WPF + Avalonia ZIPs** and uploads them as **Artifacts**; each ZIP file name includes **`v{Version}-{yyyyMMdd-HHmmss}`** (runner local time). Open the workflow run → **Artifacts** to download.
+**Source / README refreshed:** 2026-03-26 12:43 local (documentation and key paths below). The `main` branch is verified on every push by **[GitHub Actions — Build workflow](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml)** ([workflow file](.github/workflows/dotnet.yml)). On each **`main`** push (and **manual workflow runs**), that workflow also **publishes self-contained Windows x64 WPF + Avalonia ZIPs** and uploads them as **Artifacts**; each ZIP file name includes **`v{Version}-{yyyyMMdd-HHmmss}`** (runner local time). Open the workflow run → **Artifacts** to download.
 
 | Platform | Edition | Asset name pattern (on [Releases](https://github.com/devildog5x5/ONVIF-ODM/releases)) |
 |----------|---------|----------------------------------------------------------------------------------------|
@@ -55,17 +64,19 @@ Self-contained executables — **no .NET runtime installation required**. Just d
 
 > [See all releases](https://github.com/devildog5x5/ONVIF-ODM/releases) · [All workflow runs](https://github.com/devildog5x5/ONVIF-ODM/actions)
 
-### Direct download links (20260325-222521)
+### Direct download links (20260326-123919)
+
+**GitHub Release assets only** — these URLs work after the files are attached to **[v1.5.0](https://github.com/devildog5x5/ONVIF-ODM/releases/tag/v1.5.0)**. If a link 404s, use **[Build links](#build-links)** (CI Artifacts) until the release is updated.
 
 Use these **exact** URLs when sharing builds (hotfix / support SOP). After you publish newer timestamped assets, update this block.
 
 | Platform | Asset | Direct link |
 |----------|-------|-------------|
-| Windows x64 | WPF | [OnvifDeviceManager-Wpf-win-x64-v1.5.0-20260325-222521.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.5.0/OnvifDeviceManager-Wpf-win-x64-v1.5.0-20260325-222521.zip) |
-| Windows x64 | Avalonia | [OnvifDeviceManager-Avalonia-win-x64-v1.5.0-20260325-222521.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.5.0/OnvifDeviceManager-Avalonia-win-x64-v1.5.0-20260325-222521.zip) |
-| Linux x64 | Avalonia | [OnvifDeviceManager-Avalonia-linux-x64-v1.5.0-20260325-222521.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.5.0/OnvifDeviceManager-Avalonia-linux-x64-v1.5.0-20260325-222521.zip) |
-| macOS Intel | Avalonia | [OnvifDeviceManager-Avalonia-osx-x64-v1.5.0-20260325-222521.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.5.0/OnvifDeviceManager-Avalonia-osx-x64-v1.5.0-20260325-222521.zip) |
-| macOS Apple Silicon | Avalonia | [OnvifDeviceManager-Avalonia-osx-arm64-v1.5.0-20260325-222521.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.5.0/OnvifDeviceManager-Avalonia-osx-arm64-v1.5.0-20260325-222521.zip) |
+| Windows x64 | WPF | [OnvifDeviceManager-Wpf-win-x64-v1.5.0-20260326-123919.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.5.0/OnvifDeviceManager-Wpf-win-x64-v1.5.0-20260326-123919.zip) |
+| Windows x64 | Avalonia | [OnvifDeviceManager-Avalonia-win-x64-v1.5.0-20260326-123919.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.5.0/OnvifDeviceManager-Avalonia-win-x64-v1.5.0-20260326-123919.zip) |
+| Linux x64 | Avalonia | [OnvifDeviceManager-Avalonia-linux-x64-v1.5.0-20260326-123919.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.5.0/OnvifDeviceManager-Avalonia-linux-x64-v1.5.0-20260326-123919.zip) |
+| macOS Intel | Avalonia | [OnvifDeviceManager-Avalonia-osx-x64-v1.5.0-20260326-123919.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.5.0/OnvifDeviceManager-Avalonia-osx-x64-v1.5.0-20260326-123919.zip) |
+| macOS Apple Silicon | Avalonia | [OnvifDeviceManager-Avalonia-osx-arm64-v1.5.0-20260326-123919.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v1.5.0/OnvifDeviceManager-Avalonia-osx-arm64-v1.5.0-20260326-123919.zip) |
 
 To produce matching binaries locally from source, follow [Release Build SOP](#release-build-sop) (use the **same** `-BuildStamp` for `build-all.ps1` and `create-release-package.ps1`, or delete `publish/` and run `create-release-package.ps1` alone so one stamp is used end-to-end).
 
@@ -140,7 +151,8 @@ Standard procedure for creating a release:
    Then publish a short link block (README/changelog/release notes) with **direct URLs** to each uploaded asset for all projects/platforms.
 
 5. **Update README (links, version, dates/timestamps):**  
-   - Update direct download links and version numbers in the Download section.  
+   - Keep **[Build links](#build-links)** accurate (CI Artifacts path + Release direct URLs).  
+   - Update **direct `releases/download/...` links** and version numbers only when those assets exist on the GitHub Release (otherwise users rely on CI Artifacts until upload).  
    - **Date and timestamp updates:** Run the PowerShell snippet under "Key files — last modified" to get current file dates, update the table with those values, and update the "last refreshed" line (date and time) in that section's intro text.
 
 6. **Hotfix / support SOP (required):**  
@@ -157,7 +169,7 @@ When you finish a **release-style** or **hotfix** build (local `build-all` / `cr
 | B | **Icon Standard Process** | `warrior_icon.ico` regenerated from `branding/master-icon.png` (automatic in `create-release-package.ps1`, or run `.\update-app-icon.ps1`). |
 | C | **Release Build SOP** §3 | Inno installer compiled **only if** you are shipping an `.exe` this round (otherwise N/A). |
 | D | **Release Build SOP** §4 | Assets uploaded to the correct **GitHub Release** tag; **superseded** ZIPs removed from that tag so “current” files are obvious. |
-| E | **Release Build SOP** §5 | README updated: **Latest … build stamp**, **Direct download links** table (`releases/download/...` URLs), **Source / README refreshed** date, **Key files — last modified** table (run the PowerShell snippet under that table). |
+| E | **Release Build SOP** §5 | README updated: **Build links** (CI + Release), **Latest … build stamp**, **Direct download links** table (`releases/download/...` URLs, when assets exist), **Source / README refreshed** date, **Key files — last modified** table (run the PowerShell snippet under that table). |
 | F | **Hotfix / support SOP** §6 | End user receives **verbatim direct URLs** for WPF + Avalonia Windows (and Linux/macOS if you built them)—not “get it from Releases.” |
 | G | **`dotnet build -c Release`** | Solution builds clean before packaging (no new errors). |
 
@@ -216,42 +228,40 @@ OnvifDeviceManager.sln
 
 ### Key files — last modified (on disk)
 
-Dates below are **file last-write time** in the maintainer workspace when this section was last refreshed (**2026-03-25 22:28 local**). After you pull or edit files, run the snippet under the table to see current dates on your machine. For **last git commit** per path, use: `git log -1 --format=%cs -- <path>`.
+Dates below are **file last-write time** in the maintainer workspace when this section was last refreshed (**2026-03-26 12:43 local**). After you pull or edit files, run the snippet under the table to see current dates on your machine. For **last git commit** per path, use: `git log -1 --format=%cs -- <path>`.
 
 | Path | Purpose | Last modified |
 |------|---------|---------------|
-| `README.md` | Download links, SOPs, key paths | 2026-03-25 22:30 |
+| `README.md` | Download links, SOPs, key paths | 2026-03-26 12:43 |
 | `Directory.Build.props` | Default `ApplicationIcon` for repo projects | 2026-03-23 11:08 |
 | `.github/workflows/dotnet.yml` | CI Release build (Windows runner) | 2026-03-25 21:43 |
 | `branding/master-icon.png` | Master icon image | 2026-03-24 16:16 |
-| `warrior_icon.ico` | App / window icon | 2026-03-25 22:28 |
-| `src/OnvifDeviceManager.Wpf/OnvifDeviceManager.Wpf.csproj` | WPF project (+ LibVLC loose files for single-file) | 2026-03-25 16:44 |
-| `src/OnvifDeviceManager.Wpf/MainWindow.xaml` | Main layout | 2026-03-24 22:43 |
+| `warrior_icon.ico` | App / window icon | 2026-03-26 12:42 |
+| `src/OnvifDeviceManager.Wpf/OnvifDeviceManager.Wpf.csproj` | WPF project (+ LibVLC loose files for single-file) | 2026-03-26 12:38 |
+| `src/OnvifDeviceManager.Wpf/MainWindow.xaml` | Main layout | 2026-03-26 12:38 |
 | `src/OnvifDeviceManager.Wpf/Views/DiscoveryView.xaml` | Discovery UI / session highlight | 2026-03-23 11:12 |
 | `src/OnvifDeviceManager.Wpf/Views/LiveViewView.xaml` | Live view UI | 2026-03-25 15:46 |
 | `src/OnvifDeviceManager.Wpf/Views/LiveViewView.xaml.cs` | Live view / LibVLC logic (WPF) | 2026-03-25 15:46 |
 | `src/OnvifDeviceManager.Wpf/App.xaml.cs` | Dispatcher / fatal error dialogs | 2026-03-25 21:41 |
 | `src/OnvifDeviceManager.Wpf/Converters/Converters.cs` | WPF value converters (incl. snapshot image) | 2026-03-25 16:37 |
 | `src/OnvifDeviceManager.Wpf/Converters/DeviceSessionHighlightConverter.cs` | Discovery row highlight (WPF) | 2026-03-23 11:10 |
-| `src/OnvifDeviceManager/OnvifDeviceManager.csproj` | Avalonia project + LibVLC loose files (Windows) | 2026-03-25 16:44 |
+| `src/OnvifDeviceManager/OnvifDeviceManager.csproj` | Avalonia project + LibVLC + Windows app manifest | 2026-03-26 12:06 |
+| `src/OnvifDeviceManager/app.manifest` | Windows `supportedOS` (LibVLC NativeControlHost) | 2026-03-26 12:06 |
 | `src/OnvifDeviceManager/MainWindow.axaml` | Avalonia main layout | 2026-03-24 22:44 |
 | `src/OnvifDeviceManager/Views/DiscoveryView.axaml` | Discovery UI (Avalonia) | 2026-03-23 11:12 |
-| `src/OnvifDeviceManager/Views/LiveViewView.axaml` | Live view (Avalonia) | 2026-03-24 22:39 |
+| `src/OnvifDeviceManager/Views/LiveViewView.axaml` | Live view (Avalonia) | 2026-03-26 12:38 |
 | `src/OnvifDeviceManager/Views/LiveViewView.axaml.cs` | Live view / LibVLC logic (Avalonia) | 2026-03-25 15:46 |
-| `src/OnvifDeviceManager/App.axaml.cs` | Avalonia dispatcher / error UI | 2026-03-25 21:41 |
-| `src/OnvifDeviceManager/Converters/Converters.cs` | Avalonia converters (incl. snapshot bitmap) | 2026-03-25 21:41 |
+| `src/OnvifDeviceManager/App.axaml.cs` | Avalonia dispatcher / crash logging | 2026-03-25 21:41 |
 | `src/OnvifDeviceManager/Converters/DeviceSessionHighlightConverter.cs` | Discovery row highlight (Avalonia) | 2026-03-23 11:10 |
 | `src/OnvifDeviceManager.Core/ViewModels/MainViewModel.cs` | Main ViewModel | 2026-03-23 11:08 |
 | `src/OnvifDeviceManager.Core/ViewModels/DiscoveryViewModel.cs` | Discovery / active session | 2026-03-25 14:33 |
 | `src/OnvifDeviceManager.Core/ViewModels/LiveViewViewModel.cs` | Live view ViewModel | 2026-03-25 14:32 |
 | `src/OnvifDeviceManager.Core/ViewModels/ProfilesViewModel.cs` | Media profiles ViewModel | 2026-03-25 14:33 |
+| `src/OnvifDeviceManager.Core/Services/OnvifDiscoveryService.cs` | WS-Discovery (UDP receive) | 2026-03-26 12:38 |
 | `src/OnvifDeviceManager.Core/Services/OnvifMediaService.cs` | Media / GetStreamUri (incl. RTP-TCP) | 2026-03-25 14:32 |
 | `src/OnvifDeviceManager.Core/Services/StreamUriPlayback.cs` | RTSP host normalization for playback | 2026-03-25 14:32 |
 | `src/OnvifDeviceManager.Core/Services/OnvifPtzService.cs` | PTZ / ONVIF service | 2026-03-22 22:39 |
-| `src/OnvifDeviceManager.Core/Services/CrashLogger.cs` | Crash log + exception summary for dialogs | 2026-03-25 21:41 |
-| `build/build-all.ps1` | Build script (+ Windows apphost repair hook) | 2026-03-25 21:43 |
-| `build/build-all.sh` | Build script (Unix; Windows apphost repair) | 2026-03-25 21:44 |
-| `build/repair-win-apphost.ps1` | Ensures `*.exe` name for Windows single-file publish | 2026-03-25 21:43 |
+| `build/build-all.ps1` | Build script | 2026-03-25 21:43 |
 | `create-release-package.ps1` | Release packager + SOP echo | 2026-03-25 21:43 |
 
 **Refresh dates locally (PowerShell, from repo root):**
@@ -268,19 +278,19 @@ $paths = @(
   'src/OnvifDeviceManager.Wpf/App.xaml.cs',
   'src/OnvifDeviceManager.Wpf/Converters/Converters.cs',
   'src/OnvifDeviceManager.Wpf/Converters/DeviceSessionHighlightConverter.cs',
-  'src/OnvifDeviceManager/OnvifDeviceManager.csproj','src/OnvifDeviceManager/MainWindow.axaml',
+  'src/OnvifDeviceManager/OnvifDeviceManager.csproj','src/OnvifDeviceManager/app.manifest',
+  'src/OnvifDeviceManager/MainWindow.axaml',
   'src/OnvifDeviceManager/Views/DiscoveryView.axaml','src/OnvifDeviceManager/Views/LiveViewView.axaml',
   'src/OnvifDeviceManager/Views/LiveViewView.axaml.cs',
   'src/OnvifDeviceManager/App.axaml.cs',
-  'src/OnvifDeviceManager/Converters/Converters.cs',
   'src/OnvifDeviceManager/Converters/DeviceSessionHighlightConverter.cs',
   'src/OnvifDeviceManager.Core/ViewModels/MainViewModel.cs',
   'src/OnvifDeviceManager.Core/ViewModels/DiscoveryViewModel.cs','src/OnvifDeviceManager.Core/ViewModels/LiveViewViewModel.cs',
   'src/OnvifDeviceManager.Core/ViewModels/ProfilesViewModel.cs',
+  'src/OnvifDeviceManager.Core/Services/OnvifDiscoveryService.cs',
   'src/OnvifDeviceManager.Core/Services/OnvifMediaService.cs','src/OnvifDeviceManager.Core/Services/StreamUriPlayback.cs',
   'src/OnvifDeviceManager.Core/Services/OnvifPtzService.cs',
-  'src/OnvifDeviceManager.Core/Services/CrashLogger.cs',
-  'build/build-all.ps1','build/build-all.sh','build/repair-win-apphost.ps1','create-release-package.ps1'
+  'build/build-all.ps1','create-release-package.ps1'
 )
 $paths | ForEach-Object { if (Test-Path $_) { '{0}  {1}' -f ((Get-Item $_).LastWriteTime.ToString('yyyy-MM-dd HH:mm:ss')), $_ } }
 ```
