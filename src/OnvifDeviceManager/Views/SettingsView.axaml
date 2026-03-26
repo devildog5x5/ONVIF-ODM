@@ -3,6 +3,7 @@
              xmlns:vm="using:OnvifDeviceManager.ViewModels"
              xmlns:models="using:OnvifDeviceManager.Models"
              x:Class="OnvifDeviceManager.Views.SettingsView"
+             x:Name="SettingsRoot"
              x:DataType="vm:SettingsViewModel">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -81,8 +82,8 @@
                                 <Grid Margin="0,4" ColumnDefinitions="*,Auto">
                                     <TextBlock Text="{Binding Name}" TextWrapping="Wrap" VerticalAlignment="Center" />
                                     <Button Grid.Column="1" Classes="secondary" Content="Open" Padding="8,4"
-                                            Command="{Binding DataContext.OpenUrlCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                            CommandParameter="{Binding Url}" />
+                                            Tag="{Binding Url}"
+                                            Click="OpenAssetButton_OnClick" />
                                 </Grid>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

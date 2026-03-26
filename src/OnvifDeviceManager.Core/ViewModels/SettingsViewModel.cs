@@ -141,6 +141,9 @@ public class SettingsViewModel : ViewModelBase
         }
     }
 
+    /// <summary>Opens a download URL in the default browser (used from Avalonia item template where compiled bindings are awkward).</summary>
+    public void OpenDownloadUrl(string url) => OpenUrlStatic(url);
+
     private async Task RefreshLatestDownloadsAsync()
     {
         DownloadsSectionStatus = "Loading…";
