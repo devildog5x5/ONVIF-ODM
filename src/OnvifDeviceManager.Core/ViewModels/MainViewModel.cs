@@ -221,6 +221,8 @@ public class MainViewModel : ViewModelBase
 internal class DefaultUiDispatcher : IUiDispatcher
 {
     public Task InvokeAsync(Action action) { action(); return Task.CompletedTask; }
+
+    public Task InvokeAsync(Func<Task> func) => func();
 }
 
 internal class DefaultClipboardService : IClipboardService

@@ -12,8 +12,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
-    <!-- Windows: LibVLC / NativeControlHost needs supportedOS in manifest -->
-    <ApplicationManifest Condition="$([MSBuild]::IsOSPlatform('windows'))">app.manifest</ApplicationManifest>
+    <!-- Windows: LibVLC / NativeControlHost needs supportedOS in manifest. Use win-* RID (any host) or Windows dev build with no RID — avoid applying on Linux/macOS non-win builds. -->
+    <ApplicationManifest Condition="( '$(RuntimeIdentifier)' == '' and $([MSBuild]::IsOSPlatform('windows')) ) or ( $([System.String]::Copy('$(RuntimeIdentifier)').StartsWith('win')) )">app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>

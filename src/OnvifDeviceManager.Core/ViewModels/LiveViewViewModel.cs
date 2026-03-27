@@ -323,7 +323,7 @@ public class LiveViewViewModel : ViewModelBase
             {
                 try
                 {
-                    await _dispatcher.InvokeAsync(async () => await RefreshPtzPositionAsync(true));
+                    await _dispatcher.InvokeAsync(() => RefreshPtzPositionAsync(true));
                     await Task.Delay(1600, token);
                 }
                 catch (OperationCanceledException)
@@ -417,7 +417,7 @@ public class LiveViewViewModel : ViewModelBase
         {
             while (!_refreshCts.Token.IsCancellationRequested)
             {
-                await _dispatcher.InvokeAsync(async () => await RefreshSnapshotAsync());
+                await _dispatcher.InvokeAsync(() => RefreshSnapshotAsync());
                 try { await Task.Delay(RefreshInterval, _refreshCts.Token); }
                 catch (OperationCanceledException) { break; }
             }

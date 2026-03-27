@@ -9,6 +9,11 @@ public class WpfUiDispatcher : IUiDispatcher
     {
         await Application.Current.Dispatcher.InvokeAsync(action);
     }
+
+    public Task InvokeAsync(Func<Task> func)
+    {
+        return Application.Current.Dispatcher.InvokeAsync(func).Task;
+    }
 }
 
 public class WpfClipboardService : IClipboardService

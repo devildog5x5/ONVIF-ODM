@@ -1,0 +1,49 @@
+---
+description: Release SOP — commits, builds, README download links, chat handoff; Live View / snapshot expectations
+alwaysApply: true
+---
+
+# Release, handoff, and Live View SOP (agent must follow)
+
+When the user asks for a **shipping build**, **release**, **hotfix binaries**, or **SOP completion**, or when finishing work that affects downloadable binaries or download documentation, do **all** of the following that apply—**without waiting to be reminded**.
+
+## Git (required when code or README download docs change)
+
+1. **`git status`** — ensure no unintended files.
+2. **Commit** with a clear message (what changed / why).
+3. **`git push`** to the branch the user is using (usually `main` or their stated release branch). If push fails, diagnose (remote, auth) and retry; do not end the task with “you should push.”
+
+## Builds (when user wants new executables or a release-style drop)
+
+1. Run **`dotnet build -c Release`** on the solution before packaging.
+2. On **Windows**, run **`.\create-release-package.ps1`** (or the user’s stated stamp flow: shared `-BuildStamp` with **`.\build\build-all.ps1`** per README **Release Build SOP**). Use **`Directory.Build.props`** / script **`Version`** unless the user specifies otherwise.
+3. **Icon:** If packaging, icon refresh is covered by `create-release-package.ps1`; otherwise follow **`icon-branding-standard.mdc`** (`warrior_icon.ico`).
+
+## README and links (required when producing a new timestamped package for GitHub Release)
+
+1. Update **`README.md`** **[Latest direct download links](#latest-direct-download-links)** with **verbatim full HTTPS** `https://github.com/devildog5x5/ONVIF-ODM/releases/download/v{version}/…` for **each** platform ZIP that was (or will be) uploaded for that tag and stamp.
+2. Update the **build stamp** line, **Latest tagged release line** (if applicable), and **Source / README refreshed** date when those change.
+3. If assets are **not** on GitHub yet, state that clearly in README (CI Artifacts / pending upload) and do **not** invent working `releases/download/…` URLs.
+
+## Chat handoff (required in the same turn as the work)
+
+1. Paste **verbatim** the **same** download URLs (or the **CI Artifacts** link + artifact name pattern) into the reply so the user does not hunt the README.
+2. End with a short **SOP completion** block: checklist **A–G** from README **“After every new binary build”** — each line **✅** or **N/A** with one phrase.
+
+## Limits (be explicit in chat)
+
+- **GitHub Release upload** and **tag creation** may require **`gh`**, browser, or maintainer credentials. If the agent cannot upload, it still updates README **templates** / pending text, runs local packaging, pushes commits, and gives **exact** filenames and **intended** `releases/download/…` URLs for the user to paste after upload.
+- **CI** produces artifacts under **Actions**; paste the workflow URL and artifact naming pattern when that is the authoritative download.
+
+## Live View and snapshot (smoke expectations)
+
+After changes under **Live View**, **LibVLC**, **NativeControlHost**, **manifest**, or **snapshot/HTTP** paths, treat these as **minimum verification** (user or agent on Windows):
+
+| Check | WPF | Avalonia |
+|-------|-----|----------|
+| Open device → **Live View** | ✅ | ✅ |
+| **Snapshot** with stream **stopped** (still image updates) | ✅ | ✅ |
+| **Start live** → video plays; **Stop** → clean stop | ✅ | ✅ |
+| Extracted folder keeps **`libvlc`** next to **`.exe`** (Windows portable) | ✅ | ✅ |
+
+If **embedded video** fails but snapshot works, note **Open externally** / VLC path and any **status text** in the UI.

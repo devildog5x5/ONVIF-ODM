@@ -1,3 +1,4 @@
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -44,6 +45,12 @@ public partial class App : Application
 
         TaskScheduler.UnobservedTaskException += (_, args) =>
         {
+            if (IsBenignUnobservedTaskException(args.Exception))
+            {
+                args.SetObserved();
+                return;
+            }
+
             CrashLogger.Log("TaskScheduler.UnobservedTaskException", args.Exception);
             args.SetObserved();
         };
@@ -60,6 +67,29 @@ public partial class App : Application
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private static bool IsBenignUnobservedTaskException(AggregateException agg)
+    {
+        foreach (var ex in agg.Flatten().InnerExceptions)
+        {
+            if (ex is OperationCanceledException)
+                return true;
+            if (ex is ObjectDisposedException)
+                return true;
+            if (ex is IOException io && io.InnerException is SocketException)
+                return true;
+            if (ex is SocketException)
+                return true;
+            if (ex.Message.Contains("I/O operation has been aborted", StringComparison.OrdinalIgnoreCase))
+                return true;
+            // Already logged on UI thread; duplicate from faulted dispatcher operations.
+            if (ex is InvalidOperationException iox
+                && iox.Message.Contains("native control host", StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
     }
 
     private static void ShowErrorMessage(string title, string text, bool warning)

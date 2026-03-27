@@ -140,11 +140,12 @@ public partial class LiveViewView : UserControl
             _mediaPlayer = new MediaPlayer(_libVlc);
             _mediaPlayer.EncounteredError += MediaPlayer_EncounteredError;
 
-            // Defer VideoView attach until after layout — reduces NativeControlHost "child window" failures on Windows.
-            await Dispatcher.UIThread.InvokeAsync(() =>
+            // Defer VideoView attach until after layout — Func<Task> so dispatcher awaits work (avoids fire-and-forget + unobserved faults).
+            await Dispatcher.UIThread.InvokeAsync(async () =>
             {
                 try
                 {
+                    await Task.Yield();
                     EnsureVideoViewCreated();
                     if (_videoView != null)
                         _videoView.MediaPlayer = _mediaPlayer;

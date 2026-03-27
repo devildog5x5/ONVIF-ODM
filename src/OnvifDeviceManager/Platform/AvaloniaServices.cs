@@ -11,6 +11,8 @@ public class AvaloniaUiDispatcher : IUiDispatcher
     {
         await Dispatcher.UIThread.InvokeAsync(action);
     }
+
+    public Task InvokeAsync(Func<Task> func) => Dispatcher.UIThread.InvokeAsync(func);
 }
 
 public class AvaloniaClipboardService : IClipboardService

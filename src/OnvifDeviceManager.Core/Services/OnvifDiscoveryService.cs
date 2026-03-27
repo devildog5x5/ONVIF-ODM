@@ -64,7 +64,19 @@ public class OnvifDiscoveryService
 
                 try
                 {
-                    var result = await udpClient.ReceiveAsync(recvCts.Token).ConfigureAwait(false);
+                    // ValueTask → Task so cancellation/socket-close cannot leave a faulted task unobserved in the BCL.
+                    var receiveTask = udpClient.ReceiveAsync(recvCts.Token).AsTask();
+                    UdpReceiveResult result;
+                    try
+                    {
+                        result = await receiveTask.ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        ObserveFaultedTask(receiveTask);
+                        throw;
+                    }
+
                     var response = Encoding.UTF8.GetString(result.Buffer);
                     var device = ParseProbeResponse(response);
 
@@ -110,9 +122,15 @@ public class OnvifDiscoveryService
     }
 
     private static bool IsBenignUdpReceiveException(Exception ex) =>
-        ex is OperationCanceledException
-        or SocketException
-        or ObjectDisposedException;
+        ex is OperationCanceledException or ObjectDisposedException or SocketException
+        || (ex is IOException io && io.InnerException is SocketException);
+
+    private static void ObserveFaultedTask(Task task)
+    {
+        if (!task.IsCompleted || task.IsCompletedSuccessfully)
+            return;
+        _ = task.Exception;
+    }
 
     private static List<IPAddress> GetActiveNetworkInterfaces()
     {
