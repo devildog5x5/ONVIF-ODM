@@ -48,7 +48,4 @@ After changes under **Live View**, **LibVLC**, **NativeControlHost**, **manifest
 
 If **embedded video** fails but snapshot works, note **Open externally** / VLC path and any **status text** in the UI.
 
-## Review list / PR noise (user preference)
-
-- Do **not** ask the user to walk a **long review list** of files or routine diffs. Assume the work is acceptable unless there is a **high-impact** reason to stop.
-- **Only** call out something for explicit human review when it is **very important** (e.g. security or secrets, data loss risk, breaking public API, wrong **version** or **download URLs** that would mislead users, legal/licensing). For that single item, state **what** and **why** in one short paragraph.
+**Handoff:** Summarize outcomes briefly; do not enumerate routine files for the user to inspect. If something is **high-impact** (security/secrets, data loss, breaking API, wrong version or public download URLs, licensing), call out that item only with a clear **what** and **why**.
