@@ -48,9 +48,9 @@ Self-contained executables — **no .NET runtime installation required**. Just d
 
 **Latest tagged release line:** **v2.0.0** — **frozen stamp `20260328-113237`** on [GitHub Release v2.0.0](https://github.com/devildog5x5/ONVIF-ODM/releases/tag/v2.0.0) (**Avalonia ZIPs only**; legacy WPF binaries were removed from Releases). That stamp is **older than current `main`** for anything merged after that upload (including manifest/snapshot fixes and Core changes).
 
-**Newest Windows x64 from source:** **[Pinned `main` CI build](#pinned-main-ci-build-windows-x64-portable)** — commit **`33ffb6d`**, inner ZIP **`…-20260328-193746.zip`** (**UTC** time in the filename; see paragraph above).
+**Newest Windows x64 from source:** **[Pinned `main` CI build](#pinned-main-ci-build-windows-x64-portable)** — commit **`8bdd917`**, inner ZIP **`…-20260328-194617.zip`** (**UTC** time in the filename; see paragraph above).
 
-**Source / README refreshed:** 2026-03-28 (pinned CI run **34**; README-only pushes use **`[skip ci]`** and do **not** produce a new artifact — use **Run workflow** on [Build](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml) when you need a fresh ZIP without a code push). Open the workflow run → **Artifacts** to download.
+**Source / README refreshed:** 2026-03-28 (pinned CI run **35**; README-only pushes use **`[skip ci]`** and do **not** produce a new artifact — use **Run workflow** on [Build](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml) when you need a fresh ZIP without a code push). Open the workflow run → **Artifacts** to download.
 
 | Platform | Asset name pattern (on [Releases](https://github.com/devildog5x5/ONVIF-ODM/releases)) |
 |----------|----------------------------------------------------------------------------------------|
@@ -67,11 +67,11 @@ Use this for **latest `main` Windows x64** (including fixes not yet on any GitHu
 
 | | |
 |--|--|
-| **Actions run** | [Build workflow run 23692774508](https://github.com/devildog5x5/ONVIF-ODM/actions/runs/23692774508) (success, **push** to `main`, **commit `33ffb6d`**) |
-| **Artifact name** | `ONVIF-ODM-Windows-x64-r34-1` |
-| **Portable ZIP inside** | `OnvifDeviceManager-Avalonia-win-x64-v2.0.0-20260328-193746.zip` (**`193746` = HHmmss UTC**) |
+| **Actions run** | [Build workflow run 23692918042](https://github.com/devildog5x5/ONVIF-ODM/actions/runs/23692918042) (success, **`workflow_dispatch`**, **commit `8bdd917`**) |
+| **Artifact name** | `ONVIF-ODM-Windows-x64-r35-1` |
+| **Portable ZIP inside** | `OnvifDeviceManager-Avalonia-win-x64-v2.0.0-20260328-194617.zip` (**`194617` = HHmmss UTC**) |
 
-**CLI (authenticated):** `gh run download 23692774508 -R devildog5x5/ONVIF-ODM`
+**CLI (authenticated):** `gh run download 23692918042 -R devildog5x5/ONVIF-ODM`
 
 **Maintainer SOP:** After each refresh, run **`dotnet build -c Release`**, **`.\build\build-all.ps1`** (or trigger **`gh workflow run dotnet.yml --ref main`**), wait for green, then replace the **run URL**, **artifact name**, **inner ZIP names**, **commit SHA** (the commit **CI checked out** for that run), and **Source / README refreshed** line above. Commit and push the README on `main`. For **README-only** pin fixes after a green run, put **`[skip ci]`** in the commit subject so the workflow (see `.github/workflows/dotnet.yml`) does not enqueue another Windows pack job.
 
@@ -252,7 +252,7 @@ Dates below are **file last-write time** in the maintainer workspace when this s
 
 | Path | Purpose | Last modified |
 |------|---------|---------------|
-| `README.md` | Download links, SOPs, key paths | 2026-03-28 (CI pin run 34, Live View/snapshot fix) |
+| `README.md` | Download links, SOPs, key paths | 2026-03-28 (CI pin run 35) |
 | `Directory.Build.props` | Default `Version` + `ApplicationIcon` for repo projects | 2026-03-25 |
 | `.github/workflows/dotnet.yml` | CI Release build (Windows runner) | 2026-03-25 21:43 |
 | `branding/master-icon.png` | Master icon image | 2026-03-24 16:16 |
