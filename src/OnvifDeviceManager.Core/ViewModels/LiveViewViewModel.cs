@@ -2,6 +2,8 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading;
 using System.Windows.Input;
 using OnvifDeviceManager.Models;
@@ -405,21 +407,12 @@ public class LiveViewViewModel : ViewModelBase
         var status = string.Empty;
         try
         {
-            using var handler = new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback = (_, _, _, _) => true,
-                UseDefaultCredentials = false
-            };
-            if (!string.IsNullOrEmpty(Device.Username))
-                handler.Credentials = new NetworkCredential(Device.Username, Device.Password ?? string.Empty);
+            data = await FetchSnapshotBytesAsync(snapshotUri, Device.Username, Device.Password).ConfigureAwait(false);
 
-            using var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(15) };
-            data = await client.GetByteArrayAsync(snapshotUri).ConfigureAwait(false);
-
-            if (data.Length == 0)
-                status = "Snapshot error: empty response";
+            if (data == null || data.Length == 0)
+                status = "Snapshot error: empty or failed response (check URI, credentials, or camera HTTP auth)";
             else if (!LooksLikeRasterImage(data))
-                status = "Snapshot error: response was not a JPEG/PNG (often HTTP 401 HTML — check credentials)";
+                status = "Snapshot error: response was not a recognized image (often HTTP 401/403 HTML — check credentials)";
             else
                 status = $"Snapshot captured at {DateTime.Now:HH:mm:ss}";
         }
@@ -445,9 +438,56 @@ public class LiveViewViewModel : ViewModelBase
 
     private static bool LooksLikeRasterImage(byte[] bytes)
     {
-        if (bytes.Length < 4) return false;
-        if (bytes[0] == 0xFF && bytes[1] == 0xD8) return true;
-        return bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47;
+        if (bytes.Length < 12) return false;
+        if (bytes[0] == 0xFF && bytes[1] == 0xD8) return true; // JPEG
+        if (bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47) return true; // PNG
+        if (bytes[0] == (byte)'G' && bytes[1] == (byte)'I' && bytes[2] == (byte)'F') return true; // GIF
+        if (bytes[0] == (byte)'B' && bytes[1] == (byte)'M') return true; // BMP
+        // WebP: RIFF....WEBP
+        if (bytes[0] == (byte)'R' && bytes[1] == (byte)'I' && bytes[2] == (byte)'F' && bytes[3] == (byte)'F'
+            && bytes[8] == (byte)'W' && bytes[9] == (byte)'E' && bytes[10] == (byte)'B' && bytes[11] == (byte)'P')
+            return true;
+        return false;
+    }
+
+    private static async Task<byte[]?> FetchSnapshotBytesAsync(string snapshotUri, string? username, string? password)
+    {
+        using var handler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = (_, _, _, _) => true,
+            UseDefaultCredentials = false
+        };
+        if (!string.IsNullOrEmpty(username) && Uri.TryCreate(snapshotUri, UriKind.Absolute, out var credRoot))
+        {
+            var cache = new CredentialCache();
+            var cred = new NetworkCredential(username, password ?? string.Empty);
+            cache.Add(credRoot, "Digest", cred);
+            cache.Add(credRoot, "Basic", cred);
+            handler.Credentials = cache;
+        }
+
+        using var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(20) };
+        using var response = await client.GetAsync(snapshotUri, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false);
+        if (response.IsSuccessStatusCode)
+            return await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+
+        if (response.StatusCode == HttpStatusCode.Unauthorized && !string.IsNullOrEmpty(username))
+        {
+            using var plainHandler = new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = (_, _, _, _) => true,
+                UseDefaultCredentials = false
+            };
+            using var client2 = new HttpClient(plainHandler) { Timeout = TimeSpan.FromSeconds(20) };
+            using var req = new HttpRequestMessage(HttpMethod.Get, snapshotUri);
+            var basic = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:{password ?? string.Empty}"));
+            req.Headers.Authorization = new AuthenticationHeaderValue("Basic", basic);
+            using var response2 = await client2.SendAsync(req, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false);
+            if (response2.IsSuccessStatusCode)
+                return await response2.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+        }
+
+        return null;
     }
 
     private void StartAutoRefresh()

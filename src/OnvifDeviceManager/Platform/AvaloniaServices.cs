@@ -7,12 +7,28 @@ namespace OnvifDeviceManager.Platform;
 
 public class AvaloniaUiDispatcher : IUiDispatcher
 {
+    /// <summary>
+    /// Must re-enter safely when already on the UI thread; otherwise <see cref="LiveViewViewModel.RefreshSnapshotAsync"/>
+    /// (and similar) can deadlock when started from <see cref="AsyncRelayCommand"/> on the UI thread.
+    /// </summary>
     public async Task InvokeAsync(Action action)
     {
-        await Dispatcher.UIThread.InvokeAsync(action);
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            action();
+            return;
+        }
+
+        await Dispatcher.UIThread.InvokeAsync(action, DispatcherPriority.Normal);
     }
 
-    public Task InvokeAsync(Func<Task> func) => Dispatcher.UIThread.InvokeAsync(func);
+    public async Task InvokeAsync(Func<Task> func)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+            await func().ConfigureAwait(true);
+        else
+            await Dispatcher.UIThread.InvokeAsync(func, DispatcherPriority.Normal);
+    }
 }
 
 public class AvaloniaClipboardService : IClipboardService

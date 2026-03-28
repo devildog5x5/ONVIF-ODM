@@ -166,8 +166,8 @@ public partial class LiveViewView : UserControl
             _mediaPlayer = new MediaPlayer(_libVlc);
             _mediaPlayer.EncounteredError += MediaPlayer_EncounteredError;
 
-            // Defer VideoView attach until after layout — Func<Task> so dispatcher awaits work (avoids fire-and-forget + unobserved faults).
-            await Dispatcher.UIThread.InvokeAsync(async () =>
+            // Attach VideoView on UI thread without deadlocking when InitializeLibVlcAsync was called from the UI thread.
+            async Task AttachVideoViewAsync()
             {
                 try
                 {
@@ -180,7 +180,12 @@ public partial class LiveViewView : UserControl
                 {
                     System.Diagnostics.Debug.WriteLine($"VideoView attach failed: {ex.Message}");
                 }
-            }, DispatcherPriority.Loaded);
+            }
+
+            if (Dispatcher.UIThread.CheckAccess())
+                await AttachVideoViewAsync().ConfigureAwait(true);
+            else
+                await Dispatcher.UIThread.InvokeAsync(AttachVideoViewAsync, DispatcherPriority.Loaded);
 
             _libVlcInitialized = true;
         }
