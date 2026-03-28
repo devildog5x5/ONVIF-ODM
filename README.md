@@ -80,7 +80,7 @@ Use this when **`releases/download/...`** is not yet published for **v2.0.0**. G
 
 **CLI (authenticated):** `gh run download 23690318540 -R devildog5x5/ONVIF-ODM`
 
-**Maintainer SOP:** After each refresh, run **`dotnet build -c Release`**, **`.\build\build-all.ps1`** (or trigger **`gh workflow run dotnet.yml --ref main`**), wait for green, then replace the **run URL**, **artifact name**, **inner ZIP names**, **commit SHA**, and **Source / README refreshed** line above. Commit and push the README on `main`.
+**Maintainer SOP:** After each refresh, run **`dotnet build -c Release`**, **`.\build\build-all.ps1`** (or trigger **`gh workflow run dotnet.yml --ref main`**), wait for green, then replace the **run URL**, **artifact name**, **inner ZIP names**, **commit SHA** (the commit **CI checked out** for that run), and **Source / README refreshed** line above. Commit and push the README on `main`. For **README-only** pin fixes after a green run, put **`[skip ci]`** in the commit subject so the workflow (see `.github/workflows/dotnet.yml`) does not enqueue another Windows pack job.
 
 ### Latest direct download links
 
