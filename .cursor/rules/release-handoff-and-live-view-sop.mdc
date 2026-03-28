@@ -29,8 +29,21 @@ When the user asks for a **shipping build**, **release**, **hotfix binaries**, o
 
 ## Chat handoff (required in the same turn as the work)
 
-1. Paste **verbatim** the **same** download URLs (or the **CI Artifacts** link + artifact name pattern) into the reply so the user does not hunt the README.
-2. When **`main`** CI produced a new Windows portable ZIP after your push, **in the same turn** also **update `README.md` [Pinned `main` CI build](#pinned-main-ci-build-windows-x64-portable)** (run URL, artifact `ONVIF-ODM-Windows-x64-r{number}-{attempt}`, inner `OnvifDeviceManager-Avalonia-win-x64-v…zip` from the job log, commit SHA), refresh the **Source / README refreshed** line, commit with **`[skip ci]`** in the subject, and **push**. Do not wait for the user to ask for build links. If your only commits were **`[skip ci]`** README/doc fixes, **no new artifact exists** until someone runs **`gh workflow run Build -R devildog5x5/ONVIF-ODM --ref main`** (or **Actions → Build → Run workflow**) and you re-pin after green.
+### Mandatory — **“New build links”** block (after **every** rebuild)
+
+The maintainer requires a **fresh, copy-paste-ready link section in the chat reply** whenever a **new** Windows portable build exists. **Do not wait for the user to ask.** Use a clear heading (e.g. **### New build links**) and include **all** of the following that apply:
+
+| Required line | Content |
+|---------------|---------|
+| **Actions run** | Verbatim `https://github.com/devildog5x5/ONVIF-ODM/actions/runs/<id>` (or **Local build** + full path to folder / `.exe` / `.zip` if no CI) |
+| **Artifact name** | `ONVIF-ODM-Windows-x64-r{run_number}-{run_attempt}` from CI (from the run’s uploaded artifact) |
+| **Inner ZIP** | Exact filename from the job log (`Created: artifacts/zips/OnvifDeviceManager-Avalonia-win-x64-v…zip`) |
+| **CLI download** | `gh run download <id> -R devildog5x5/ONVIF-ODM` |
+
+**Rebuild** means: CI **success** after **push** or **`workflow_dispatch`**, or **`.\create-release-package.ps1` / `.\build\build-all.ps1`** producing a new stamped ZIP. If CI is **in progress**, still paste the **run URL** and say **in progress**; when green, provide the **full block** in that turn or the immediate follow-up. **Never** end a rebuild-only turn with “see README” as the only download hint.
+
+1. Paste the **same** URLs into **`README.md` [Pinned `main` CI build](#pinned-main-ci-build-windows-x64-portable)** when CI is the source (per README SOP).
+2. When **`main`** CI produced a new Windows portable ZIP after your push, **in the same turn** also **update the README pin** (run URL, artifact name, inner ZIP from job log, commit SHA), refresh **Source / README refreshed**, commit with **`[skip ci]`** for README-only pin commits, and **push**. If your only commits were **`[skip ci]`** README/doc fixes, **no new artifact exists** until **`gh workflow run Build -R devildog5x5/ONVIF-ODM --ref main`** (or **Actions → Build → Run workflow**) and you re-pin after green — still paste the **current** pin links in chat if the user asked for links.
 3. End with a short **SOP completion** block: checklist **A–G** from README **“After every new binary build”** — each line **✅** or **N/A** with one phrase.
 
 ## Limits (be explicit in chat)
