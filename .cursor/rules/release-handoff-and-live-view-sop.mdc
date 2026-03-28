@@ -40,12 +40,12 @@ When the user asks for a **shipping build**, **release**, **hotfix binaries**, o
 
 After changes under **Live View**, **LibVLC**, **NativeControlHost**, **manifest**, or **snapshot/HTTP** paths, treat these as **minimum verification** (user or agent on Windows):
 
-| Check | WPF | Avalonia |
-|-------|-----|----------|
-| Open device → **Live View** | ✅ | ✅ |
-| **Snapshot** with stream **stopped** (still image updates) | ✅ | ✅ |
-| **Start live** → video plays; **Stop** → clean stop | ✅ | ✅ |
-| Extracted folder keeps **`libvlc`** next to **`.exe`** (Windows portable) | ✅ | ✅ |
+| Check | Avalonia (Windows portable) |
+|-------|-------------------------------|
+| Open device → **Live View** | ✅ |
+| **Snapshot** with stream **stopped** (still image updates) | ✅ |
+| **Start live** → video plays; **Stop** → clean stop | ✅ |
+| Extracted folder keeps **`libvlc`** next to **`OnvifDeviceManager.exe`** | ✅ |
 
 If **embedded video** fails but snapshot works, note **Open externally** / VLC path and any **status text** in the UI.
 

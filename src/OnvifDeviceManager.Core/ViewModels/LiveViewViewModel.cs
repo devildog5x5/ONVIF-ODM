@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Windows.Input;
@@ -57,7 +58,7 @@ public class LiveViewViewModel : ViewModelBase
 
     public bool ShowVideoPlaceholder => !IsLiveStreaming && SnapshotBytes == null;
 
-    /// <summary>Still snapshot drawn on top of the video surface when not playing RTSP (Avalonia/WPF).</summary>
+    /// <summary>Still snapshot drawn on top of the video surface when not playing RTSP.</summary>
     public bool ShowSnapshotAsStill => !IsLiveStreaming && SnapshotBytes != null;
 
     public LiveViewViewModel(OnvifMediaService mediaService, OnvifPtzService ptzService, IUiDispatcher dispatcher, IClipboardService clipboard)
@@ -376,42 +377,77 @@ public class LiveViewViewModel : ViewModelBase
     {
         if (Device == null || SelectedProfile == null) return;
 
-        var snapshotUri = SelectedProfile.SnapshotUri;
-        if (string.IsNullOrEmpty(snapshotUri))
+        var snapshotUriRaw = SelectedProfile.SnapshotUri;
+        if (string.IsNullOrEmpty(snapshotUriRaw))
         {
-            StatusText = "No snapshot URI available for this profile";
+            await _dispatcher.InvokeAsync(() =>
+            {
+                StatusText = "No snapshot URI available for this profile";
+            });
             return;
         }
 
-        // Avoid overlapping fetches (auto-refresh + manual) deadlocking or corrupting Image binding.
+        // Same loopback fix as RTSP: cameras often return http://127.0.0.1/... which only works on the device.
+        var snapshotUri = StreamUriPlayback.ApplyDeviceHost(snapshotUriRaw, Device);
+        if (string.IsNullOrWhiteSpace(snapshotUri))
+        {
+            await _dispatcher.InvokeAsync(() => { StatusText = "Invalid snapshot URI"; });
+            return;
+        }
+
+        // Avoid overlapping fetches (auto-refresh + manual) corrupting binding / Interlocked state.
         if (Interlocked.CompareExchange(ref _snapshotRefreshBusy, 1, 0) != 0)
             return;
 
-        IsLoading = true;
+        await _dispatcher.InvokeAsync(() => { IsLoading = true; });
 
+        byte[]? data = null;
+        var status = string.Empty;
         try
         {
-            using var handler = new HttpClientHandler { ServerCertificateCustomValidationCallback = (_, _, _, _) => true };
-            using var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
-
-            if (!string.IsNullOrEmpty(Device.Username))
+            using var handler = new HttpClientHandler
             {
-                var credentials = Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"{Device.Username}:{Device.Password}"));
-                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentials);
-            }
+                ServerCertificateCustomValidationCallback = (_, _, _, _) => true,
+                UseDefaultCredentials = false
+            };
+            if (!string.IsNullOrEmpty(Device.Username))
+                handler.Credentials = new NetworkCredential(Device.Username, Device.Password ?? string.Empty);
 
-            SnapshotBytes = await client.GetByteArrayAsync(snapshotUri);
-            StatusText = $"Snapshot captured at {DateTime.Now:HH:mm:ss}";
+            using var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(15) };
+            data = await client.GetByteArrayAsync(snapshotUri).ConfigureAwait(false);
+
+            if (data.Length == 0)
+                status = "Snapshot error: empty response";
+            else if (!LooksLikeRasterImage(data))
+                status = "Snapshot error: response was not a JPEG/PNG (often HTTP 401 HTML — check credentials)";
+            else
+                status = $"Snapshot captured at {DateTime.Now:HH:mm:ss}";
         }
         catch (Exception ex)
         {
-            StatusText = $"Snapshot error: {ex.Message}";
+            status = $"Snapshot error: {ex.Message}";
+            data = null;
         }
         finally
         {
-            IsLoading = false;
-            Interlocked.Exchange(ref _snapshotRefreshBusy, 0);
+            await _dispatcher.InvokeAsync(() =>
+            {
+                IsLoading = false;
+                Interlocked.Exchange(ref _snapshotRefreshBusy, 0);
+                if (data != null && LooksLikeRasterImage(data))
+                    SnapshotBytes = data;
+                else if (data != null)
+                    SnapshotBytes = null;
+                StatusText = status;
+            });
         }
+    }
+
+    private static bool LooksLikeRasterImage(byte[] bytes)
+    {
+        if (bytes.Length < 4) return false;
+        if (bytes[0] == 0xFF && bytes[1] == 0xD8) return true;
+        return bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47;
     }
 
     private void StartAutoRefresh()
@@ -488,7 +524,7 @@ public class LiveViewViewModel : ViewModelBase
         }
     }
 
-    /// <summary>Opens the RTSP URL with the OS default handler (often VLC). WPF uses embedded LibVLC when available.</summary>
+    /// <summary>Opens the RTSP URL with the OS default handler (often VLC).</summary>
     private Task OpenRtspExternallyAsync()
     {
         if (Device == null || string.IsNullOrWhiteSpace(StreamUri))

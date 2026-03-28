@@ -47,19 +47,16 @@ function Publish-Project {
     Write-Host "   Done: $out" -ForegroundColor Green
 }
 
-Write-Host "[1/5] Building WPF (Windows x64)..." -ForegroundColor White
-Publish-Project "OnvifDeviceManager.Wpf\OnvifDeviceManager.Wpf.csproj" "win-x64" "OnvifDeviceManager-Wpf-win-x64" "OnvifDeviceManager.Wpf"
-
-Write-Host "[2/5] Building Avalonia (Windows x64)..." -ForegroundColor White
+Write-Host "[1/4] Building Avalonia (Windows x64)..." -ForegroundColor White
 Publish-Project "OnvifDeviceManager\OnvifDeviceManager.csproj" "win-x64" "OnvifDeviceManager-Avalonia-win-x64" "OnvifDeviceManager"
 
-Write-Host "[3/5] Building Avalonia (Linux x64)..." -ForegroundColor White
+Write-Host "[2/4] Building Avalonia (Linux x64)..." -ForegroundColor White
 Publish-Project "OnvifDeviceManager\OnvifDeviceManager.csproj" "linux-x64" "OnvifDeviceManager-Avalonia-linux-x64"
 
-Write-Host "[4/5] Building Avalonia (macOS x64)..." -ForegroundColor White
+Write-Host "[3/4] Building Avalonia (macOS x64)..." -ForegroundColor White
 Publish-Project "OnvifDeviceManager\OnvifDeviceManager.csproj" "osx-x64" "OnvifDeviceManager-Avalonia-osx-x64"
 
-Write-Host "[5/5] Building Avalonia (macOS ARM64)..." -ForegroundColor White
+Write-Host "[4/4] Building Avalonia (macOS ARM64)..." -ForegroundColor White
 Publish-Project "OnvifDeviceManager\OnvifDeviceManager.csproj" "osx-arm64" "OnvifDeviceManager-Avalonia-osx-arm64"
 
 Write-Host ""

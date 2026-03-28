@@ -55,21 +55,17 @@ publish() {
     echo "   Done: $OUT"
 }
 
-echo "[1/5] Building WPF (Windows x64)..."
-publish "OnvifDeviceManager.Wpf/OnvifDeviceManager.Wpf.csproj" "win-x64" "OnvifDeviceManager-Wpf-win-x64"
-repair_win_apphost "$OUTPUT_DIR/OnvifDeviceManager-Wpf-win-x64" "OnvifDeviceManager.Wpf"
-
-echo "[2/5] Building Avalonia (Windows x64)..."
+echo "[1/4] Building Avalonia (Windows x64)..."
 publish "OnvifDeviceManager/OnvifDeviceManager.csproj" "win-x64" "OnvifDeviceManager-Avalonia-win-x64"
 repair_win_apphost "$OUTPUT_DIR/OnvifDeviceManager-Avalonia-win-x64" "OnvifDeviceManager"
 
-echo "[3/5] Building Avalonia (Linux x64)..."
+echo "[2/4] Building Avalonia (Linux x64)..."
 publish "OnvifDeviceManager/OnvifDeviceManager.csproj" "linux-x64" "OnvifDeviceManager-Avalonia-linux-x64"
 
-echo "[4/5] Building Avalonia (macOS x64)..."
+echo "[3/4] Building Avalonia (macOS x64)..."
 publish "OnvifDeviceManager/OnvifDeviceManager.csproj" "osx-x64" "OnvifDeviceManager-Avalonia-osx-x64"
 
-echo "[5/5] Building Avalonia (macOS ARM64)..."
+echo "[4/4] Building Avalonia (macOS ARM64)..."
 publish "OnvifDeviceManager/OnvifDeviceManager.csproj" "osx-arm64" "OnvifDeviceManager-Avalonia-osx-arm64"
 
 echo ""

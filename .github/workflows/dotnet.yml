@@ -25,40 +25,29 @@ jobs:
       - name: Build (Release)
         run: dotnet build OnvifDeviceManager.sln --no-restore -c Release
 
-      # Self-contained Windows x64 ZIPs with version + date-time in the filename (download from Actions → run → Artifacts).
-      - name: Publish and pack (Windows x64)
+      # Self-contained Windows x64 Avalonia ZIP with version + date-time in the filename (download from Actions → run → Artifacts).
+      - name: Publish and pack (Windows x64 Avalonia)
         if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch' }}
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
           $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
-          $version = (dotnet msbuild src/OnvifDeviceManager.Wpf/OnvifDeviceManager.Wpf.csproj -getProperty:Version -nologo).Trim()
+          $version = (dotnet msbuild src/OnvifDeviceManager/OnvifDeviceManager.csproj -getProperty:Version -nologo).Trim()
           New-Item -ItemType Directory -Force -Path "artifacts/zips" | Out-Null
-          $wpfOut = "artifacts/wpf"
           $avOut = "artifacts/avalonia"
-          Remove-Item -Recurse -Force $wpfOut, $avOut -ErrorAction SilentlyContinue
-          dotnet publish src/OnvifDeviceManager.Wpf/OnvifDeviceManager.Wpf.csproj `
-            -c Release -r win-x64 -o $wpfOut `
-            --self-contained true `
-            -p:PublishSingleFile=true `
-            -p:IncludeNativeLibrariesForSelfExtract=true `
-            --nologo -v minimal
+          Remove-Item -Recurse -Force $avOut -ErrorAction SilentlyContinue
           dotnet publish src/OnvifDeviceManager/OnvifDeviceManager.csproj `
             -c Release -r win-x64 -o $avOut `
             --self-contained true `
             -p:PublishSingleFile=true `
             -p:IncludeNativeLibrariesForSelfExtract=true `
             --nologo -v minimal
-          ./build/repair-win-apphost.ps1 -PublishDir $wpfOut -ExeBaseName "OnvifDeviceManager.Wpf"
           ./build/repair-win-apphost.ps1 -PublishDir $avOut -ExeBaseName "OnvifDeviceManager"
-          $wpfZip = "artifacts/zips/OnvifDeviceManager-Wpf-win-x64-v${version}-${stamp}.zip"
           $avZip = "artifacts/zips/OnvifDeviceManager-Avalonia-win-x64-v${version}-${stamp}.zip"
-          Compress-Archive -Path "$wpfOut/*" -DestinationPath $wpfZip -Force
           Compress-Archive -Path "$avOut/*" -DestinationPath $avZip -Force
-          Write-Host "Created: $wpfZip"
           Write-Host "Created: $avZip"
 
-      - name: Upload portable ZIPs (version + timestamp in each .zip file name)
+      - name: Upload portable ZIP (version + timestamp in .zip file name)
         if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch' }}
         uses: actions/upload-artifact@v4
         with:

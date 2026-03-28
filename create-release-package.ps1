@@ -37,25 +37,24 @@ if (Test-Path $iconSyncScript) {
 }
 Write-Host ""
 
-# Build release artifacts if publish folder doesn't exist
-$wpfFolder = Join-Path $OutputDir "OnvifDeviceManager-Wpf-win-x64"
-if (-not (Test-Path $wpfFolder)) {
+$avFolder = Join-Path $OutputDir "OnvifDeviceManager-Avalonia-win-x64"
+if (-not (Test-Path $avFolder)) {
     Write-Host "Running build to create publish artifacts..." -ForegroundColor Yellow
     & (Join-Path (Join-Path $RootDir "build") "build-all.ps1") -Version $Version -BuildStamp $BuildStamp
-    if (-not (Test-Path $wpfFolder)) {
+    if (-not (Test-Path $avFolder)) {
         Write-Host "ERROR: Build failed or output not found." -ForegroundColor Red
         exit 1
     }
 }
 
-& (Join-Path (Join-Path $RootDir "build") "repair-win-apphost.ps1") -PublishDir $wpfFolder -ExeBaseName "OnvifDeviceManager.Wpf"
+& (Join-Path (Join-Path $RootDir "build") "repair-win-apphost.ps1") -PublishDir $avFolder -ExeBaseName "OnvifDeviceManager"
 Write-Host ""
 
 # Installer (Inno output may include date/time stamp — match any for this version)
 $installerDir = Join-Path $OutputDir "installers"
 $installerPath = $null
 if (Test-Path $installerDir) {
-    $installerPath = Get-ChildItem -Path $installerDir -Filter "OnvifDeviceManager-Wpf-Setup-$Version*.exe" -ErrorAction SilentlyContinue |
+    $installerPath = Get-ChildItem -Path $installerDir -Filter "OnvifDeviceManager-Avalonia-Setup-$Version*.exe" -ErrorAction SilentlyContinue |
         Sort-Object LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty FullName
 }
 $hasInstaller = -not [string]::IsNullOrWhiteSpace($installerPath) -and (Test-Path $installerPath)
@@ -65,7 +64,7 @@ $signScript = Join-Path $RootDir "sign-binaries.ps1"
 if (Test-Path $signScript) {
     Write-Host "Signing release binaries..." -ForegroundColor Yellow
     $filesToSign = @(
-        (Join-Path $wpfFolder "OnvifDeviceManager.Wpf.exe")
+        (Join-Path $avFolder "OnvifDeviceManager.exe")
     )
     if ($hasInstaller) { $filesToSign += $installerPath }
     try {
@@ -80,15 +79,14 @@ if (Test-Path $signScript) {
 Write-Host "Creating release packages..." -ForegroundColor Yellow
 Write-Host ""
 
-# Create WPF portable ZIP
-$wpfZip = Join-Path $RootDir "OnvifDeviceManager-Wpf-win-x64-v$Version-$BuildStamp.zip"
-if (Test-Path $wpfZip) { Remove-Item $wpfZip -Force }
-Compress-Archive -Path (Join-Path $wpfFolder "*") -DestinationPath $wpfZip -Force
-$wpfSize = [math]::Round((Get-Item $wpfZip).Length / 1MB, 2)
-Write-Host "  [OK] $wpfZip ($wpfSize MB)" -ForegroundColor Green
+# Optional root-level Windows portable ZIP (same content as publish folder; matches historical SOP)
+$avZip = Join-Path $RootDir "OnvifDeviceManager-Avalonia-win-x64-v$Version-$BuildStamp.zip"
+if (Test-Path $avZip) { Remove-Item $avZip -Force }
+Compress-Archive -Path (Join-Path $avFolder "*") -DestinationPath $avZip -Force
+$avSize = [math]::Round((Get-Item $avZip).Length / 1MB, 2)
+Write-Host "  [OK] $avZip ($avSize MB)" -ForegroundColor Green
 
-# List other existing zips
-Get-ChildItem -Path $OutputDir -Filter "*.zip" | Where-Object { $_.Name -ne (Split-Path $wpfZip -Leaf) } | ForEach-Object {
+Get-ChildItem -Path $OutputDir -Filter "*.zip" | Where-Object { $_.Name -ne (Split-Path $avZip -Leaf) } | ForEach-Object {
     Write-Host "  [OK] $($_.Name) ($([math]::Round($_.Length/1MB,2)) MB)" -ForegroundColor Green
 }
 
@@ -98,7 +96,7 @@ if ($hasInstaller) {
     Write-Host "Installer: $installerPath ($installerSize MB)" -ForegroundColor Cyan
 } else {
     Write-Host ""
-    Write-Host "WARNING: Installer not found. Build with Inno Setup: build\installers\OnvifDeviceManager-Wpf-Setup.iss" -ForegroundColor Yellow
+    Write-Host "WARNING: Installer not found. Build with Inno Setup: build\installers\OnvifDeviceManager-Avalonia-Setup.iss" -ForegroundColor Yellow
 }
 
 Write-Host ""
@@ -122,7 +120,6 @@ Write-Host "  [G] dotnet build -c Release clean" -ForegroundColor White
 Write-Host ""
 $releaseBase = "https://github.com/$GithubRepo/releases/download/v$Version"
 $platformZips = @(
-    "OnvifDeviceManager-Wpf-win-x64-v$Version-$BuildStamp.zip",
     "OnvifDeviceManager-Avalonia-win-x64-v$Version-$BuildStamp.zip",
     "OnvifDeviceManager-Avalonia-linux-x64-v$Version-$BuildStamp.zip",
     "OnvifDeviceManager-Avalonia-osx-x64-v$Version-$BuildStamp.zip",
