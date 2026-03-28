@@ -1,0 +1,17 @@
+---
+description: After build-related fix series, run Release build (and smoke publish when relevant) without waiting for the user to ask.
+alwaysApply: true
+---
+
+# Auto-build after build fix series
+
+When you finish a **connected set of changes** that fix or materially affect **compilation, packaging, manifests, CI, or publish output** (or crash fixes that need a fresh binary to verify), do **not** end the turn until you have:
+
+1. Run **`dotnet build -c Release`** on the solution (or the affected projects if scope is narrow and the user only touched one app).
+2. If the work affects **runnable desktop behavior** (Avalonia/WPF, LibVLC, Live View, single-file publish, native hosts), also produce a **local smoke publish** the user can run immediately:
+   - **Avalonia Windows x64:** publish `src/OnvifDeviceManager/OnvifDeviceManager.csproj` with `-c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -p:IncludeNativeLibrariesForSelfExtract=true` to **`publish/local-test/OnvifDeviceManager-Avalonia-win-x64`**, then run **`build/repair-win-apphost.ps1`** on that folder with `-ExeBaseName OnvifDeviceManager` (same flags as README preview flow).
+3. In the reply, give the **full path** to the folder or `.exe` to run (no making the user hunt).
+
+Do this **automatically**; do not wait for the user to say “build it again” or “so we can test it.”
+
+Full release ZIPs / `create-release-package.ps1` remain **only when** the user asks for a shipping drop or release SOP.
