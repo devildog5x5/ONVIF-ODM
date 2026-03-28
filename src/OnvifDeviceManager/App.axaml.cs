@@ -22,6 +22,15 @@ public partial class App : Application
         // Avalonia UI-thread exceptions do not reliably surface through AppDomain.UnhandledException; hook explicitly.
         Dispatcher.UIThread.UnhandledException += (_, e) =>
         {
+            // LibVLC VideoView (NativeControlHost) can throw repeatedly during layout/scroll when Win32
+            // child window creation fails. Logging + a dialog per failure makes the app unusable.
+            if (IsWin32NativeControlHostCreateFailure(e.Exception))
+            {
+                LogThrottledNativeHostFailure("Avalonia.Dispatcher.UnhandledException (NativeControlHost)", e.Exception);
+                e.Handled = true;
+                return;
+            }
+
             CrashLogger.Log("Avalonia.Dispatcher.UnhandledException", e.Exception);
             ShowErrorMessage(
                 "ONVIF Device Manager — Error",
@@ -69,6 +78,43 @@ public partial class App : Application
         base.OnFrameworkInitializationCompleted();
     }
 
+    private static DateTime _lastNativeHostDispatcherLogUtc;
+
+    private static void LogThrottledNativeHostFailure(string context, Exception ex)
+    {
+        var now = DateTime.UtcNow;
+        if ((now - _lastNativeHostDispatcherLogUtc).TotalSeconds < 45)
+            return;
+        _lastNativeHostDispatcherLogUtc = now;
+        CrashLogger.Log(context, ex);
+    }
+
+    /// <summary>
+    /// Avalonia throws this when CreateWindowEx fails for the LibVLC child HWND (layout/scroll can retry often).
+    /// </summary>
+    private static bool IsWin32NativeControlHostCreateFailure(Exception? ex)
+    {
+        if (ex == null) return false;
+        var stack = new Stack<Exception>();
+        stack.Push(ex);
+        while (stack.Count > 0)
+        {
+            var current = stack.Pop();
+            if (current is InvalidOperationException iox
+                && iox.Message.Contains("native control host", StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (current.InnerException != null)
+                stack.Push(current.InnerException);
+            if (current is AggregateException agg)
+            {
+                foreach (var inner in agg.InnerExceptions)
+                    stack.Push(inner);
+            }
+        }
+
+        return false;
+    }
+
     private static bool IsBenignUnobservedTaskException(AggregateException agg)
     {
         foreach (var ex in agg.Flatten().InnerExceptions)
@@ -83,9 +129,7 @@ public partial class App : Application
                 return true;
             if (ex.Message.Contains("I/O operation has been aborted", StringComparison.OrdinalIgnoreCase))
                 return true;
-            // Already logged on UI thread; duplicate from faulted dispatcher operations.
-            if (ex is InvalidOperationException iox
-                && iox.Message.Contains("native control host", StringComparison.OrdinalIgnoreCase))
+            if (IsWin32NativeControlHostCreateFailure(ex))
                 return true;
         }
 

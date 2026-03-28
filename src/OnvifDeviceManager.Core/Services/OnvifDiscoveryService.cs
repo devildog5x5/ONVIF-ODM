@@ -127,7 +127,8 @@ public class OnvifDiscoveryService
 
     private static void ObserveFaultedTask(Task task)
     {
-        if (!task.IsCompleted || task.IsCompletedSuccessfully)
+        // Canceled tasks throw if .Exception is read; only faulted tasks need observation.
+        if (!task.IsCompleted || task.IsCompletedSuccessfully || !task.IsFaulted)
             return;
         _ = task.Exception;
     }

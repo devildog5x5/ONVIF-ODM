@@ -15,6 +15,8 @@
     <windowsSettings>
       <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">true</dpiAware>
       <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2</dpiAwareness>
+      <!-- Helps Win32 child-window creation on newer Windows builds (Avalonia NativeControlHost / LibVLC). -->
+      <maxversiontested xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">10.0.26100.0</maxversiontested>
     </windowsSettings>
   </application>
 </assembly>
