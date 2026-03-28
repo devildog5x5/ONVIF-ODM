@@ -54,7 +54,7 @@ Self-contained executables — **no .NET runtime installation required**. Just d
 
 **Latest tagged release line:** **v2.0.0** — development builds use **`v2.0.0-{yyyyMMdd-HHmmss}`** in CI Artifacts until a **v2.0.0** GitHub Release is published (see [Latest direct download links](#latest-direct-download-links) and [Releases](https://github.com/devildog5x5/ONVIF-ODM/releases)).
 
-**Pinned CI build (Windows x64 portable, `main`):** commit **`27230b0`** — runner stamp **`20260328-171807`** — see **[Pinned `main` CI build](#pinned-main-ci-build-windows-x64-portable)** for the exact **Actions run URL**, **artifact name**, and **inner ZIP file names** (updated whenever maintainers or automation refresh this README after a successful CI pack).
+**Pinned CI build (Windows x64 portable, `main`):** commit **`9204a85`** — runner stamp **`20260328-172157`** — see **[Pinned `main` CI build](#pinned-main-ci-build-windows-x64-portable)** for the exact **Actions run URL**, **artifact name**, and **inner ZIP file names** (updated whenever maintainers or automation refresh this README after a successful CI pack).
 
 **Source / README refreshed:** 2026-03-28 (documentation, pinned CI links, and key paths below). The `main` branch is verified on every push by **[GitHub Actions — Build workflow](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml)** ([workflow file](.github/workflows/dotnet.yml)). On each **`main`** push (and **manual workflow runs**), that workflow also **publishes self-contained Windows x64 WPF + Avalonia ZIPs** and uploads them as **Artifacts**; each ZIP file name includes **`v{Version}-{yyyyMMdd-HHmmss}`** (runner local time). Open the workflow run → **Artifacts** to download.
 
@@ -74,11 +74,11 @@ Use this when **`releases/download/...`** is not yet published for **v2.0.0**. G
 
 | | |
 |--|--|
-| **Actions run** | [Build workflow run 23690247413](https://github.com/devildog5x5/ONVIF-ODM/actions/runs/23690247413) (success, `workflow_dispatch`, **commit `27230b0`**) |
-| **Artifact name** | `ONVIF-ODM-Windows-x64-r29-1` |
-| **Portable ZIPs inside** | `OnvifDeviceManager-Wpf-win-x64-v2.0.0-20260328-171807.zip` · `OnvifDeviceManager-Avalonia-win-x64-v2.0.0-20260328-171807.zip` |
+| **Actions run** | [Build workflow run 23690318540](https://github.com/devildog5x5/ONVIF-ODM/actions/runs/23690318540) (success, **push** to `main`, **commit `9204a85`**) |
+| **Artifact name** | `ONVIF-ODM-Windows-x64-r30-1` |
+| **Portable ZIPs inside** | `OnvifDeviceManager-Wpf-win-x64-v2.0.0-20260328-172157.zip` · `OnvifDeviceManager-Avalonia-win-x64-v2.0.0-20260328-172157.zip` |
 
-**CLI (authenticated):** `gh run download 23690247413 -R devildog5x5/ONVIF-ODM`
+**CLI (authenticated):** `gh run download 23690318540 -R devildog5x5/ONVIF-ODM`
 
 **Maintainer SOP:** After each refresh, run **`dotnet build -c Release`**, **`.\build\build-all.ps1`** (or trigger **`gh workflow run dotnet.yml --ref main`**), wait for green, then replace the **run URL**, **artifact name**, **inner ZIP names**, **commit SHA**, and **Source / README refreshed** line above. Commit and push the README on `main`.
 
