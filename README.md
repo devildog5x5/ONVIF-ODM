@@ -48,9 +48,9 @@ Self-contained executables — **no .NET runtime installation required**. Just d
 
 **Latest tagged release line:** **v2.0.0** — **frozen stamp `20260328-113237`** on [GitHub Release v2.0.0](https://github.com/devildog5x5/ONVIF-ODM/releases/tag/v2.0.0) (**Avalonia ZIPs only**; legacy WPF binaries were removed from Releases). That stamp is **older than current `main`** for anything merged after that upload (including manifest/snapshot fixes and Core changes).
 
-**Newest Windows x64 from source:** **[Pinned `main` CI build](#pinned-main-ci-build-windows-x64-portable)** — commit **`85e8bba`**, inner ZIP stamp **`20260328-181225`**.
+**Newest Windows x64 from source:** **[Pinned `main` CI build](#pinned-main-ci-build-windows-x64-portable)** — commit **`737793c`**, inner ZIP stamp **`20260328-191721`**.
 
-**Source / README refreshed:** 2026-03-28 (Release vs CI “latest” clarified; WPF ZIPs removed from v1.5.0/v2.0.0 on GitHub). The `main` branch is verified on every push by **[GitHub Actions — Build workflow](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml)** ([workflow file](.github/workflows/dotnet.yml)). On each qualifying **`main`** push (and **manual workflow runs**), that workflow **publishes one self-contained Windows x64 Avalonia ZIP** and uploads it as **Artifacts** (unless **`[skip ci]`** in the commit message). Open the workflow run → **Artifacts** to download.
+**Source / README refreshed:** 2026-03-28 (pinned CI run **32** after manual `workflow_dispatch`; README-only pushes use **`[skip ci]`** and do **not** produce a new artifact — use **Run workflow** on [Build](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml) when you need a fresh ZIP without a code push). The `main` branch is verified on every push by **[GitHub Actions — Build workflow](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml)** ([workflow file](.github/workflows/dotnet.yml)). Open the workflow run → **Artifacts** to download.
 
 | Platform | Asset name pattern (on [Releases](https://github.com/devildog5x5/ONVIF-ODM/releases)) |
 |----------|----------------------------------------------------------------------------------------|
@@ -67,11 +67,11 @@ Use this for **latest `main` Windows x64** (including fixes not yet on any GitHu
 
 | | |
 |--|--|
-| **Actions run** | [Build workflow run 23691248484](https://github.com/devildog5x5/ONVIF-ODM/actions/runs/23691248484) (success, **push** to `main`, **commit `85e8bba`**) |
-| **Artifact name** | `ONVIF-ODM-Windows-x64-r31-1` |
-| **Portable ZIP inside** | `OnvifDeviceManager-Avalonia-win-x64-v2.0.0-20260328-181225.zip` |
+| **Actions run** | [Build workflow run 23692411696](https://github.com/devildog5x5/ONVIF-ODM/actions/runs/23692411696) (success, **`workflow_dispatch`**, **commit `737793c`**) |
+| **Artifact name** | `ONVIF-ODM-Windows-x64-r32-1` |
+| **Portable ZIP inside** | `OnvifDeviceManager-Avalonia-win-x64-v2.0.0-20260328-191721.zip` |
 
-**CLI (authenticated):** `gh run download 23691248484 -R devildog5x5/ONVIF-ODM`
+**CLI (authenticated):** `gh run download 23692411696 -R devildog5x5/ONVIF-ODM`
 
 **Maintainer SOP:** After each refresh, run **`dotnet build -c Release`**, **`.\build\build-all.ps1`** (or trigger **`gh workflow run dotnet.yml --ref main`**), wait for green, then replace the **run URL**, **artifact name**, **inner ZIP names**, **commit SHA** (the commit **CI checked out** for that run), and **Source / README refreshed** line above. Commit and push the README on `main`. For **README-only** pin fixes after a green run, put **`[skip ci]`** in the commit subject so the workflow (see `.github/workflows/dotnet.yml`) does not enqueue another Windows pack job.
 
@@ -252,7 +252,7 @@ Dates below are **file last-write time** in the maintainer workspace when this s
 
 | Path | Purpose | Last modified |
 |------|---------|---------------|
-| `README.md` | Download links, SOPs, key paths | 2026-03-28 (honest latest vs frozen; WPF assets removed from Releases) |
+| `README.md` | Download links, SOPs, key paths | 2026-03-28 (CI pin run 32, stamp 20260328-191721) |
 | `Directory.Build.props` | Default `Version` + `ApplicationIcon` for repo projects | 2026-03-25 |
 | `.github/workflows/dotnet.yml` | CI Release build (Windows runner) | 2026-03-25 21:43 |
 | `branding/master-icon.png` | Master icon image | 2026-03-24 16:16 |
