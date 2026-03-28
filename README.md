@@ -37,12 +37,12 @@ Self-contained executables — **no .NET runtime installation required**. Just d
 
 | Source | What | How |
 |--------|------|-----|
-| **CI (recommended until Release assets are uploaded)** | Windows x64 **WPF** and **Avalonia** ZIPs (version + timestamp in each filename) | Open **[Build workflow — runs on `main`](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml?query=branch%3Amain)** → click the **latest successful** run → scroll to **Artifacts** → download `ONVIF-ODM-Windows-x64-r{run}-{attempt}` (ZIP contains both portable archives). |
-| **GitHub Release** | Same naming pattern; **permanent direct URLs** after you attach files to the tag | **[Releases](https://github.com/devildog5x5/ONVIF-ODM/releases)** → `v2.0.0` → assets, or use **[Latest direct download links](#latest-direct-download-links)** below **only if** those exact filenames exist on that release. |
+| **GitHub Release (recommended)** | All published platforms; **permanent `releases/download/…` links** | **[Releases](https://github.com/devildog5x5/ONVIF-ODM/releases)** → **[v2.0.0](https://github.com/devildog5x5/ONVIF-ODM/releases/tag/v2.0.0)** → assets, or **[Latest direct download links](#latest-direct-download-links)** below. |
+| **CI** | Windows x64 **WPF** and **Avalonia** only (version + timestamp in each inner filename) | **[Build workflow — runs on `main`](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml?query=branch%3Amain)** → latest successful run → **Artifacts** → `ONVIF-ODM-Windows-x64-r{run}-{attempt}` (see also **[Pinned `main` CI build](#pinned-main-ci-build-windows-x64-portable)**). |
 
 **SOP — direct links to latest builds:** A shipping release or hotfix is not complete until maintainers (or automation) provide **verbatim full HTTPS** URLs for each platform ZIP — the canonical place is **[Latest direct download links](#latest-direct-download-links)** in this README (updated when the build stamp changes). `.\create-release-package.ps1` prints the same URLs at the end of each run for copy-paste into README, release notes, and user handoff. Do not rely on “open Releases and find the file” alone when a direct link is expected.
 
-`releases/download/...` links **404** until the matching `.zip` files are uploaded to that release. The workflow above always produces downloadable builds after each push to **`main`** (or **Run workflow** on `workflow_dispatch`).
+For tags **without** uploaded assets, `releases/download/...` links **404** until the matching `.zip` files are on that release. **v2.0.0** has published assets (see below). CI still produces fresh **Windows x64** pairs after each qualifying push to **`main`** (or **Run workflow** on `workflow_dispatch`).
 
 **Windows (WPF and Avalonia x64):** Extract the **full** ZIP so the **`libvlc`** folder stays **next to** the `.exe`. The single-file `.exe` alone is not enough for embedded live video (LibVLC plugins are loose files).
 
@@ -52,11 +52,11 @@ Self-contained executables — **no .NET runtime installation required**. Just d
 
 **Inno Setup** output is `OnvifDeviceManager-Wpf-Setup-{version}-{yyyyMMdd-hhmmss}.exe` (timestamp is applied when you compile the `.iss` file).
 
-**Latest tagged release line:** **v2.0.0** — development builds use **`v2.0.0-{yyyyMMdd-HHmmss}`** in CI Artifacts until a **v2.0.0** GitHub Release is published (see [Latest direct download links](#latest-direct-download-links) and [Releases](https://github.com/devildog5x5/ONVIF-ODM/releases)).
+**Latest tagged release line:** **v2.0.0** — **build stamp `20260328-113237`** on [GitHub Release v2.0.0](https://github.com/devildog5x5/ONVIF-ODM/releases/tag/v2.0.0). Newer **`main`** commits may use **[Pinned `main` CI build](#pinned-main-ci-build-windows-x64-portable)** for Windows-only CI ZIPs until the next release upload.
 
 **Pinned CI build (Windows x64 portable, `main`):** commit **`9204a85`** — runner stamp **`20260328-172157`** — see **[Pinned `main` CI build](#pinned-main-ci-build-windows-x64-portable)** for the exact **Actions run URL**, **artifact name**, and **inner ZIP file names** (updated whenever maintainers or automation refresh this README after a successful CI pack).
 
-**Source / README refreshed:** 2026-03-28 (documentation, pinned CI links, and key paths below). The `main` branch is verified on every push by **[GitHub Actions — Build workflow](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml)** ([workflow file](.github/workflows/dotnet.yml)). On each **`main`** push (and **manual workflow runs**), that workflow also **publishes self-contained Windows x64 WPF + Avalonia ZIPs** and uploads them as **Artifacts**; each ZIP file name includes **`v{Version}-{yyyyMMdd-HHmmss}`** (runner local time). Open the workflow run → **Artifacts** to download.
+**Source / README refreshed:** 2026-03-28 (v2.0.0 release links, pinned CI, key paths). The `main` branch is verified on every push by **[GitHub Actions — Build workflow](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml)** ([workflow file](.github/workflows/dotnet.yml)). On each qualifying **`main`** push (and **manual workflow runs**), that workflow **publishes self-contained Windows x64 WPF + Avalonia ZIPs** and uploads them as **Artifacts** (unless **`[skip ci]`** in the commit message). Open the workflow run → **Artifacts** to download.
 
 | Platform | Edition | Asset name pattern (on [Releases](https://github.com/devildog5x5/ONVIF-ODM/releases)) |
 |----------|---------|----------------------------------------------------------------------------------------|
@@ -70,7 +70,7 @@ Self-contained executables — **no .NET runtime installation required**. Just d
 
 ### Pinned `main` CI build (Windows x64 portable)
 
-Use this when **`releases/download/...`** is not yet published for **v2.0.0**. GitHub does **not** expose a permanent anonymous URL to the artifact ZIP; open the run, sign in if needed, and download **Artifacts**.
+Use this for **latest `main` Windows x64** builds between releases, or when you need the CI artifact bundle. For **all platforms** and **stable links**, prefer **[v2.0.0 release assets](#latest-direct-download-links)**. GitHub does **not** expose a permanent anonymous URL to the artifact ZIP; open the run, sign in if needed, and download **Artifacts**.
 
 | | |
 |--|--|
@@ -84,15 +84,17 @@ Use this when **`releases/download/...`** is not yet published for **v2.0.0**. G
 
 ### Latest direct download links
 
-**Target release tag:** **v2.0.0** — **build stamp:** set from `build-all.ps1` / `create-release-package.ps1` after the first **v2.0.0** upload (see script output).
+**Target release tag:** **v2.0.0** — **build stamp:** **`20260328-113237`** (from `.\build\build-all.ps1 -Version 2.0.0 -BuildStamp 20260328-113237` used for the release upload).
 
-**v2.0.0 GitHub Release assets:** There are **no** permanent `releases/download/v2.0.0/...` URLs until maintainers create release **v2.0.0** and upload the ZIPs. Until then, use **[Build links](#build-links)** (CI Artifacts) for **`v2.0.0-{yyyyMMdd-HHmmss}`** archives.
+**SOP:** After each new release upload, replace the table below with **verbatim** full HTTPS `releases/download/…` URLs (same stamp on every row).
 
-**SOP:** After upload, replace the table below with **verbatim** URLs from `create-release-package.ps1` (same stamp for every row).
-
-| Platform | Asset | Direct link |
-|----------|-------|-------------|
-| *Pending first v2.0.0 release* | — | Use **[CI Artifacts](#build-links)** until `releases/download/v2.0.0/...` links exist. |
+| Platform | Edition | Direct link |
+|----------|---------|-------------|
+| Windows x64 | WPF | [OnvifDeviceManager-Wpf-win-x64-v2.0.0-20260328-113237.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v2.0.0/OnvifDeviceManager-Wpf-win-x64-v2.0.0-20260328-113237.zip) |
+| Windows x64 | Avalonia | [OnvifDeviceManager-Avalonia-win-x64-v2.0.0-20260328-113237.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v2.0.0/OnvifDeviceManager-Avalonia-win-x64-v2.0.0-20260328-113237.zip) |
+| Linux x64 | Avalonia | [OnvifDeviceManager-Avalonia-linux-x64-v2.0.0-20260328-113237.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v2.0.0/OnvifDeviceManager-Avalonia-linux-x64-v2.0.0-20260328-113237.zip) |
+| macOS Intel | Avalonia | [OnvifDeviceManager-Avalonia-osx-x64-v2.0.0-20260328-113237.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v2.0.0/OnvifDeviceManager-Avalonia-osx-x64-v2.0.0-20260328-113237.zip) |
+| macOS Apple Silicon | Avalonia | [OnvifDeviceManager-Avalonia-osx-arm64-v2.0.0-20260328-113237.zip](https://github.com/devildog5x5/ONVIF-ODM/releases/download/v2.0.0/OnvifDeviceManager-Avalonia-osx-arm64-v2.0.0-20260328-113237.zip) |
 
 #### Previous release (v1.5.0) — archived direct links
 
@@ -258,7 +260,7 @@ Dates below are **file last-write time** in the maintainer workspace when this s
 
 | Path | Purpose | Last modified |
 |------|---------|---------------|
-| `README.md` | Download links, SOPs, key paths | 2026-03-28 |
+| `README.md` | Download links, SOPs, key paths | 2026-03-28 (v2.0.0 release URLs) |
 | `Directory.Build.props` | Default `Version` + `ApplicationIcon` for repo projects | 2026-03-25 |
 | `.github/workflows/dotnet.yml` | CI Release build (Windows runner) | 2026-03-25 21:43 |
 | `branding/master-icon.png` | Master icon image | 2026-03-24 16:16 |
