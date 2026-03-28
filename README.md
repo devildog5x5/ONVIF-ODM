@@ -42,15 +42,15 @@ Self-contained executables — **no .NET runtime installation required**. Just d
 
 **Run the right binary name:** Windows x64 packages use **`OnvifDeviceManager.exe`**. Linux and macOS ZIPs ship an **extensionless** `OnvifDeviceManager` (that is not a Windows `.exe`). If you are on Windows and only see `OnvifDeviceManager` with no extension, you likely downloaded a **Linux/macOS** build, or an old folder — use a **`-win-x64`** ZIP, or re-download from [Releases](https://github.com/devildog5x5/ONVIF-ODM/releases). Release builds run `build/repair-win-apphost.ps1` after each Windows publish so an extensionless PE host is renamed to `.exe` automatically.
 
-**File names include date and time:** Archives produced by `.\build\build-all.ps1` (or `./build/build-all.sh`) and the optional root portable ZIP from `.\create-release-package.ps1` end with `-v{version}-{yyyyMMdd-HHmmss}.zip` (local clock). That stamp is part of the filename so every build is identifiable. **GitHub release links that omit the timestamp** (for example `…-v2.0.0.zip` only) belong to **older** uploads; for current packages, open **[Releases](https://github.com/devildog5x5/ONVIF-ODM/releases)** and choose the asset whose name matches the pattern below.
+**File names include date and time:** Archives end with `-v{version}-{yyyyMMdd-HHmmss}.zip`. The last six digits are **hour–minute–second** (`HHmmss`). **On your PC**, `build-all` / `create-release-package` use **your local clock**. **GitHub Actions** (`windows-latest`) uses **`Get-Date` in UTC**, so a name like `…-20260328-192049.zip` is **19:20:49 UTC**, not necessarily your wall time — compare to the **run finished** time on the Actions page (shown in your GitHub timezone). **Do not confuse** that with the **frozen Release** stamp **`…-113237`** (that really is **11:32:37 UTC** from the v2.0.0 upload — older than current `main`). **GitHub release links that omit the timestamp** belong to **older** uploads; for current packages, open **[Releases](https://github.com/devildog5x5/ONVIF-ODM/releases)** or use **CI** as above.
 
 **Inno Setup** output is `OnvifDeviceManager-Avalonia-Setup-{version}-{yyyyMMdd-hhmmss}.exe` (timestamp is applied when you compile the `.iss` file).
 
 **Latest tagged release line:** **v2.0.0** — **frozen stamp `20260328-113237`** on [GitHub Release v2.0.0](https://github.com/devildog5x5/ONVIF-ODM/releases/tag/v2.0.0) (**Avalonia ZIPs only**; legacy WPF binaries were removed from Releases). That stamp is **older than current `main`** for anything merged after that upload (including manifest/snapshot fixes and Core changes).
 
-**Newest Windows x64 from source:** **[Pinned `main` CI build](#pinned-main-ci-build-windows-x64-portable)** — commit **`737793c`**, inner ZIP stamp **`20260328-191721`**.
+**Newest Windows x64 from source:** **[Pinned `main` CI build](#pinned-main-ci-build-windows-x64-portable)** — commit **`c70d920`**, inner ZIP **`…-20260328-192049.zip`** (**UTC** time in the filename; see paragraph above).
 
-**Source / README refreshed:** 2026-03-28 (pinned CI run **32** after manual `workflow_dispatch`; README-only pushes use **`[skip ci]`** and do **not** produce a new artifact — use **Run workflow** on [Build](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml) when you need a fresh ZIP without a code push). The `main` branch is verified on every push by **[GitHub Actions — Build workflow](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml)** ([workflow file](.github/workflows/dotnet.yml)). Open the workflow run → **Artifacts** to download.
+**Source / README refreshed:** 2026-03-28 (pinned CI run **33**; README-only pushes use **`[skip ci]`** and do **not** produce a new artifact — use **Run workflow** on [Build](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml) when you need a fresh ZIP without a code push). Open the workflow run → **Artifacts** to download.
 
 | Platform | Asset name pattern (on [Releases](https://github.com/devildog5x5/ONVIF-ODM/releases)) |
 |----------|----------------------------------------------------------------------------------------|
@@ -67,11 +67,11 @@ Use this for **latest `main` Windows x64** (including fixes not yet on any GitHu
 
 | | |
 |--|--|
-| **Actions run** | [Build workflow run 23692411696](https://github.com/devildog5x5/ONVIF-ODM/actions/runs/23692411696) (success, **`workflow_dispatch`**, **commit `737793c`**) |
-| **Artifact name** | `ONVIF-ODM-Windows-x64-r32-1` |
-| **Portable ZIP inside** | `OnvifDeviceManager-Avalonia-win-x64-v2.0.0-20260328-191721.zip` |
+| **Actions run** | [Build workflow run 23692473575](https://github.com/devildog5x5/ONVIF-ODM/actions/runs/23692473575) (success, **`workflow_dispatch`**, **commit `c70d920`**) |
+| **Artifact name** | `ONVIF-ODM-Windows-x64-r33-1` |
+| **Portable ZIP inside** | `OnvifDeviceManager-Avalonia-win-x64-v2.0.0-20260328-192049.zip` (**`192049` = HHmmss UTC**) |
 
-**CLI (authenticated):** `gh run download 23692411696 -R devildog5x5/ONVIF-ODM`
+**CLI (authenticated):** `gh run download 23692473575 -R devildog5x5/ONVIF-ODM`
 
 **Maintainer SOP:** After each refresh, run **`dotnet build -c Release`**, **`.\build\build-all.ps1`** (or trigger **`gh workflow run dotnet.yml --ref main`**), wait for green, then replace the **run URL**, **artifact name**, **inner ZIP names**, **commit SHA** (the commit **CI checked out** for that run), and **Source / README refreshed** line above. Commit and push the README on `main`. For **README-only** pin fixes after a green run, put **`[skip ci]`** in the commit subject so the workflow (see `.github/workflows/dotnet.yml`) does not enqueue another Windows pack job.
 
@@ -252,7 +252,7 @@ Dates below are **file last-write time** in the maintainer workspace when this s
 
 | Path | Purpose | Last modified |
 |------|---------|---------------|
-| `README.md` | Download links, SOPs, key paths | 2026-03-28 (CI pin run 32, stamp 20260328-191721) |
+| `README.md` | Download links, SOPs, key paths | 2026-03-28 (CI pin run 33, UTC stamp …192049) |
 | `Directory.Build.props` | Default `Version` + `ApplicationIcon` for repo projects | 2026-03-25 |
 | `.github/workflows/dotnet.yml` | CI Release build (Windows runner) | 2026-03-25 21:43 |
 | `branding/master-icon.png` | Master icon image | 2026-03-24 16:16 |
