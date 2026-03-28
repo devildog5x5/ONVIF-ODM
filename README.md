@@ -54,7 +54,9 @@ Self-contained executables — **no .NET runtime installation required**. Just d
 
 **Latest tagged release line:** **v2.0.0** — development builds use **`v2.0.0-{yyyyMMdd-HHmmss}`** in CI Artifacts until a **v2.0.0** GitHub Release is published (see [Latest direct download links](#latest-direct-download-links) and [Releases](https://github.com/devildog5x5/ONVIF-ODM/releases)).
 
-**Source / README refreshed:** 2026-03-25 local (documentation and key paths below). The `main` branch is verified on every push by **[GitHub Actions — Build workflow](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml)** ([workflow file](.github/workflows/dotnet.yml)). On each **`main`** push (and **manual workflow runs**), that workflow also **publishes self-contained Windows x64 WPF + Avalonia ZIPs** and uploads them as **Artifacts**; each ZIP file name includes **`v{Version}-{yyyyMMdd-HHmmss}`** (runner local time). Open the workflow run → **Artifacts** to download.
+**Pinned CI build (Windows x64 portable, `main`):** commit **`27230b0`** — runner stamp **`20260328-171807`** — see **[Pinned `main` CI build](#pinned-main-ci-build-windows-x64-portable)** for the exact **Actions run URL**, **artifact name**, and **inner ZIP file names** (updated whenever maintainers or automation refresh this README after a successful CI pack).
+
+**Source / README refreshed:** 2026-03-28 (documentation, pinned CI links, and key paths below). The `main` branch is verified on every push by **[GitHub Actions — Build workflow](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml)** ([workflow file](.github/workflows/dotnet.yml)). On each **`main`** push (and **manual workflow runs**), that workflow also **publishes self-contained Windows x64 WPF + Avalonia ZIPs** and uploads them as **Artifacts**; each ZIP file name includes **`v{Version}-{yyyyMMdd-HHmmss}`** (runner local time). Open the workflow run → **Artifacts** to download.
 
 | Platform | Edition | Asset name pattern (on [Releases](https://github.com/devildog5x5/ONVIF-ODM/releases)) |
 |----------|---------|----------------------------------------------------------------------------------------|
@@ -65,6 +67,20 @@ Self-contained executables — **no .NET runtime installation required**. Just d
 | **macOS Apple Silicon** | Avalonia | `OnvifDeviceManager-Avalonia-osx-arm64-v{version}-…` |
 
 > [See all releases](https://github.com/devildog5x5/ONVIF-ODM/releases) · [All workflow runs](https://github.com/devildog5x5/ONVIF-ODM/actions)
+
+### Pinned `main` CI build (Windows x64 portable)
+
+Use this when **`releases/download/...`** is not yet published for **v2.0.0**. GitHub does **not** expose a permanent anonymous URL to the artifact ZIP; open the run, sign in if needed, and download **Artifacts**.
+
+| | |
+|--|--|
+| **Actions run** | [Build workflow run 23690247413](https://github.com/devildog5x5/ONVIF-ODM/actions/runs/23690247413) (success, `workflow_dispatch`, **commit `27230b0`**) |
+| **Artifact name** | `ONVIF-ODM-Windows-x64-r29-1` |
+| **Portable ZIPs inside** | `OnvifDeviceManager-Wpf-win-x64-v2.0.0-20260328-171807.zip` · `OnvifDeviceManager-Avalonia-win-x64-v2.0.0-20260328-171807.zip` |
+
+**CLI (authenticated):** `gh run download 23690247413 -R devildog5x5/ONVIF-ODM`
+
+**Maintainer SOP:** After each refresh, run **`dotnet build -c Release`**, **`.\build\build-all.ps1`** (or trigger **`gh workflow run dotnet.yml --ref main`**), wait for green, then replace the **run URL**, **artifact name**, **inner ZIP names**, **commit SHA**, and **Source / README refreshed** line above. Commit and push the README on `main`.
 
 ### Latest direct download links
 
@@ -179,7 +195,7 @@ When you finish a **release-style** or **hotfix** build (local `build-all` / `cr
 | B | **Icon Standard Process** | `warrior_icon.ico` regenerated from `branding/master-icon.png` (automatic in `create-release-package.ps1`, or run `.\update-app-icon.ps1`). |
 | C | **Release Build SOP** §3 | Inno installer compiled **only if** you are shipping an `.exe` this round (otherwise N/A). |
 | D | **Release Build SOP** §4 | Assets uploaded to the correct **GitHub Release** tag; **superseded** ZIPs removed from that tag so “current” files are obvious. |
-| E | **Release Build SOP** §5 | README updated: **Build links**, **[Latest direct download links](#latest-direct-download-links)** (full HTTPS `releases/download/...` per platform for the current stamp), **Latest … build stamp** line, **Source / README refreshed** date, **Key files — last modified** table (PowerShell snippet under that table). |
+| E | **Release Build SOP** §5 | README updated: **Build links**, **[Pinned `main` CI build](#pinned-main-ci-build-windows-x64-portable)** (verbatim run URL, artifact name, inner portable ZIP names, commit SHA when CI is the shipping source), **[Latest direct download links](#latest-direct-download-links)** (full HTTPS `releases/download/...` per platform **only** when those assets exist on a Release), **Latest … build stamp** line, **Source / README refreshed** date, **Key files — last modified** table (PowerShell snippet under that table). |
 | F | **Hotfix / support SOP** §6 | End user receives the **same verbatim direct URLs** as README **Latest direct download links** (WPF + Avalonia Windows + Linux/macOS if built)—not “get it from Releases.” |
 | G | **`dotnet build -c Release`** | Solution builds clean before packaging (no new errors). |
 
@@ -238,11 +254,11 @@ OnvifDeviceManager.sln
 
 ### Key files — last modified (on disk)
 
-Dates below are **file last-write time** in the maintainer workspace when this section was last refreshed (**2026-03-25 local**). After you pull or edit files, run the snippet under the table to see current dates on your machine. For **last git commit** per path, use: `git log -1 --format=%cs -- <path>`.
+Dates below are **file last-write time** in the maintainer workspace when this section was last refreshed (**2026-03-28 local**). After you pull or edit files, run the snippet under the table to see current dates on your machine. For **last git commit** per path, use: `git log -1 --format=%cs -- <path>`.
 
 | Path | Purpose | Last modified |
 |------|---------|---------------|
-| `README.md` | Download links, SOPs, key paths | 2026-03-25 |
+| `README.md` | Download links, SOPs, key paths | 2026-03-28 |
 | `Directory.Build.props` | Default `Version` + `ApplicationIcon` for repo projects | 2026-03-25 |
 | `.github/workflows/dotnet.yml` | CI Release build (Windows runner) | 2026-03-25 21:43 |
 | `branding/master-icon.png` | Master icon image | 2026-03-24 16:16 |
