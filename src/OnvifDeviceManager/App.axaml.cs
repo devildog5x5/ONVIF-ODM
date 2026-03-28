@@ -26,6 +26,7 @@ public partial class App : Application
             // child window creation fails. Logging + a dialog per failure makes the app unusable.
             if (IsWin32NativeControlHostCreateFailure(e.Exception))
             {
+                AvaloniaLiveViewNativeHost.ReportHostFailure();
                 LogThrottledNativeHostFailure("Avalonia.Dispatcher.UnhandledException (NativeControlHost)", e.Exception);
                 e.Handled = true;
                 return;
@@ -119,20 +120,29 @@ public partial class App : Application
     {
         foreach (var ex in agg.Flatten().InnerExceptions)
         {
-            if (ex is OperationCanceledException)
-                return true;
-            if (ex is ObjectDisposedException)
-                return true;
-            if (ex is IOException io && io.InnerException is SocketException)
-                return true;
-            if (ex is SocketException)
-                return true;
-            if (ex.Message.Contains("I/O operation has been aborted", StringComparison.OrdinalIgnoreCase))
-                return true;
-            if (IsWin32NativeControlHostCreateFailure(ex))
+            if (IsBenignUnobservedInnerException(ex))
                 return true;
         }
 
+        return false;
+    }
+
+    private static bool IsBenignUnobservedInnerException(Exception ex)
+    {
+        if (ex is OperationCanceledException)
+            return true;
+        if (ex is ObjectDisposedException)
+            return true;
+        if (ex is IOException io && io.InnerException is SocketException)
+            return true;
+        if (ex is SocketException)
+            return true;
+        if (ex.Message.Contains("I/O operation has been aborted", StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (IsWin32NativeControlHostCreateFailure(ex))
+            return true;
+        if (ex.InnerException != null && IsBenignUnobservedInnerException(ex.InnerException))
+            return true;
         return false;
     }
 

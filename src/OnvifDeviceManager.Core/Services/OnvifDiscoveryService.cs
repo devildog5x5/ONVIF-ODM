@@ -43,13 +43,14 @@ public class OnvifDiscoveryService
         List<OnvifDevice> devices,
         CancellationToken cancellationToken)
     {
+        UdpClient? udpClient = null;
         try
         {
-            using var udpClient = new UdpClient(new IPEndPoint(localAddress, 0));
+            udpClient = new UdpClient(new IPEndPoint(localAddress, 0));
             udpClient.Client.ReceiveTimeout = timeoutSeconds * 1000;
 
             var multicastEndpoint = new IPEndPoint(IPAddress.Parse(MulticastAddress), MulticastPort);
-            await udpClient.SendAsync(probeBytes, probeBytes.Length, multicastEndpoint);
+            await udpClient.SendAsync(probeBytes, probeBytes.Length, multicastEndpoint).ConfigureAwait(false);
 
             var endTime = DateTime.UtcNow.AddSeconds(timeoutSeconds);
 
@@ -62,10 +63,11 @@ public class OnvifDiscoveryService
                 using var recvCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 recvCts.CancelAfter(remainingTime);
 
+                Task<UdpReceiveResult>? receiveTask = null;
                 try
                 {
-                    // ValueTask → Task so cancellation/socket-close cannot leave a faulted task unobserved in the BCL.
-                    var receiveTask = udpClient.ReceiveAsync(recvCts.Token).AsTask();
+                    // ValueTask → Task so completion can be observed if we abort the socket.
+                    receiveTask = udpClient.ReceiveAsync(recvCts.Token).AsTask();
                     UdpReceiveResult result;
                     try
                     {
@@ -76,6 +78,8 @@ public class OnvifDiscoveryService
                         ObserveFaultedTask(receiveTask);
                         throw;
                     }
+
+                    receiveTask = null;
 
                     var response = Encoding.UTF8.GetString(result.Buffer);
                     var device = ParseProbeResponse(response);
@@ -96,19 +100,22 @@ public class OnvifDiscoveryService
                 }
                 catch (OperationCanceledException)
                 {
+                    RegisterReceiveCleanup(receiveTask);
                     break;
                 }
                 catch (SocketException)
                 {
+                    RegisterReceiveCleanup(receiveTask);
                     break;
                 }
                 catch (ObjectDisposedException)
                 {
+                    RegisterReceiveCleanup(receiveTask);
                     break;
                 }
                 catch (AggregateException ae)
                 {
-                    // Dispose/cancel can surface as AggregateException; treat like socket cancel.
+                    RegisterReceiveCleanup(receiveTask);
                     if (!ae.InnerExceptions.All(IsBenignUdpReceiveException))
                         throw;
                     break;
@@ -119,6 +126,44 @@ public class OnvifDiscoveryService
         {
             // Interface may not support multicast
         }
+        finally
+        {
+            if (udpClient != null)
+            {
+                try
+                {
+                    udpClient.Close();
+                }
+                catch
+                {
+                    /* ignore */
+                }
+
+                try
+                {
+                    udpClient.Dispose();
+                }
+                catch
+                {
+                    /* ignore */
+                }
+
+                // Let in-flight ReceiveAsync complete as canceled/faulted on a background continuation.
+                await Task.Delay(25).ConfigureAwait(false);
+            }
+        }
+    }
+
+    /// <summary>Observe completion of a receive that may finish after the socket is closed/canceled.</summary>
+    private static void RegisterReceiveCleanup(Task<UdpReceiveResult>? receiveTask)
+    {
+        if (receiveTask == null)
+            return;
+        _ = receiveTask.ContinueWith(
+            t => ObserveFaultedTask(t),
+            CancellationToken.None,
+            TaskContinuationOptions.ExecuteSynchronously,
+            TaskScheduler.Default);
     }
 
     private static bool IsBenignUdpReceiveException(Exception ex) =>

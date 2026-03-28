@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Net.Http;
+using System.Threading;
 using System.Windows.Input;
 using OnvifDeviceManager.Models;
 using OnvifDeviceManager.Services;
@@ -22,6 +23,7 @@ public class LiveViewViewModel : ViewModelBase
     private bool _isRefreshing;
     private int _refreshInterval = 1000;
     private CancellationTokenSource? _refreshCts;
+    private int _snapshotRefreshBusy;
     private float _panSpeed = 0.5f;
     private float _tiltSpeed = 0.5f;
     private float _zoomSpeed = 0.5f;
@@ -323,7 +325,7 @@ public class LiveViewViewModel : ViewModelBase
             {
                 try
                 {
-                    await _dispatcher.InvokeAsync(() => RefreshPtzPositionAsync(true));
+                    await _dispatcher.InvokeAsync(async () => await RefreshPtzPositionAsync(true));
                     await Task.Delay(1600, token);
                 }
                 catch (OperationCanceledException)
@@ -381,6 +383,10 @@ public class LiveViewViewModel : ViewModelBase
             return;
         }
 
+        // Avoid overlapping fetches (auto-refresh + manual) deadlocking or corrupting Image binding.
+        if (Interlocked.CompareExchange(ref _snapshotRefreshBusy, 1, 0) != 0)
+            return;
+
         IsLoading = true;
 
         try
@@ -404,6 +410,7 @@ public class LiveViewViewModel : ViewModelBase
         finally
         {
             IsLoading = false;
+            Interlocked.Exchange(ref _snapshotRefreshBusy, 0);
         }
     }
 
@@ -412,21 +419,37 @@ public class LiveViewViewModel : ViewModelBase
         StopAutoRefresh();
         IsRefreshing = true;
         _refreshCts = new CancellationTokenSource();
+        var token = _refreshCts.Token;
 
         _ = Task.Run(async () =>
         {
-            while (!_refreshCts.Token.IsCancellationRequested)
+            while (!token.IsCancellationRequested)
             {
-                await _dispatcher.InvokeAsync(() => RefreshSnapshotAsync());
-                try { await Task.Delay(RefreshInterval, _refreshCts.Token); }
-                catch (OperationCanceledException) { break; }
+                try
+                {
+                    await _dispatcher.InvokeAsync(RefreshSnapshotAsync).ConfigureAwait(false);
+                    await Task.Delay(RefreshInterval, token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
             }
-        });
+        }, token);
     }
 
     private void StopAutoRefresh()
     {
-        _refreshCts?.Cancel();
+        try
+        {
+            _refreshCts?.Cancel();
+        }
+        catch
+        {
+            /* ignore */
+        }
+
+        _refreshCts?.Dispose();
         _refreshCts = null;
         IsRefreshing = false;
     }

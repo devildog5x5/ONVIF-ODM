@@ -35,12 +35,35 @@ public partial class LiveViewView : UserControl
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
+        AvaloniaLiveViewNativeHost.EmbeddedVideoCapabilityChanged += OnEmbeddedVideoCapabilityChanged;
+        if (AvaloniaLiveViewNativeHost.EmbeddedVideoDisabledDueToHostFailure)
+            Dispatcher.UIThread.Post(ApplyEmbeddedVideoDisabledPolicy);
         // Do not touch native video runtime until the user starts RTSP.
         // This keeps view navigation stable if libvlc is missing/misaligned.
     }
 
+    private void OnEmbeddedVideoCapabilityChanged() =>
+        Dispatcher.UIThread.Post(ApplyEmbeddedVideoDisabledPolicy);
+
+    private void ApplyEmbeddedVideoDisabledPolicy()
+    {
+        StopLiveStream();
+        if (_videoView != null)
+        {
+            VideoHost.Children.Remove(_videoView);
+            _videoView = null;
+        }
+
+        if (DataContext is LiveViewViewModel vm)
+        {
+            vm.StatusText =
+                "Embedded live video was disabled after a Windows display-host error. Use Open externally for RTSP; snapshots still work.";
+        }
+    }
+
     private void OnUnloaded(object? sender, RoutedEventArgs e)
     {
+        AvaloniaLiveViewNativeHost.EmbeddedVideoCapabilityChanged -= OnEmbeddedVideoCapabilityChanged;
         UnsubscribeVm();
         StopLiveStream();
         if (_mediaPlayer != null)
@@ -127,6 +150,9 @@ public partial class LiveViewView : UserControl
         if (_libVlcInitialized)
             return;
 
+        if (AvaloniaLiveViewNativeHost.EmbeddedVideoDisabledDueToHostFailure)
+            return;
+
         try
         {
             var exeDir = AppContext.BaseDirectory;
@@ -166,6 +192,8 @@ public partial class LiveViewView : UserControl
 
     private void EnsureVideoViewCreated()
     {
+        if (AvaloniaLiveViewNativeHost.EmbeddedVideoDisabledDueToHostFailure)
+            return;
         if (_videoView != null)
             return;
         try
@@ -189,6 +217,12 @@ public partial class LiveViewView : UserControl
     {
         if (DataContext is not LiveViewViewModel vm || vm.Device == null)
             return;
+
+        if (AvaloniaLiveViewNativeHost.EmbeddedVideoDisabledDueToHostFailure)
+        {
+            vm.StatusText = "Embedded video is off on this PC (native host error). Use Open externally.";
+            return;
+        }
 
         if (!_libVlcInitialized)
             await InitializeLibVlcAsync().ConfigureAwait(true);
