@@ -29,7 +29,8 @@ When the user asks for a **shipping build**, **release**, **hotfix binaries**, o
 ## Chat handoff (required in the same turn as the work)
 
 1. Paste **verbatim** the **same** download URLs (or the **CI Artifacts** link + artifact name pattern) into the reply so the user does not hunt the README.
-2. End with a short **SOP completion** block: checklist **A–G** from README **“After every new binary build”** — each line **✅** or **N/A** with one phrase.
+2. When **`main`** CI produced a new Windows portable ZIP after your push, **in the same turn** also **update `README.md` [Pinned `main` CI build](#pinned-main-ci-build-windows-x64-portable)** (run URL, artifact `ONVIF-ODM-Windows-x64-r{number}-{attempt}`, inner `OnvifDeviceManager-Avalonia-win-x64-v…zip` from the job log, commit SHA), refresh the **Source / README refreshed** line, commit with **`[skip ci]`** in the subject, and **push**. Do not wait for the user to ask for build links.
+3. End with a short **SOP completion** block: checklist **A–G** from README **“After every new binary build”** — each line **✅** or **N/A** with one phrase.
 
 ## Limits (be explicit in chat)
 

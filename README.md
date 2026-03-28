@@ -48,9 +48,9 @@ For tags **without** uploaded assets, `releases/download/...` links **404** unti
 
 **Latest tagged release line:** **v2.0.0** — **build stamp `20260328-113237`** on [GitHub Release v2.0.0](https://github.com/devildog5x5/ONVIF-ODM/releases/tag/v2.0.0). Newer **`main`** commits may use **[Pinned `main` CI build](#pinned-main-ci-build-windows-x64-portable)** for Windows-only CI ZIPs until the next release upload.
 
-**Pinned CI build (Windows x64 portable, `main`):** commit **`9204a85`** — runner stamp **`20260328-172157`** — see **[Pinned `main` CI build](#pinned-main-ci-build-windows-x64-portable)** for the exact **Actions run URL**, **artifact name**, and **inner ZIP file names** (updated whenever maintainers or automation refresh this README after a successful CI pack).
+**Pinned CI build (Windows x64 portable, `main`):** commit **`85e8bba`** — runner stamp **`20260328-181225`** — see **[Pinned `main` CI build](#pinned-main-ci-build-windows-x64-portable)** for the exact **Actions run URL**, **artifact name**, and **inner ZIP file name** (matches **v2.0.0** + WPF removal + manifest/snapshot fixes).
 
-**Source / README refreshed:** 2026-03-27 (WPF removed; Avalonia-only CI and packaging). The `main` branch is verified on every push by **[GitHub Actions — Build workflow](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml)** ([workflow file](.github/workflows/dotnet.yml)). On each qualifying **`main`** push (and **manual workflow runs**), that workflow **publishes one self-contained Windows x64 Avalonia ZIP** and uploads it as **Artifacts** (unless **`[skip ci]`** in the commit message). Open the workflow run → **Artifacts** to download.
+**Source / README refreshed:** 2026-03-28 (pinned CI run **31** after Avalonia-only + snapshot/manifest fixes). The `main` branch is verified on every push by **[GitHub Actions — Build workflow](https://github.com/devildog5x5/ONVIF-ODM/actions/workflows/dotnet.yml)** ([workflow file](.github/workflows/dotnet.yml)). On each qualifying **`main`** push (and **manual workflow runs**), that workflow **publishes one self-contained Windows x64 Avalonia ZIP** and uploads it as **Artifacts** (unless **`[skip ci]`** in the commit message). Open the workflow run → **Artifacts** to download.
 
 | Platform | Edition | Asset name pattern (on [Releases](https://github.com/devildog5x5/ONVIF-ODM/releases)) |
 |----------|---------|----------------------------------------------------------------------------------------|
@@ -67,11 +67,11 @@ Use this for **latest `main` Windows x64** builds between releases, or when you 
 
 | | |
 |--|--|
-| **Actions run** | [Build workflow run 23690318540](https://github.com/devildog5x5/ONVIF-ODM/actions/runs/23690318540) (success, **push** to `main`, **commit `9204a85`**) |
-| **Artifact name** | `ONVIF-ODM-Windows-x64-r30-1` |
-| **Portable ZIPs inside** | `OnvifDeviceManager-Avalonia-win-x64-v2.0.0-20260328-172157.zip` *(re-pin this row after the next green `main` CI run — older runs may have listed a second WPF ZIP)* |
+| **Actions run** | [Build workflow run 23691248484](https://github.com/devildog5x5/ONVIF-ODM/actions/runs/23691248484) (success, **push** to `main`, **commit `85e8bba`**) |
+| **Artifact name** | `ONVIF-ODM-Windows-x64-r31-1` |
+| **Portable ZIP inside** | `OnvifDeviceManager-Avalonia-win-x64-v2.0.0-20260328-181225.zip` |
 
-**CLI (authenticated):** `gh run download 23690318540 -R devildog5x5/ONVIF-ODM`
+**CLI (authenticated):** `gh run download 23691248484 -R devildog5x5/ONVIF-ODM`
 
 **Maintainer SOP:** After each refresh, run **`dotnet build -c Release`**, **`.\build\build-all.ps1`** (or trigger **`gh workflow run dotnet.yml --ref main`**), wait for green, then replace the **run URL**, **artifact name**, **inner ZIP names**, **commit SHA** (the commit **CI checked out** for that run), and **Source / README refreshed** line above. Commit and push the README on `main`. For **README-only** pin fixes after a green run, put **`[skip ci]`** in the commit subject so the workflow (see `.github/workflows/dotnet.yml`) does not enqueue another Windows pack job.
 
