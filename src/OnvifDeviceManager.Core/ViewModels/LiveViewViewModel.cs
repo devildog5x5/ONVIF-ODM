@@ -452,49 +452,20 @@ public class LiveViewViewModel : ViewModelBase
 
     private static async Task<byte[]?> FetchSnapshotBytesAsync(string snapshotUri, string? username, string? password)
     {
-        // Strategy: send preemptive Basic auth (most cameras accept it immediately)
-        // then fall back to Digest via CredentialCache on 401.
         using var handler = new HttpClientHandler
         {
-            ServerCertificateCustomValidationCallback = (_, _, _, _) => true,
-            UseDefaultCredentials = false
+            ServerCertificateCustomValidationCallback = (_, _, _, _) => true
         };
+        using var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(15) };
 
-        using var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(20) };
         if (!string.IsNullOrEmpty(username))
         {
             var basic = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:{password ?? string.Empty}"));
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", basic);
         }
 
-        using var response = await client.GetAsync(snapshotUri, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false);
-        if (response.IsSuccessStatusCode)
-            return await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
-
-        // If Basic was rejected, retry with Digest (separate handler so HttpClient can negotiate).
-        if (response.StatusCode == HttpStatusCode.Unauthorized && !string.IsNullOrEmpty(username)
-            && Uri.TryCreate(snapshotUri, UriKind.Absolute, out var baseUri))
-        {
-            using var digestHandler = new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback = (_, _, _, _) => true,
-                UseDefaultCredentials = false,
-                PreAuthenticate = false
-            };
-            var cache = new CredentialCache();
-            var cred = new NetworkCredential(username, password ?? string.Empty);
-            var prefix = new Uri($"{baseUri.Scheme}://{baseUri.Authority}/");
-            cache.Add(prefix, "Digest", cred);
-            cache.Add(prefix, "Basic", cred);
-            digestHandler.Credentials = cache;
-
-            using var client2 = new HttpClient(digestHandler) { Timeout = TimeSpan.FromSeconds(20) };
-            using var response2 = await client2.GetAsync(snapshotUri, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false);
-            if (response2.IsSuccessStatusCode)
-                return await response2.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
-        }
-
-        return null;
+        var bytes = await client.GetByteArrayAsync(snapshotUri).ConfigureAwait(false);
+        return bytes;
     }
 
     private void StartAutoRefresh()
