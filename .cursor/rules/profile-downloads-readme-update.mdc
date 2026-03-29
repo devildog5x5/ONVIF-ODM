@@ -1,0 +1,21 @@
+---
+description: Repeatable update for devildog5x5 GitHub profile downloads README
+alwaysApply: true
+---
+
+# Profile downloads page (`devildog5x5` README)
+
+When the user asks to **update the profile downloads**, **update the central download links**, **refresh devildog5x5**, or **update them** in that context (the GitHub profile repo that lists all project release ZIPs/installers), do the following **without improvising a one-off process**:
+
+1. From the **ONVIF-ODM** repo root, run:
+
+   `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\update-profile-downloads-readme.ps1`  
+   (or `pwsh` if you use PowerShell 7.)
+
+   Optional: `-ProfileReadmePath <full path to devildog5x5\README.md>` if the profile clone is not a sibling of `ONVIF-ODM` under the same parent folder.
+
+2. If they want it **published**, run the same script with **`-Commit`** (after `git status` in the profile repo looks correct). That commits and pushes `README.md` on the branch checked out in `devildog5x5`.
+
+3. **Edit the script** (`scripts\update-profile-downloads-readme.ps1`) when adding a new repo, changing asset filenames, or section text — the `$Sections` and `$OtherReposMarkdown` blocks are the source of truth for layout.
+
+Requirements: **GitHub CLI** (`gh`) installed and authenticated (`gh auth login`). The script uses **`/releases/latest`** per configured repo; repos without a latest release are skipped with a warning.
