@@ -12,21 +12,40 @@
     </UserControl.Resources>
 
     <Panel>
-        <Grid Margin="24" RowDefinitions="Auto,*,Auto"
+        <Grid Margin="24" RowDefinitions="Auto,Auto,*,Auto"
               IsVisible="{Binding Device, Converter={x:Static ObjectConverters.IsNotNull}}">
 
-            <StackPanel Grid.Row="0" Margin="0,0,0,12">
+            <!-- Row 0: Page header -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,8">
                 <TextBlock Text="Live View" Classes="header" />
-                <TextBlock Text="Embedded RTSP live video (LibVLC) plus snapshots — gunshot / event simulator is under Stream &amp; profile." Classes="body" Margin="0,4,0,0" TextWrapping="Wrap" />
+                <TextBlock Text="Live RTSP video, snapshots, PTZ, and gunshot / event simulator." Classes="body" Margin="0,4,0,0" TextWrapping="Wrap" />
             </StackPanel>
 
-            <!-- VideoView (LibVLC NativeControlHost) must not sit under ScrollViewer — breaks Win32 child window creation. -->
-            <!-- Snapshot still is in its own row so NativeControlHost failures do not break Image layout. -->
-            <Grid Grid.Row="1" RowDefinitions="Auto,Auto,Auto,*">
-            <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <StackPanel Spacing="0">
+            <!-- Row 1: Video area — NOT inside a ScrollViewer (NativeControlHost requirement) -->
+            <Border Grid.Row="1" Classes="card" MinHeight="260" MaxHeight="380" Margin="0,0,0,8">
+                <Grid MinHeight="240" Background="Black">
+                    <Grid x:Name="VideoHost" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="0" />
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" ZIndex="2"
+                                IsVisible="{Binding ShowVideoPlaceholder}">
+                        <PathIcon Data="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"
+                                  Foreground="#607D8B" Width="64" Height="64" HorizontalAlignment="Center" />
+                        <TextBlock Text="Live video" Classes="body" HorizontalAlignment="Center" Margin="0,16,0,0" />
+                        <TextBlock Text="Choose a profile, then Start live video (RTSP). Snapshot / Auto refresh shows stills when the stream is stopped."
+                                   Classes="caption" HorizontalAlignment="Center" Margin="0,4,0,0" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="440" />
+                    </StackPanel>
+                    <Border Background="#80000000" ZIndex="3" IsVisible="{Binding IsLoading}">
+                        <TextBlock Text="Loading..." Foreground="White" FontSize="16"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </Grid>
+            </Border>
 
-                    <Border Classes="card" Margin="0,0,0,12">
+            <!-- Row 2: Single ScrollViewer with ALL controls — profile, buttons, snapshot, PTZ, event sim, URI -->
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Spacing="8">
+
+                    <!-- Profile selector + stream/snapshot buttons -->
+                    <Border Classes="card">
                         <StackPanel Spacing="8">
                             <TextBlock Text="Stream &amp; profile" FontWeight="SemiBold" Foreground="#00D4AA" />
                             <StackPanel Orientation="Horizontal" Spacing="12">
@@ -72,71 +91,17 @@
                         </StackPanel>
                     </Border>
 
-                    <Border Background="#120a0a" CornerRadius="8" Padding="12" BorderBrush="#3d1a1a" BorderThickness="1" Margin="0,0,0,12">
-                        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto">
-                            <StackPanel Grid.Column="0" Spacing="4">
-                                <TextBlock Text="Gunshot / alarm simulator" FontWeight="SemiBold" Foreground="#E94560" />
-                                <TextBlock Text="Pick event type (e.g. Gunshot Detection), preset or pan/tilt, then Simulate event." Classes="caption" TextWrapping="Wrap" />
-                            </StackPanel>
-                            <TextBlock Grid.Column="1" Text="{Binding LastSimulatedEvent}" Classes="caption" HorizontalAlignment="Right" MaxWidth="200" TextWrapping="Wrap" TextAlignment="Right" />
-                            <StackPanel Grid.Row="1" Spacing="10" Margin="0,12,0,0" Grid.ColumnSpan="2">
-                                <StackPanel Orientation="Horizontal" Spacing="12">
-                                    <TextBlock Text="Event type" Classes="caption" VerticalAlignment="Center" />
-                                    <ComboBox Width="200" ItemsSource="{x:Static vm:LiveViewViewModel.EventTypes}"
-                                              SelectedIndex="{Binding EventTypeIndex}" />
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Spacing="16">
-                                    <RadioButton Content="Goto preset #" IsChecked="{Binding EventTargetUsePreset, Mode=TwoWay}" GroupName="EvtTgt" />
-                                    <ComboBox Width="56" IsEnabled="{Binding EventTargetUsePreset}"
-                                              ItemsSource="{x:Static vm:LiveViewViewModel.PresetNumberChoices}"
-                                              SelectedItem="{Binding EventTargetPresetNumber}" />
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <RadioButton Content="Pan / tilt" IsChecked="{Binding EventTargetUseCoordinates, Mode=TwoWay}" GroupName="EvtTgt" />
-                                    <TextBox Width="64" Watermark="Pan" Text="{Binding EventTargetPanString}" IsEnabled="{Binding EventTargetUseCoordinates}" />
-                                    <TextBlock Text="/" VerticalAlignment="Center" />
-                                    <TextBox Width="64" Watermark="Tilt" Text="{Binding EventTargetTiltString}" IsEnabled="{Binding EventTargetUseCoordinates}" />
-                                </StackPanel>
-                                <Button Classes="danger" Content="⚡ Simulate event" Command="{Binding SimulateEventCommand}" HorizontalAlignment="Left" Padding="14,8" />
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-
-                </StackPanel>
-            </ScrollViewer>
-
-                    <Border Grid.Row="1" Classes="card" Margin="0,0,0,12" MinHeight="120"
-                            IsVisible="{Binding ShowSnapshotAsStill}">
+                    <!-- Snapshot still image -->
+                    <Border Classes="card" MinHeight="80" IsVisible="{Binding ShowSnapshotAsStill}">
                         <StackPanel Spacing="6">
                             <TextBlock Text="Still snapshot" Classes="caption" />
                             <Image Source="{Binding SnapshotBytes, Converter={StaticResource BytesToBitmap}}" Stretch="Uniform"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" MaxHeight="400" />
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" MaxHeight="360" />
                         </StackPanel>
                     </Border>
 
-                    <Border Grid.Row="2" Classes="card" MinHeight="280" Margin="0,0,0,12">
-                        <Grid MinHeight="280" Background="Black">
-                            <!-- Create VideoView lazily in code to avoid view-open crashes when native VLC runtime is unavailable -->
-                            <Grid x:Name="VideoHost" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ZIndex="0" />
-                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" ZIndex="2"
-                                        IsVisible="{Binding ShowVideoPlaceholder}">
-                                <PathIcon Data="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"
-                                          Foreground="#607D8B" Width="64" Height="64" HorizontalAlignment="Center" />
-                                <TextBlock Text="Live video" Classes="body" HorizontalAlignment="Center" Margin="0,16,0,0" />
-                                <TextBlock Text="Choose a profile above, then Start live video (RTSP) for motion in this pane. Snapshot / Auto refresh shows stills when the stream is stopped."
-                                           Classes="caption" HorizontalAlignment="Center" Margin="0,4,0,0" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="440" />
-                            </StackPanel>
-                            <Border Background="#80000000" ZIndex="3" IsVisible="{Binding IsLoading}">
-                                <TextBlock Text="Loading..." Foreground="White" FontSize="16"
-                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
-                            </Border>
-                        </Grid>
-                    </Border>
-
-            <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <StackPanel Spacing="0">
-
-                    <Border Classes="card" Margin="0,0,0,12" IsVisible="{Binding ShowPtzPanel}">
+                    <!-- PTZ controls -->
+                    <Border Classes="card" IsVisible="{Binding ShowPtzPanel}">
                         <Grid RowDefinitions="Auto,Auto">
                             <TextBlock Grid.Row="0" Text="PTZ — where the camera is pointing + controls"
                                        FontWeight="SemiBold" Foreground="#00D4AA" Margin="0,0,0,10" />
@@ -180,17 +145,50 @@
                         </Grid>
                     </Border>
 
-                    <Border Classes="card" Margin="0,0,0,12">
+                    <!-- Event simulator -->
+                    <Border Background="#120a0a" CornerRadius="8" Padding="12" BorderBrush="#3d1a1a" BorderThickness="1">
+                        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto">
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <TextBlock Text="Gunshot / alarm simulator" FontWeight="SemiBold" Foreground="#E94560" />
+                                <TextBlock Text="Pick event type (e.g. Gunshot Detection), preset or pan/tilt, then Simulate event." Classes="caption" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" Text="{Binding LastSimulatedEvent}" Classes="caption" HorizontalAlignment="Right" MaxWidth="200" TextWrapping="Wrap" TextAlignment="Right" />
+                            <StackPanel Grid.Row="1" Spacing="10" Margin="0,12,0,0" Grid.ColumnSpan="2">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <TextBlock Text="Event type" Classes="caption" VerticalAlignment="Center" />
+                                    <ComboBox Width="200" ItemsSource="{x:Static vm:LiveViewViewModel.EventTypes}"
+                                              SelectedIndex="{Binding EventTypeIndex}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="16">
+                                    <RadioButton Content="Goto preset #" IsChecked="{Binding EventTargetUsePreset, Mode=TwoWay}" GroupName="EvtTgt" />
+                                    <ComboBox Width="56" IsEnabled="{Binding EventTargetUsePreset}"
+                                              ItemsSource="{x:Static vm:LiveViewViewModel.PresetNumberChoices}"
+                                              SelectedItem="{Binding EventTargetPresetNumber}" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <RadioButton Content="Pan / tilt" IsChecked="{Binding EventTargetUseCoordinates, Mode=TwoWay}" GroupName="EvtTgt" />
+                                    <TextBox Width="64" Watermark="Pan" Text="{Binding EventTargetPanString}" IsEnabled="{Binding EventTargetUseCoordinates}" />
+                                    <TextBlock Text="/" VerticalAlignment="Center" />
+                                    <TextBox Width="64" Watermark="Tilt" Text="{Binding EventTargetTiltString}" IsEnabled="{Binding EventTargetUseCoordinates}" />
+                                </StackPanel>
+                                <Button Classes="danger" Content="⚡ Simulate event" Command="{Binding SimulateEventCommand}" HorizontalAlignment="Left" Padding="14,8" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Stream URI -->
+                    <Border Classes="card">
                         <StackPanel Spacing="6">
                             <TextBlock Text="Stream URI" FontWeight="SemiBold" Classes="caption" />
                             <TextBlock Text="{Binding StreamUri}" Classes="mono" TextWrapping="Wrap" />
                         </StackPanel>
                     </Border>
+
                 </StackPanel>
             </ScrollViewer>
-            </Grid>
 
-            <Border Grid.Row="2" Margin="0,12,0,0" Padding="12,8" Background="#1E2A4A" CornerRadius="8">
+            <!-- Row 3: Status bar -->
+            <Border Grid.Row="3" Margin="0,8,0,0" Padding="12,8" Background="#1E2A4A" CornerRadius="8">
                 <TextBlock Text="{Binding StatusText}" Classes="caption" />
             </Border>
         </Grid>
