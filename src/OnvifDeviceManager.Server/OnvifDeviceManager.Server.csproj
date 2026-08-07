@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>OnvifDeviceManager.Server</RootNamespace>
+    <AssemblyName>OnvifDeviceManager.Server</AssemblyName>
+    <Version>1.0.0</Version>
+    <Authors>Robert Foster</Authors>
+    <Description>ONVIF Device Manager Server - REST API for ONVIF device management</Description>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OnvifDeviceManager.Core\OnvifDeviceManager.Core.csproj" />
+  </ItemGroup>
+
+</Project>
