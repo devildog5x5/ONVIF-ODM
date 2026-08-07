@@ -11,20 +11,37 @@ ONVIF Device Manager — a .NET 8.0 / C# desktop app for managing ONVIF IP camer
 - **.NET 8.0 SDK** installed at `$HOME/.dotnet` with `DOTNET_ROOT` and `PATH` configured in `~/.bashrc`.
 - **Xvfb** (or another X11 display server) must be running for the Avalonia GUI. The VM typically has Xvfb on `:1` already.
 
-### Build and run (Avalonia edition on Linux)
+### Build and run
 
 See `README.md` "Building from Source" section. Key commands:
 
-```
+```bash
+# Client (Avalonia desktop GUI)
 dotnet restore src/OnvifDeviceManager/OnvifDeviceManager.csproj
 dotnet build src/OnvifDeviceManager/OnvifDeviceManager.csproj
 DISPLAY=:1 dotnet run --project src/OnvifDeviceManager
+
+# Server (REST API)
+dotnet restore src/OnvifDeviceManager.Server/OnvifDeviceManager.Server.csproj
+dotnet build src/OnvifDeviceManager.Server/OnvifDeviceManager.Server.csproj
+dotnet run --project src/OnvifDeviceManager.Server
+# Server listens on http://localhost:5053 in dev mode
 ```
+
+### Installers
+
+Three installer scripts in `install/`:
+- `install-server.sh` — Server only (headless REST API)
+- `install-client.sh` — Client only (Avalonia GUI)
+- `install-full.sh` — Both together
+
+Run from the repo root: `bash install/install-full.sh`
 
 ### Caveats
 
-- The WPF project (`OnvifDeviceManager.Wpf`) targets `net8.0-windows` and **cannot build on Linux**. Do not run `dotnet build` on the full solution — build only the Avalonia project or the Core library.
+- The WPF project (`OnvifDeviceManager.Wpf`) targets `net8.0-windows` and **cannot build on Linux**. Do not run `dotnet build` on the full solution — build only the Avalonia, Server, or Core projects.
 - There are **no automated tests** (no test projects in the solution). Verification is done by building and running the app manually.
 - There is **no linting configuration** (no `.editorconfig` enforcement, no analyzers). Code style is not enforced by tooling.
 - The app requires ONVIF cameras on the network for full E2E testing. Without cameras, you can still verify the UI launches, navigation works, and the discovery scan completes (finding 0 devices).
 - On first `dotnet run`, the build step runs inline. Subsequent runs are faster since binaries are cached.
+- The systemd service in the installers requires a system booted with systemd. In containers/VMs without it, start the server manually.
