@@ -127,14 +127,14 @@ Latest CI (Windows only, may be newer than Release): [Actions artifacts](https:/
 "@
     }
     @{
-        Title       = "Ledgerly ERP"
+        Title       = "Coalesce.ERP.CRM"
         Repo        = "ERP"
-        Description = "Windows client/server ERP for small businesses (inventory, purchasing, sales). Every installer asks Client / Server / Both. Requires .NET Framework 4.8 (Windows 7 SP1+)."
+        Description = "Windows client/server ERP + CRM (inventory, purchasing, sales, leads, pipeline). Every installer asks Client / Server / Both. Requires .NET Framework 4.8 (Windows 7 SP1+)."
         TableHeader = @("Package", "Download")
         Rows        = @(
-            @{ Label = "Combined"; Exact = "LedgerlySetup.exe" }
-            @{ Label = "Client package"; Exact = "LedgerlyClientSetup.exe" }
-            @{ Label = "Server package"; Exact = "LedgerlyServerSetup.exe" }
+            @{ Label = "Combined"; Exact = "CoalesceSetup.exe" }
+            @{ Label = "Client package"; Exact = "CoalesceClientSetup.exe" }
+            @{ Label = "Server package"; Exact = "CoalesceServerSetup.exe" }
         )
         Footer      = @"
 Default login: ``admin`` / ``admin`` | API: ``http://127.0.0.1:8000`` | [All releases](https://github.com/$Owner/ERP/releases) | [Source](https://github.com/$Owner/ERP)
