@@ -126,6 +126,20 @@ Latest CI (Windows only, may be newer than Release): [Actions artifacts](https:/
 [All releases](https://github.com/$Owner/Video_Editor/releases) | [C# source](https://github.com/$Owner/VideoEditor-CSharp) | [Python source](https://github.com/$Owner/VideoEditor-Python)
 "@
     }
+    @{
+        Title       = "Ledgerly ERP"
+        Repo        = "ERP"
+        Description = "Windows client/server ERP for small businesses (inventory, purchasing, sales). Every installer asks Client / Server / Both. Requires .NET Framework 4.8 (Windows 7 SP1+)."
+        TableHeader = @("Package", "Download")
+        Rows        = @(
+            @{ Label = "Combined"; Exact = "LedgerlySetup.exe" }
+            @{ Label = "Client package"; Exact = "LedgerlyClientSetup.exe" }
+            @{ Label = "Server package"; Exact = "LedgerlyServerSetup.exe" }
+        )
+        Footer      = @"
+Default login: ``admin`` / ``admin`` | API: ``http://127.0.0.1:8000`` | [All releases](https://github.com/$Owner/ERP/releases) | [Source](https://github.com/$Owner/ERP)
+"@
+    }
 )
 
 $OtherReposMarkdown = @"
