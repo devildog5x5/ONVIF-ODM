@@ -27,7 +27,16 @@ set -e
 INSTALL_DIR="/opt/onvif-device-manager"
 SERVICE_NAME="onvif-device-manager"
 SERVER_PORT="${ODM_PORT:-5000}"
+SERVER_BIND="${ODM_BIND:-127.0.0.1}"
 VERSION="1.0.0"
+
+# Generate a secure API key if not provided
+if [ -z "$ODM_API_KEY" ]; then
+    ODM_API_KEY=$(openssl rand -base64 32 | tr -d '/+=' | head -c 32)
+    echo "[!] Generated API key: $ODM_API_KEY"
+    echo "    Save this key — clients need it to authenticate with the server."
+    echo ""
+fi
 
 echo ""
 echo "┌─────────────────────────────────────────────────────────────┐"
@@ -100,12 +109,13 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=$INSTALL_DIR/server/OnvifDeviceManager.Server --urls http://0.0.0.0:$SERVER_PORT
+ExecStart=$INSTALL_DIR/server/OnvifDeviceManager.Server --urls http://$SERVER_BIND:$SERVER_PORT
 WorkingDirectory=$INSTALL_DIR/server
 Restart=always
 RestartSec=5
 Environment=ASPNETCORE_ENVIRONMENT=Production
 Environment=DOTNET_ROOT=$DOTNET_ROOT
+Environment=ODM_API_KEY=$ODM_API_KEY
 
 [Install]
 WantedBy=multi-user.target

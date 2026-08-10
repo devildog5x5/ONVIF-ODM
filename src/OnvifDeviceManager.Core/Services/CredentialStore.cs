@@ -171,6 +171,11 @@ public class CredentialStore
         {
             var json = JsonSerializer.Serialize(_data, JsonOptions);
             File.WriteAllText(_filePath, json);
+            if (!OperatingSystem.IsWindows())
+            {
+                File.SetUnixFileMode(_filePath,
+                    UnixFileMode.UserRead | UnixFileMode.UserWrite);
+            }
         }
         catch { }
     }

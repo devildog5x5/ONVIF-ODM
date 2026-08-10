@@ -27,7 +27,16 @@ set -e
 INSTALL_DIR="/opt/onvif-device-manager"
 SERVICE_NAME="onvif-device-manager"
 SERVER_PORT="${ODM_PORT:-5000}"
+SERVER_BIND="${ODM_BIND:-127.0.0.1}"
 VERSION="1.0.0"
+
+# Generate a secure API key if not provided
+if [ -z "$ODM_API_KEY" ]; then
+    ODM_API_KEY=$(openssl rand -base64 32 | tr -d '/+=' | head -c 32)
+    echo "[!] Generated API key: $ODM_API_KEY"
+    echo "    Save this key — clients need it to authenticate."
+    echo ""
+fi
 
 echo ""
 echo "┌─────────────────────────────────────────────────────────────┐"
@@ -35,7 +44,7 @@ echo "│         ONVIF Device Manager — SERVER Installation          │"
 echo "│                      Version $VERSION                        │"
 echo "├─────────────────────────────────────────────────────────────┤"
 echo "│  Component: SERVER ONLY (REST API, no GUI)                  │"
-echo "│  Port:      $SERVER_PORT                                         │"
+echo "│  Bind:      $SERVER_BIND:$SERVER_PORT                                 │"
 echo "│  Install:   $INSTALL_DIR                         │"
 echo "└─────────────────────────────────────────────────────────────┘"
 echo ""
@@ -95,12 +104,13 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=$INSTALL_DIR/server/OnvifDeviceManager.Server --urls http://0.0.0.0:$SERVER_PORT
+ExecStart=$INSTALL_DIR/server/OnvifDeviceManager.Server --urls http://$SERVER_BIND:$SERVER_PORT
 WorkingDirectory=$INSTALL_DIR/server
 Restart=always
 RestartSec=5
 Environment=ASPNETCORE_ENVIRONMENT=Production
 Environment=DOTNET_ROOT=$DOTNET_ROOT
+Environment=ODM_API_KEY=$ODM_API_KEY
 
 [Install]
 WantedBy=multi-user.target
@@ -121,13 +131,19 @@ echo "┌───────────────────────�
 echo "│                   Installation Complete!                     │"
 echo "├─────────────────────────────────────────────────────────────┤"
 echo "│                                                             │"
-echo "│  Server API:  http://localhost:$SERVER_PORT                       │"
+echo "│  Server API:  http://$SERVER_BIND:$SERVER_PORT                       │"
+echo "│  API Key:     $ODM_API_KEY  │"
+echo "│                                                             │"
 echo "│  Status:      sudo systemctl status $SERVICE_NAME    │"
 echo "│  Logs:        sudo journalctl -u $SERVICE_NAME -f    │"
 echo "│  Stop:        sudo systemctl stop $SERVICE_NAME      │"
 echo "│  Restart:     sudo systemctl restart $SERVICE_NAME   │"
 echo "│                                                             │"
-echo "│  API docs:    http://localhost:$SERVER_PORT/                      │"
+echo "│  SECURITY NOTES:                                            │"
+echo "│  • API key required for all endpoints (X-API-Key header)    │"
+echo "│  • Bound to $SERVER_BIND by default (local only)         │"
+echo "│  • Set ODM_BIND=0.0.0.0 to expose on network               │"
+echo "│  • Use HTTPS reverse proxy for production exposure          │"
 echo "│                                                             │"
 echo "└─────────────────────────────────────────────────────────────┘"
 echo ""

@@ -1,4 +1,7 @@
-using System.Text.Json;
+using System.Collections.Concurrent;
+using System.Net;
+using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 using OnvifDeviceManager.Models;
 using OnvifDeviceManager.Services;
 
@@ -6,41 +9,106 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<OnvifDiscoveryService>();
 builder.Services.AddSingleton<CredentialStore>();
+
+var apiKey = Environment.GetEnvironmentVariable("ODM_API_KEY")
+    ?? builder.Configuration["ApiKey"]
+    ?? GenerateDefaultApiKey();
+
+var allowedOrigins = Environment.GetEnvironmentVariable("ODM_ALLOWED_ORIGINS")
+    ?? builder.Configuration["AllowedOrigins"]
+    ?? "http://localhost:*";
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
-        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+    {
+        if (allowedOrigins == "*")
+            policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        else
+            policy.WithOrigins(allowedOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+    });
 });
 
 var app = builder.Build();
 app.UseCors();
 
-var connectedDevices = new Dictionary<string, OnvifDevice>();
-
-app.MapGet("/", () => Results.Json(new
+app.Use(async (context, next) =>
 {
-    service = "ONVIF Device Manager Server",
-    version = "1.0.0",
-    status = "running",
-    endpoints = new[]
+    var path = context.Request.Path.Value ?? "";
+
+    if (path == "/" || path == "/api/status")
     {
-        "GET  /api/devices/discover",
-        "POST /api/devices/add",
-        "GET  /api/devices",
-        "GET  /api/devices/{address}/info",
-        "GET  /api/devices/{address}/capabilities",
-        "GET  /api/devices/{address}/profiles",
-        "GET  /api/devices/{address}/stream-uri/{profileToken}",
-        "GET  /api/devices/{address}/snapshot-uri/{profileToken}",
-        "GET  /api/devices/{address}/network",
-        "GET  /api/devices/{address}/users",
-        "POST /api/devices/{address}/ptz/move",
-        "POST /api/devices/{address}/ptz/stop",
-        "GET  /api/devices/{address}/ptz/status/{profileToken}",
-        "GET  /api/devices/{address}/ptz/presets/{profileToken}",
-        "GET  /api/status"
+        await next();
+        return;
     }
-}));
+
+    if (!path.StartsWith("/api/"))
+    {
+        await next();
+        return;
+    }
+
+    var providedKey = context.Request.Headers["X-API-Key"].FirstOrDefault()
+        ?? context.Request.Query["api_key"].FirstOrDefault();
+
+    if (string.IsNullOrEmpty(providedKey) || !CryptographicOperations.FixedTimeEquals(
+            System.Text.Encoding.UTF8.GetBytes(providedKey),
+            System.Text.Encoding.UTF8.GetBytes(apiKey)))
+    {
+        context.Response.StatusCode = 401;
+        await context.Response.WriteAsJsonAsync(new { error = "Unauthorized. Provide a valid API key via X-API-Key header." });
+        return;
+    }
+
+    await next();
+});
+
+var connectedDevices = new ConcurrentDictionary<string, OnvifDevice>();
+var lastDiscoveryTime = DateTime.MinValue;
+var discoveryLock = new SemaphoreSlim(1, 1);
+
+const int MaxDiscoveryTimeout = 30;
+const int MinDiscoveryCooldown = 5;
+
+app.MapGet("/", () =>
+{
+    var maskedKey = apiKey.Length > 8
+        ? apiKey[..4] + new string('*', apiKey.Length - 8) + apiKey[^4..]
+        : "****";
+
+    return Results.Json(new
+    {
+        service = "ONVIF Device Manager Server",
+        version = "1.0.0",
+        status = "running",
+        security = new
+        {
+            authentication = "API Key required (X-API-Key header)",
+            apiKeyHint = maskedKey,
+            binding = app.Urls.FirstOrDefault() ?? "default"
+        },
+        endpoints = new[]
+        {
+            "GET  /api/devices/discover?timeout=5",
+            "POST /api/devices/add",
+            "GET  /api/devices",
+            "GET  /api/devices/{address}/info",
+            "GET  /api/devices/{address}/capabilities",
+            "GET  /api/devices/{address}/profiles",
+            "GET  /api/devices/{address}/stream-uri/{profileToken}",
+            "GET  /api/devices/{address}/snapshot-uri/{profileToken}",
+            "GET  /api/devices/{address}/network",
+            "GET  /api/devices/{address}/users",
+            "POST /api/devices/{address}/ptz/move",
+            "POST /api/devices/{address}/ptz/stop",
+            "GET  /api/devices/{address}/ptz/status/{profileToken}",
+            "GET  /api/devices/{address}/ptz/presets/{profileToken}",
+            "GET  /api/status"
+        }
+    });
+});
 
 app.MapGet("/api/status", () => Results.Json(new
 {
@@ -51,36 +119,63 @@ app.MapGet("/api/status", () => Results.Json(new
 
 app.MapGet("/api/devices/discover", async (int? timeout, OnvifDiscoveryService discovery) =>
 {
-    var timeoutSec = timeout ?? 5;
-    var devices = await discovery.DiscoverDevicesAsync(timeoutSec);
+    var timeoutSec = Math.Clamp(timeout ?? 5, 1, MaxDiscoveryTimeout);
 
-    foreach (var device in devices)
+    var elapsed = DateTime.UtcNow - lastDiscoveryTime;
+    if (elapsed.TotalSeconds < MinDiscoveryCooldown)
     {
-        if (!connectedDevices.ContainsKey(device.Address))
-            connectedDevices[device.Address] = device;
+        return Results.Json(new { error = $"Rate limited. Wait {MinDiscoveryCooldown - (int)elapsed.TotalSeconds}s before next discovery." },
+            statusCode: 429);
     }
 
-    return Results.Json(devices.Select(d => new
+    if (!await discoveryLock.WaitAsync(0))
+        return Results.Json(new { error = "Discovery already in progress." }, statusCode: 409);
+
+    try
     {
-        d.Address,
-        d.Name,
-        d.Manufacturer,
-        d.Model,
-        d.ServiceAddress,
-        d.IsOnline,
-        Status = d.Status.ToString()
-    }));
+        lastDiscoveryTime = DateTime.UtcNow;
+        var devices = await discovery.DiscoverDevicesAsync(timeoutSec);
+
+        foreach (var device in devices)
+            connectedDevices.TryAdd(device.Address, device);
+
+        return Results.Json(devices.Select(d => new
+        {
+            d.Address,
+            d.Name,
+            d.Manufacturer,
+            d.Model,
+            d.ServiceAddress,
+            d.IsOnline,
+            Status = d.Status.ToString()
+        }));
+    }
+    finally
+    {
+        discoveryLock.Release();
+    }
 });
 
 app.MapPost("/api/devices/add", (AddDeviceRequest request) =>
 {
+    if (string.IsNullOrWhiteSpace(request.Address))
+        return Results.BadRequest(new { error = "Address is required." });
+
+    if (!IsValidDeviceAddress(request.Address))
+        return Results.BadRequest(new { error = "Invalid device address. Must be a valid IP address or hostname." });
+
+    var serviceAddress = request.Address.Contains("://")
+        ? request.Address
+        : $"http://{request.Address}/onvif/device_service";
+
+    if (!IsValidOnvifUrl(serviceAddress))
+        return Results.BadRequest(new { error = "Invalid service URL. Only http/https with standard ONVIF paths are allowed." });
+
     var device = new OnvifDevice
     {
         Address = request.Address,
-        ServiceAddress = request.Address.Contains("://")
-            ? request.Address
-            : $"http://{request.Address}/onvif/device_service",
-        Name = request.Name ?? request.Address,
+        ServiceAddress = serviceAddress,
+        Name = SanitizeString(request.Name ?? request.Address, 100),
         Username = request.Username ?? string.Empty,
         Password = request.Password ?? string.Empty,
         IsOnline = true,
@@ -274,6 +369,16 @@ app.MapPost("/api/devices/{address}/ptz/move", async (string address, PtzMoveReq
     if (!connectedDevices.TryGetValue(address, out var device))
         return Results.NotFound(new { error = $"Device {address} not found" });
 
+    if (string.IsNullOrWhiteSpace(request.ProfileToken))
+        return Results.BadRequest(new { error = "ProfileToken is required." });
+
+    request = request with
+    {
+        Pan = Math.Clamp(request.Pan, -1f, 1f),
+        Tilt = Math.Clamp(request.Tilt, -1f, 1f),
+        Zoom = Math.Clamp(request.Zoom, -1f, 1f)
+    };
+
     var ptzUrl = device.Capabilities.PtzServiceAddress ?? device.ServiceAddress.Replace("/device_service", "/ptz_service");
     using var service = new OnvifPtzService();
     try
@@ -291,6 +396,9 @@ app.MapPost("/api/devices/{address}/ptz/stop", async (string address, PtzStopReq
 {
     if (!connectedDevices.TryGetValue(address, out var device))
         return Results.NotFound(new { error = $"Device {address} not found" });
+
+    if (string.IsNullOrWhiteSpace(request.ProfileToken))
+        return Results.BadRequest(new { error = "ProfileToken is required." });
 
     var ptzUrl = device.Capabilities.PtzServiceAddress ?? device.ServiceAddress.Replace("/device_service", "/ptz_service");
     using var service = new OnvifPtzService();
@@ -342,6 +450,62 @@ app.MapGet("/api/devices/{address}/ptz/presets/{profileToken}", async (string ad
 });
 
 app.Run();
+
+static string GenerateDefaultApiKey()
+{
+    var bytes = new byte[32];
+    using var rng = RandomNumberGenerator.Create();
+    rng.GetBytes(bytes);
+    var key = Convert.ToBase64String(bytes).Replace("+", "").Replace("/", "").Replace("=", "")[..32];
+    Console.WriteLine($"[SECURITY] Generated API key: {key}");
+    Console.WriteLine($"[SECURITY] Set ODM_API_KEY environment variable or ApiKey in appsettings to use a fixed key.");
+    return key;
+}
+
+static bool IsValidDeviceAddress(string address)
+{
+    if (address.Contains("://"))
+    {
+        if (!Uri.TryCreate(address, UriKind.Absolute, out var uri))
+            return false;
+        return uri.Scheme == "http" || uri.Scheme == "https";
+    }
+
+    if (IPAddress.TryParse(address, out var ip))
+    {
+        if (IPAddress.IsLoopback(ip)) return false;
+        if (ip.Equals(IPAddress.Any) || ip.Equals(IPAddress.IPv6Any)) return false;
+        return true;
+    }
+
+    return Regex.IsMatch(address, @"^[a-zA-Z0-9][a-zA-Z0-9\-\.]*[a-zA-Z0-9]$") && address.Length <= 253;
+}
+
+static bool IsValidOnvifUrl(string url)
+{
+    if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+        return false;
+
+    if (uri.Scheme != "http" && uri.Scheme != "https")
+        return false;
+
+    if (uri.Host == "localhost" || uri.Host == "127.0.0.1" || uri.Host == "::1")
+        return false;
+
+    if (uri.Host.StartsWith("169.254."))
+        return false;
+
+    return true;
+}
+
+static string SanitizeString(string input, int maxLength)
+{
+    if (string.IsNullOrEmpty(input)) return string.Empty;
+    var sanitized = input.Trim();
+    if (sanitized.Length > maxLength)
+        sanitized = sanitized[..maxLength];
+    return Regex.Replace(sanitized, @"[<>""'&]", "");
+}
 
 record AddDeviceRequest(string Address, string? Name, string? Username, string? Password);
 record PtzMoveRequest(string ProfileToken, float Pan, float Tilt, float Zoom);
