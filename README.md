@@ -27,6 +27,8 @@ A modern, feature-rich ONVIF Device Manager built with C# and .NET 8. The deskto
 
 Self-contained executables — **no .NET runtime installation required**. Just download, extract, and run.
 
+A **git clone** already duplicates the full source repository (commits, branches, tags). Frozen Release ZIPs and CI artifacts live **outside** git; to copy those onto this machine as well, see **[Local GitHub mirror](#local-github-mirror)**.
+
 ### Build links
 
 | Source | What | How |
@@ -154,6 +156,44 @@ dotnet run --project src/OnvifDeviceManager
 dotnet publish src/OnvifDeviceManager/OnvifDeviceManager.csproj -c Release -r win-x64 -o publish/preview-executables/OnvifDeviceManager-Avalonia-win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
+## Local GitHub mirror
+
+Yes — you can keep a complete local copy. GitHub is **two** stores, not one:
+
+| What is on GitHub | In a normal clone? | How to have it on this machine |
+|-------------------|--------------------|--------------------------------|
+| Source, commits, **all branches**, **all tags** | **Yes** | `git clone` then `git fetch --all --tags --prune` |
+| Frozen Release ZIPs (`releases/download/…`) | **No** (not git objects; `.gitignore` keeps them out of the repo) | `.\scripts\mirror-github-locally.ps1` or `gh release download` |
+| Newest `main` CI portable ZIP (Actions artifact) | **No** (expires ~30 days) | Same script with `-IncludeCiArtifact`, or `gh run download` |
+| Issues, pull requests, Actions logs, secrets | **No** | Stay on GitHub (`gh issue list`, the Actions UI, etc.) |
+
+**Working clone (what you edit and build):**
+
+```powershell
+git clone https://github.com/devildog5x5/ONVIF-ODM.git
+cd ONVIF-ODM
+git fetch --all --tags --prune
+```
+
+**Bare backup** (git database only — no working files, good as a spare copy):
+
+```powershell
+git clone --mirror https://github.com/devildog5x5/ONVIF-ODM.git ONVIF-ODM.git
+# later: cd ONVIF-ODM.git; git remote update --prune
+```
+
+**Source plus every Release ZIP** (writes into gitignored `github-mirror/`):
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\mirror-github-locally.ps1
+# also pull the latest successful main CI Windows ZIP:
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\mirror-github-locally.ps1 -IncludeCiArtifact
+```
+
+Requires [GitHub CLI](https://cli.github.com/) (`gh auth login`). Re-runs skip files that are already in `github-mirror/releases/<tag>/`.
+
+**Current binaries from this source** (no GitHub download): `.\create-release-package.ps1` — that is the usual way to get a Windows/Linux/macOS drop that matches the tree you have checked out, instead of mirroring older Release stamps.
+
 ## Release Build SOP
 
 Standard procedure for creating a release:
@@ -248,11 +288,12 @@ OnvifDeviceManager.sln
 
 ### Key files — last modified (on disk)
 
-Dates below are **file last-write time** in the maintainer workspace when this section was last refreshed (**2026-03-28 local**). After you pull or edit files, run the snippet under the table to see current dates on your machine. For **last git commit** per path, use: `git log -1 --format=%cs -- <path>`.
+Dates below are **file last-write time** in the maintainer workspace when this section was last refreshed (**2026-08-13 local**). After you pull or edit files, run the snippet under the table to see current dates on your machine. For **last git commit** per path, use: `git log -1 --format=%cs -- <path>`.
 
 | Path | Purpose | Last modified |
 |------|---------|---------------|
-| `README.md` | Download links, SOPs, key paths | 2026-03-29 (CI pin run 37) |
+| `README.md` | Download links, SOPs, key paths, local mirror | 2026-08-13 |
+| `scripts/mirror-github-locally.ps1` | Fetch all git refs + download Release/CI ZIPs locally | 2026-08-13 |
 | `Directory.Build.props` | Default `Version` + `ApplicationIcon` for repo projects | 2026-03-25 |
 | `.github/workflows/dotnet.yml` | CI Release build (Windows runner) | 2026-03-25 21:43 |
 | `branding/master-icon.png` | Master icon image | 2026-03-24 16:16 |
@@ -280,7 +321,7 @@ Dates below are **file last-write time** in the maintainer workspace when this s
 
 ```powershell
 $paths = @(
-  'README.md',
+  'README.md','scripts/mirror-github-locally.ps1',
   'Directory.Build.props','.github/workflows/dotnet.yml',
   'branding/master-icon.png','warrior_icon.ico',
   'src/OnvifDeviceManager/OnvifDeviceManager.csproj','src/OnvifDeviceManager/app.manifest',

@@ -54,6 +54,9 @@ publish/
 ## Local release drops at repo root (use GitHub Releases for binaries)
 /OnvifDeviceManager-*.zip
 
+## Local GitHub extras (Release ZIPs / CI artifacts from scripts/mirror-github-locally.ps1)
+/github-mirror/
+
 ## OS Files
 .DS_Store
 Thumbs.db
