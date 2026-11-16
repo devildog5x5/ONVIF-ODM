@@ -201,8 +201,6 @@ When you finish a **release-style** or **hotfix** build (local `build-all` / `cr
 | F | **Hotfix / support SOP** §6 | End user receives the **same verbatim direct URLs** as README **Latest direct download links** (Windows + Linux/macOS if built)—not “get it from Releases.” |
 | G | **`dotnet build -c Release`** | Solution builds clean before packaging (no new errors). |
 
-**Agents / automation:** After packaging, output a short **“SOP completion”** block listing A–G with ✅ or N/A so nothing is skipped.
-
 ## Project Structure
 
 ```
