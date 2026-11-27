@@ -49,9 +49,10 @@ jobs:
 
       - name: Upload portable ZIP (version + timestamp in .zip file name)
         if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch' }}
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: ONVIF-ODM-Windows-x64-r${{ github.run_number }}-${{ github.run_attempt }}
           path: artifacts/zips/*.zip
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 3
